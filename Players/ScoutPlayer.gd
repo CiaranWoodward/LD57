@@ -63,19 +63,6 @@ func execute_ability(ability_name: String, target) -> bool:
 			push_error("ScoutPlayer: " + entity_name + " - Unknown ability: " + ability_name)
 			return false
 
-# Scout moves more efficiently (costs less AP)
-func move_along_path(delta: float):
-	# Store the original path length
-	var original_path_size = path.size()
-	
-	# Call parent implementation from Entity (skip PlayerEntity)
-	super.move_along_path(delta)
-	
-	# If we completed a step, consume action points with 25% chance of no cost
-	if path.size() < original_path_size and original_path_size > 0:
-		if randf() > 0.25:  # 25% chance of free movement
-			action_points = max(0, action_points - 1)
-
 # Override level up to focus on movement and vision
 func on_level_up():
 	super.on_level_up()
