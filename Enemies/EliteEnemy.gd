@@ -7,7 +7,7 @@ func _init():
 
 func _ready():
 	super._ready()
-	set_enemy_type(EnemyType.ELITE)
+	enemy_type = EnemyType.ELITE
 	
 	# Additional elite-specific configuration
 	move_speed = 1.0

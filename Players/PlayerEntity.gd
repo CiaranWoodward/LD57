@@ -11,6 +11,7 @@ var level: int = 1
 # Signals
 signal ability_used(ability_name)
 signal level_up(new_level)
+signal action_points_changed(current, maximum)
 
 func _init():
 	entity_name = "Player"
@@ -30,10 +31,34 @@ func configure_player():
 	move_speed = 1.0
 	abilities = []
 
-# Start a new turn for this player
+# Override start_turn from Entity
 func start_turn():
+	# Call parent implementation first
+	super.start_turn()
+	print("PlayerEntity: " + entity_name + " starting turn")
+	
+	# Reset action points for new turn
 	action_points = max_action_points
+	emit_signal("action_points_changed", action_points, max_action_points)
+	
+	# Process status effects
 	process_status_effects()
+	
+	# Players wait for user input, so don't finish turn automatically
+	# The turn will be finished by the user's actions (movement/abilities)
+	# or by the UI "End Turn" button
+	print("PlayerEntity: " + entity_name + " waiting for player input")
+
+# Override finish_turn from Entity
+func finish_turn():
+	print("PlayerEntity: " + entity_name + " finishing turn")
+	
+	# Check if still moving
+	if is_moving:
+		print("PlayerEntity: " + entity_name + " is still moving, delaying turn finish")
+		return
+	
+	super.finish_turn()
 
 # Use an ability (returns true if successfully used)
 func use_ability(ability_name: String, target) -> bool:
@@ -52,7 +77,13 @@ func use_ability(ability_name: String, target) -> bool:
 	
 	if success:
 		action_points -= ap_cost
+		emit_signal("action_points_changed", action_points, max_action_points)
 		emit_signal("ability_used", ability_name)
+		
+		# Check if we should finish our turn due to no action points
+		if action_points <= 0:
+			print("PlayerEntity: " + entity_name + " out of action points after ability, finishing turn")
+			call_deferred("finish_turn")
 	
 	return success
 
@@ -87,9 +118,6 @@ func on_level_up():
 
 # Override move_along_path to consume action points
 func move_along_path(delta: float):
-	# Assert GameController reference exists
-	assert(game_controller != null, "PlayerEntity: " + entity_name + " - GameController reference not set!")
-	
 	# Store the original path length
 	var original_path_size = path.size()
 	
@@ -100,31 +128,40 @@ func move_along_path(delta: float):
 	if path.size() < original_path_size and original_path_size > 0:
 		action_points = max(0, action_points - 1)
 		print("PlayerEntity: " + entity_name + " used action point, " + str(action_points) + " remaining")
+		emit_signal("action_points_changed", action_points, max_action_points)
 		
-		# If we're out of action points, make sure the game controller knows
-		if action_points <= 0:
-			print("PlayerEntity: " + entity_name + " is out of action points")
-			
-			# If we can't continue further because we're out of action points, stop and finish movement
-			if path.size() > 0:
-				print("PlayerEntity: " + entity_name + " stopping movement due to no action points")
-				finish_movement()
-				
-			# Verify GameController has required method
-			assert(game_controller.has_method("check_player_action_points"), 
-				"PlayerEntity: " + entity_name + " - GameController missing check_player_action_points method!")
-			
-			# Call deferred to avoid frame timing issues
-			call_deferred("notify_zero_action_points")
+		# If we're out of action points, stop movement and finish turn
+		if action_points <= 0 and path.size() > 0:
+			print("PlayerEntity: " + entity_name + " stopping movement due to no action points")
+			path.clear()
+			is_moving = false
+			_on_path_completed()
+		
+		# Otherwise, check if the player has completed all their movement
+		if path.size() == 0 and action_points <= 0:
+			print("PlayerEntity: " + entity_name + " out of action points after movement, finishing turn")
+			call_deferred("finish_turn")
 
-# Helper to notify GameController about zero action points
-func notify_zero_action_points():
-	assert(game_controller != null, "PlayerEntity: " + entity_name + " - GameController reference not set!")
-	assert(game_controller.has_method("check_player_action_points"), 
-		"PlayerEntity: " + entity_name + " - GameController missing check_player_action_points method!")
+# Override _on_path_completed to handle turn completion
+func _on_path_completed():
+	super._on_path_completed()
 	
-	print("PlayerEntity: " + entity_name + " calling check_player_action_points")
-	game_controller.check_player_action_points(self)
+	# Check if we're out of action points
+	if action_points <= 0:
+		print("PlayerEntity: " + entity_name + " path completed with no action points, finishing turn")
+		call_deferred("finish_turn")
+
+# Force end the player's turn when requested by UI
+func end_turn():
+	print("PlayerEntity: " + entity_name + " turn manually ended by player")
+	
+	# If we're moving, stop movement
+	if is_moving:
+		path.clear()
+		is_moving = false
+	
+	# Finish the turn
+	call_deferred("finish_turn")
 
 # Get the current action points
 func get_action_points() -> int:

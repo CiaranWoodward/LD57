@@ -7,7 +7,7 @@ func _init():
 
 func _ready():
 	super._ready()
-	set_enemy_type(EnemyType.BOSS)
+	enemy_type = EnemyType.BOSS
 	
 	# Additional boss-specific configuration
 	move_speed = 0.6

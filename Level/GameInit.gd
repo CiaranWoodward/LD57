@@ -6,11 +6,15 @@ extends Node2D
 # Reference to key nodes
 @onready var map = $Map
 @onready var game_controller = $GameController
+@onready var end_turn_button = $CanvasLayer/UI/EndTurnButton
 
 func _ready():
 	print("GameInit: Initializing game")
 	# Wait for one frame to ensure all nodes are ready
 	await get_tree().process_frame
+	
+	# Set up UI elements
+	setup_ui()
 	
 	# Get references to nodes
 	var map_node = get_node_or_null("Map")
@@ -43,8 +47,8 @@ func _ready():
 		
 		# Connect to game events
 		print("GameInit: Connecting to game events")
-		game_controller.connect("turn_changed", Callable(self, "_on_turn_changed"))
-		game_controller.connect("game_state_changed", Callable(self, "_on_game_state_changed"))
+		game_controller.turn_changed.connect(_on_turn_changed)
+		game_controller.game_state_changed.connect(_on_game_state_changed)
 		
 		# Start the game
 		print("GameInit: Starting the game")
@@ -56,16 +60,42 @@ func _ready():
 		if not game_controller:
 			push_error("GameInit: GameController node not found")
 
+# Set up UI elements
+func setup_ui():
+	if end_turn_button:
+		end_turn_button.pressed.connect(_on_end_turn_button_pressed)
+		# Initially hide the button until player turn
+		end_turn_button.visible = false
+	else:
+		push_error("GameInit: End Turn Button not found in UI")
+
 # Handle turn changes
 func _on_turn_changed(turn: String):
 	print("GameInit: Turn changed to: " + turn)
 	
-	# You can implement UI updates or other logic here
-	# For example, display whose turn it is on the screen
+	# Show/hide end turn button based on turn
+	if end_turn_button:
+		end_turn_button.visible = (turn == "player")
 
 # Handle game state changes
 func _on_game_state_changed(state: String):
 	print("GameInit: Game state changed to: " + state)
 	
-	# You can implement UI updates or other logic here
-	# For example, show a game over screen if state is "game_over" 
+	# Update UI based on game state
+	if state == "player_turn":
+		if end_turn_button:
+			end_turn_button.visible = true
+	else:
+		if end_turn_button:
+			end_turn_button.visible = false
+	
+	# Show game over screen if needed
+	if state == "game_over":
+		print("GameInit: Game over detected, showing end screen")
+		# Implementation for game over screen would go here
+
+# Handle end turn button press
+func _on_end_turn_button_pressed():
+	print("GameInit: End Turn button pressed")
+	if game_controller:
+		game_controller.end_current_player_turn() 

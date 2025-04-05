@@ -7,7 +7,7 @@ func _init():
 
 func _ready():
 	super._ready()
-	set_enemy_type(EnemyType.GRUNT)
+	enemy_type = EnemyType.GRUNT
 	
 	# Additional grunt-specific configuration
 	move_speed = 0.8

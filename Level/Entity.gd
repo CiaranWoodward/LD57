@@ -1,5 +1,5 @@
 class_name Entity
-extends Node2D
+extends ActionableCharacter
 
 # Entity properties
 var entity_id: String = ""
@@ -26,19 +26,16 @@ var is_dead: bool = false
 var status_effects: Dictionary = {}
 
 # Signals
-signal movement_completed()
 signal entity_selected(entity)
 signal health_changed(current, maximum)
 signal status_effect_applied(effect_name)
 signal status_effect_removed(effect_name)
 signal died()
 
-# Update the _ready method to assert controller reference is set
+# Update the _ready method to initialize entity
 func _ready():
+	super._ready()
 	print("Entity: Initializing " + entity_name + " [" + entity_id + "]")
-	
-	# Assert that the GameController reference is set
-	assert(game_controller != null, "Entity: " + entity_name + " - GameController reference not set!")
 	
 	# Connect Area2D input events if available
 	var area = get_node_or_null("Area2D")
@@ -54,45 +51,30 @@ func _process(delta):
 	if is_moving and path.size() > 0:
 		move_along_path(delta)
 
+# Override the start_turn function from ActionableCharacter
+func start_turn():
+	super.start_turn()
+	print("Entity: " + entity_name + " starting turn")
+
+# Override the finish_turn function from ActionableCharacter
+func finish_turn():
+	print("Entity: " + entity_name + " finishing turn")
+	
+	# Make sure we're not moving before finishing the turn
+	if is_moving:
+		print("Entity: " + entity_name + " is still moving, delaying turn finish")
+		return
+	
+	super.finish_turn()
+
 # Set a path for the entity to follow
 func set_path(new_path: Array):
 	if new_path.size() > 0:
 		print("Entity: " + entity_name + " setting new path with " + str(new_path.size()) + " steps")
 		path = new_path
 		is_moving = true
-		ensure_movement_signal_connected()
 	else:
 		print("Entity: " + entity_name + " received empty path")
-
-# Helper method to ensure the movement_completed signal is connected to the GameController
-func ensure_movement_signal_connected():
-	assert(game_controller != null, "Entity: " + entity_name + " - GameController reference not set!")
-	assert(game_controller.has_method("_on_entity_movement_completed"), 
-		"Entity: " + entity_name + " - GameController missing _on_entity_movement_completed method!")
-	
-	if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
-		print("Entity: " + entity_name + " connecting movement signal to GameController")
-		connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
-
-# Helper to finish movement and emit signal
-func finish_movement():
-	is_moving = false
-	path.clear()
-	print("Entity: " + entity_name + " completed movement")
-	
-	# Assert that GameController reference exists and has required method
-	assert(game_controller != null, "Entity: " + entity_name + " - GameController reference not set!")
-	assert(game_controller.has_method("_on_entity_movement_completed"), 
-		"Entity: " + entity_name + " - GameController missing _on_entity_movement_completed method!")
-	
-	# Ensure proper signal connection
-	if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
-		print("Entity: " + entity_name + " connecting movement signal to GameController")
-		connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
-	
-	# Emit the movement_completed signal
-	print("Entity: " + entity_name + " emitting movement_completed signal")
-	emit_signal("movement_completed", self)
 
 # Place entity on a tile
 func place_on_tile(tile: IsometricTile):
@@ -282,7 +264,7 @@ func _input_event(_viewport, event, _shape_idx):
 # Move along the current path
 func move_along_path(delta: float):
 	if path.size() == 0:
-		finish_movement()
+		_on_path_completed()
 		return
 		
 	var next_position = path[0]
@@ -290,7 +272,7 @@ func move_along_path(delta: float):
 	# Assert that isometric_map reference exists
 	if not isometric_map:
 		push_error("Entity: " + entity_name + " - No isometric map found in Entity.move_along_path")
-		finish_movement()
+		_on_path_completed()
 		return
 	
 	var target_tile = isometric_map.get_tile(next_position)
@@ -298,7 +280,7 @@ func move_along_path(delta: float):
 	if target_tile == null or not target_tile.is_walkable or (target_tile.is_occupied and target_tile != current_tile):
 		# Path is blocked, stop moving
 		print("Entity: " + entity_name + " path blocked at " + str(next_position))
-		finish_movement()
+		_on_path_completed()
 		return
 		
 	# Calculate movement direction
@@ -328,7 +310,18 @@ func move_along_path(delta: float):
 		
 		# If the path is now empty, we're done moving
 		if path.size() == 0:
-			finish_movement()
+			_on_path_completed()
 	else:
 		# Move toward the target
 		position += direction * distance_to_move 
+
+# Called when the entity has completed following its path
+func _on_path_completed():
+	print("Entity: " + entity_name + " completed movement")
+	is_moving = false
+	path.clear()
+	
+	# Check if this was during our turn, and if so, we might finish our turn
+	if is_turn_active:
+		print("Entity: " + entity_name + " will finish turn after movement completed")
+		call_deferred("finish_turn") 

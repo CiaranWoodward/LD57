@@ -27,37 +27,39 @@ func _ready():
 	super._ready()
 	# Enemy-specific initialization here
 
-# Set the enemy type and initialize type-specific properties
-func set_enemy_type(new_type: EnemyType):
-	enemy_type = new_type
+# Override start_turn from Entity
+func start_turn():
+	super.start_turn()
+	print("EnemyEntity: " + entity_name + " starting turn")
 	
-	# Configure based on type
-	match enemy_type:
-		EnemyType.GRUNT:
-			entity_name = "Grunt"
-			move_speed = 0.8
-			detection_range = 4
-			aggression_level = 0.4
-			
-		EnemyType.ELITE:
-			entity_name = "Elite"
-			move_speed = 1.0
-			detection_range = 6
-			aggression_level = 0.7
-			
-		EnemyType.BOSS:
-			entity_name = "Boss"
-			move_speed = 0.6
-			detection_range = 8
-			aggression_level = 0.9
-			max_health = 20
-			current_health = 20
-			
-		EnemyType.MINION:
-			entity_name = "Minion"
-			move_speed = 1.2
-			detection_range = 3
-			aggression_level = 0.3
+	# Only process turn if not already moving
+	if is_moving:
+		print("EnemyEntity: " + entity_name + " is already moving, delaying turn processing")
+		return
+	
+	# Get player entities from game controller
+	var player_entities = []
+	if game_controller and game_controller.has_method("get_player_entities"):
+		player_entities = game_controller.get_player_entities()
+	
+	# Process AI turn
+	var did_move = process_turn(player_entities)
+	
+	# If we didn't move, finish turn immediately
+	if not did_move:
+		print("EnemyEntity: " + entity_name + " didn't move, finishing turn")
+		call_deferred("finish_turn")
+
+# Override finish_turn from Entity
+func finish_turn():
+	print("EnemyEntity: " + entity_name + " finishing turn")
+	
+	# Check if still moving - if so, delay turn finish
+	if is_moving:
+		print("EnemyEntity: " + entity_name + " is still moving, delaying turn finish")
+		return
+	
+	super.finish_turn()
 
 # Set patrol path (array of grid positions)
 func set_patrol_path(path_positions: Array):
@@ -96,9 +98,6 @@ func process_turn(player_entities: Array):
 				if path_to_last_known.size() > 0:
 					path = path_to_last_known
 					is_moving = true
-					
-					# Ensure signal is connected
-					ensure_movement_signal_connected()
 				else:
 					# Can't reach last known position, go back to patrol
 					last_known_player_position = Vector2i(-1, -1)
@@ -199,9 +198,6 @@ func pursue_target():
 			path.append(path_to_target[i])
 		
 		is_moving = true
-		
-		# Ensure movement signal is connected
-		ensure_movement_signal_connected()
 
 # Follow patrol path
 func follow_patrol_path():
@@ -227,9 +223,6 @@ func follow_patrol_path():
 		for i in range(min(2, path_to_patrol.size())):
 			path.append(path_to_patrol[i])
 		is_moving = true
-		
-		# Ensure movement signal is connected
-		ensure_movement_signal_connected()
 
 # Set alert status
 func set_alert_status(status: String):
@@ -237,21 +230,11 @@ func set_alert_status(status: String):
 		alert_status = status
 		emit_signal("alert_status_changed", status) 
 
-# Called when entity has completed following the path
-func finish_movement():
-	print("EnemyEntity: " + entity_name + " finished movement")
-	# Clear the path
-	path = []
-	is_moving = false
+# Override _on_path_completed to check movement completion
+func _on_path_completed():
+	super._on_path_completed()
 	
-	# Ensure we're connected to the GameController before emitting
-	ensure_movement_signal_connected()
-	
-	# Emit signal that we've completed our movement
-	print("EnemyEntity: " + entity_name + " emitting movement_completed signal")
-	emit_signal("movement_completed", self)
-
-# Ensure movement signal is connected to GameController
-func ensure_movement_signal_connected():
-	# Use the base implementation which now has proper assertions
-	super.ensure_movement_signal_connected() 
+	# For enemy entities, check if we need to finish our turn after movement
+	if is_turn_active:
+		print("EnemyEntity: " + entity_name + " path completed during active turn, will finish turn")
+		call_deferred("finish_turn") 
