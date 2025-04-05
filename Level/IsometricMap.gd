@@ -135,21 +135,110 @@ func is_valid_position(grid_pos: Vector2i) -> bool:
 		print("IsometricMap: Position " + str(grid_pos) + " is outside of map bounds")
 	return valid
 	
-# Get the path between two tiles (simple implementation, can be expanded later)
+# Get the path between two tiles using A* pathfinding
 func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
 	print("IsometricMap: Finding path from " + str(start_pos) + " to " + str(end_pos))
-	# This is a placeholder. Consider implementing A* pathfinding here
-	# For now, just return a straight line between the points
-	var path = []
 	
 	# Validate positions
 	if not is_valid_position(start_pos) or not is_valid_position(end_pos):
 		print("IsometricMap: Cannot find path - invalid positions")
-		return path
-		
-	# For now, just add the end position
-	# This should be replaced with proper pathfinding
-	path.append(end_pos)
+		return []
 	
-	print("IsometricMap: Path found with " + str(path.size()) + " steps")
-	return path 
+	# Get tiles for start and end
+	var start_tile = get_tile(start_pos)
+	var end_tile = get_tile(end_pos)
+	
+	# Check if the end position is already occupied by a different entity
+	if end_tile.is_occupied and end_tile != start_tile:
+		print("IsometricMap: Cannot find path - destination is occupied")
+		return []
+		
+	# Check if the end position is unwalkable
+	if not end_tile.is_walkable:
+		print("IsometricMap: Cannot find path - destination is not walkable")
+		return []
+	
+	# A* pathfinding
+	var open_set = []  # Tiles to be evaluated
+	var closed_set = []  # Tiles already evaluated
+	var came_from = {}  # Keep track of best path
+	
+	# Cost from start to current position
+	var g_score = {}
+	g_score[start_pos] = 0
+	
+	# Estimated total cost from start to goal through this position
+	var f_score = {}
+	f_score[start_pos] = heuristic_cost_estimate(start_pos, end_pos)
+	
+	# Add start to open set
+	open_set.append(start_pos)
+	
+	while not open_set.is_empty():
+		# Find tile with lowest f_score in open_set
+		var current_pos = open_set[0]
+		var current_f_score = f_score[current_pos]
+		
+		for pos in open_set:
+			if f_score[pos] < current_f_score:
+				current_pos = pos
+				current_f_score = f_score[pos]
+		
+		# If we reached the goal, reconstruct and return the path
+		if current_pos == end_pos:
+			return reconstruct_path(came_from, current_pos)
+		
+		# Move current from open to closed set
+		open_set.erase(current_pos)
+		closed_set.append(current_pos)
+		
+		# Check neighbors
+		for neighbor_tile in get_neighbors(current_pos):
+			var neighbor_pos = neighbor_tile.grid_position
+			
+			# Skip if already evaluated
+			if neighbor_pos in closed_set:
+				continue
+			
+			# Skip if neighbor is not walkable or is occupied
+			if not neighbor_tile or not neighbor_tile.is_walkable or (neighbor_tile.is_occupied and neighbor_tile != end_tile):
+				continue
+			
+			# Calculate tentative g_score
+			var tentative_g_score = g_score[current_pos] + neighbor_tile.movement_cost
+			
+			# Add to open set if not already there
+			if not neighbor_pos in open_set:
+				open_set.append(neighbor_pos)
+			elif tentative_g_score >= g_score.get(neighbor_pos, INF):
+				# This is not a better path
+				continue
+			
+			# This is the best path so far
+			came_from[neighbor_pos] = current_pos
+			g_score[neighbor_pos] = tentative_g_score
+			f_score[neighbor_pos] = g_score[neighbor_pos] + heuristic_cost_estimate(neighbor_pos, end_pos)
+	
+	# No path found
+	print("IsometricMap: No path found from " + str(start_pos) + " to " + str(end_pos))
+	return []
+
+# Helper for A* pathfinding - estimate cost
+func heuristic_cost_estimate(from_pos: Vector2i, to_pos: Vector2i) -> float:
+	# Manhattan distance
+	return abs(to_pos.x - from_pos.x) + abs(to_pos.y - from_pos.y)
+
+# Helper for A* pathfinding - reconstruct path
+func reconstruct_path(came_from: Dictionary, current_pos: Vector2i) -> Array:
+	var total_path = [current_pos]
+	
+	while current_pos in came_from:
+		current_pos = came_from[current_pos]
+		total_path.insert(0, current_pos)
+	
+	# Remove the starting position from the path
+	if total_path.size() > 1:
+		total_path.remove_at(0)
+	
+	print("IsometricMap: Path found with " + str(total_path.size()) + " steps")
+	return total_path 

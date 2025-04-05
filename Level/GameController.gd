@@ -80,7 +80,23 @@ func move_entity_to_tile(entity, target_grid_pos):
 			print("GameController: Entity has no action points left")
 			return
 	
-	# Get the path to the target
+	# Get the target tile
+	var target_tile = isometric_map.get_tile(target_grid_pos)
+	if not target_tile:
+		print("GameController: Cannot move - target tile does not exist")
+		return
+	
+	# Check if target tile is walkable
+	if not target_tile.is_walkable:
+		print("GameController: Cannot move - target tile is not walkable")
+		return
+	
+	# Check if target tile is already occupied by a different entity
+	if target_tile.is_occupied and target_tile != entity.current_tile:
+		print("GameController: Cannot move - target tile is already occupied")
+		return
+	
+	# Get the path to the target (A* will also verify tile occupation)
 	var path = isometric_map.find_path(entity.grid_position, target_grid_pos)
 	
 	if path.size() > 0:
