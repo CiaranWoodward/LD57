@@ -72,25 +72,7 @@ func _on_area_input_event(_viewport, event, _shape_idx):
 
 # Get the world position for an entity to be placed on this tile
 func get_entity_position() -> Vector2:
-	# Calculate the center of the tile
-	# For isometric tiles, the visual center might need adjustment
-	# Add an offset to account for the isometric perspective
-	var entity_pos = position
-	
-	# Optional: Add vertical offset if needed to better align the entity visually
-	# Adjust the -16 value if needed to fine-tune the positioning
-	entity_pos.y -= 16  # Small vertical offset to make entity appear more centered
-	
-	return entity_pos
-
-# Convert grid coordinates to isometric world position
-func grid_to_world(grid_pos: Vector2i, tile_width: int, tile_height: int) -> Vector2:
-	var world_x = (grid_pos.x - grid_pos.y) * (tile_width / 2)
-	var world_y = (grid_pos.x + grid_pos.y) * (tile_height / 2)
-	return Vector2(world_x, world_y)
-
-# Convert isometric world position to grid coordinates
-func world_to_grid(world_pos: Vector2, tile_width: int, tile_height: int) -> Vector2i:
-	var grid_x = (world_pos.x / (tile_width / 2) + world_pos.y / (tile_height / 2)) / 2
-	var grid_y = (world_pos.y / (tile_height / 2) - world_pos.x / (tile_width / 2)) / 2
-	return Vector2i(round(grid_x), round(grid_y))
+	# Return the center of the tile with a positive Y offset
+	# This makes the entity appear at the bottom of the tile,
+	# which looks correct in isometric view
+	return position + Vector2(0, 32)

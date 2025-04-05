@@ -1,6 +1,18 @@
 class_name GameController
 extends Node
 
+# State machine states
+enum GameState {
+	IDLE,
+	PLAYER_TURN_INIT,
+	PLAYER_TURN_ACTIVE,
+	PLAYER_TURN_END,
+	ENEMY_TURN_INIT,
+	ENEMY_TURN_ACTIVE,
+	ENEMY_TURN_END,
+	GAME_OVER
+}
+
 # References to game nodes
 var isometric_map = null
 var selected_entity = null
@@ -13,10 +25,11 @@ var enemy_entities = []
 @export var player_entity_scene: PackedScene  # Reference to the player entity scene to instantiate
 @export var enemy_entity_scene: PackedScene   # Reference to the enemy entity scene to instantiate
 
-# Game state
-var current_turn: String = "player"  # "player" or "enemy"
-var game_state: String = "idle"  # "idle", "player_turn", "enemy_turn", "game_over"
+# Game state 
+var current_state = GameState.IDLE
 var active_player_index: int = 0   # Index of the current active player entity
+var processing_enemy_index: int = -1 # Index of the enemy currently being processed
+var entities_in_motion: Array = [] # Tracks entities that are currently moving
 
 # Signals
 signal turn_changed(turn)
@@ -26,6 +39,10 @@ signal player_activated(player_entity)
 
 func _ready():
 	print("GameController: Initializing")
+	
+	# Add self to a group for easier finding by entities
+	add_to_group("game_controller")
+	
 	# Find the map in the scene
 	isometric_map = get_node_or_null("../Map")
 	if isometric_map:
@@ -34,32 +51,143 @@ func _ready():
 	else:
 		push_error("GameController: Map not found!")
 
+# State machine handling
+func change_state(new_state):
+	# Prevent changing to the same state
+	if new_state == current_state:
+		print("GameController: Already in state " + get_state_name(new_state) + ", ignoring transition")
+		return
+	
+	# Debug output
+	var old_state = current_state
+	print("GameController: State changing from " + get_state_name(old_state) + " to " + get_state_name(new_state))
+	
+	# Exit state actions
+	match old_state:
+		GameState.PLAYER_TURN_ACTIVE:
+			# Clean up any player turn specific state
+			selected_entity = null
+		GameState.ENEMY_TURN_ACTIVE:
+			# Clean up any enemy turn specific state
+			entities_in_motion.clear()
+	
+	# Update the state
+	current_state = new_state
+	
+	# Entry state actions
+	match new_state:
+		GameState.PLAYER_TURN_INIT:
+			print("GameController: Initializing player turn")
+			# Reset player entities for new turn
+			active_player_index = 0
+			for player in player_entities:
+				player.start_turn()
+				print("GameController: Reset player: " + player.entity_name + " with " + str(player.action_points) + " action points")
+			
+			# Transition to active player turn
+			emit_signal("turn_changed", "player")
+			emit_signal("game_state_changed", "player_turn")
+			
+			# Defer the state change to avoid issues with signal processing
+			call_deferred("change_state", GameState.PLAYER_TURN_ACTIVE)
+			
+		GameState.PLAYER_TURN_ACTIVE:
+			print("GameController: Starting player turn")
+			# Activate first player with action points
+			activate_next_player(true)
+			
+		GameState.PLAYER_TURN_END:
+			print("GameController: Ending player turn")
+			# Clean up player turn
+			selected_entity = null
+			
+			# Defer the state change to avoid issues with signal processing
+			call_deferred("change_state", GameState.ENEMY_TURN_INIT)
+			
+		GameState.ENEMY_TURN_INIT:
+			print("GameController: Initializing enemy turn")
+			# Set up enemy turn
+			processing_enemy_index = -1
+			entities_in_motion.clear()
+			
+			emit_signal("turn_changed", "enemy")
+			emit_signal("game_state_changed", "enemy_turn")
+			
+			# Defer the state change to avoid issues with signal processing
+			call_deferred("change_state", GameState.ENEMY_TURN_ACTIVE)
+			
+		GameState.ENEMY_TURN_ACTIVE:
+			print("GameController: Starting enemy turn")
+			# Start processing enemies one by one
+			call_deferred("process_next_enemy")
+			
+		GameState.ENEMY_TURN_END:
+			print("GameController: Ending enemy turn")
+			# Clean up enemy turn
+			entities_in_motion.clear()
+			
+			# Print debug info for verification
+			print("GameController: About to transition to player turn")
+			
+			# Defer the state change to avoid issues with signal processing
+			call_deferred("change_state", GameState.PLAYER_TURN_INIT)
+			
+		GameState.GAME_OVER:
+			print("GameController: Game over")
+			emit_signal("game_state_changed", "game_over")
+
+# Returns the name of the state for debugging
+func get_state_name(state):
+	match state:
+		GameState.IDLE: return "IDLE"
+		GameState.PLAYER_TURN_INIT: return "PLAYER_TURN_INIT"
+		GameState.PLAYER_TURN_ACTIVE: return "PLAYER_TURN_ACTIVE" 
+		GameState.PLAYER_TURN_END: return "PLAYER_TURN_END"
+		GameState.ENEMY_TURN_INIT: return "ENEMY_TURN_INIT"
+		GameState.ENEMY_TURN_ACTIVE: return "ENEMY_TURN_ACTIVE"
+		GameState.ENEMY_TURN_END: return "ENEMY_TURN_END"
+		GameState.GAME_OVER: return "GAME_OVER"
+		_: return "UNKNOWN"
+
 # Called when a tile is selected on the map
 func _on_tile_selected(tile):
-	print("GameController: Tile selected at " + str(tile.grid_position))
-	# If we have a selected entity and it's player's turn, try to move it
-	if selected_entity and current_turn == "player" and game_state == "player_turn":
-		if "grid_position" in selected_entity and selected_entity in player_entities:
-			print("GameController: Attempting to move entity " + selected_entity.entity_name + " to " + str(tile.grid_position))
-			move_entity_to_tile(selected_entity, tile.grid_position)
-		else:
-			print("GameController: Cannot move entity - invalid conditions")
-	else:
-		print("GameController: Cannot move - no selected entity or not player turn")
+	print("GameController: Tile selected at " + str(tile.grid_position) + " in state " + get_state_name(current_state))
+	
+	# Check current state and handle appropriately
+	match current_state:
+		GameState.PLAYER_TURN_ACTIVE:
+			if selected_entity and selected_entity in player_entities:
+				print("GameController: Attempting to move entity " + selected_entity.entity_name + " to " + str(tile.grid_position))
+				move_entity_to_tile(selected_entity, tile.grid_position)
+			else:
+				print("GameController: Cannot move entity - no entity selected")
+		
+		GameState.PLAYER_TURN_INIT:
+			print("GameController: Player turn is initializing, please wait...")
+			# We're in the process of transitioning to player turn, ignore the selection for now
+		
+		GameState.ENEMY_TURN_END:
+			print("GameController: Enemy turn is ending, please wait for player turn...")
+			# We're in the process of transitioning to player turn, ignore the selection for now
+		
+		_:
+			print("GameController: Cannot move - not player turn (current state: " + get_state_name(current_state) + ")")
 
 # Called when an entity is selected
 func _on_entity_selected(entity):
 	print("GameController: Entity selected: " + entity.entity_name)
-	if current_turn == "player" and game_state == "player_turn":
+	if current_state == GameState.PLAYER_TURN_ACTIVE:
 		if entity in player_entities:
 			if selected_entity:
 				# Deselect previous entity
 				print("GameController: Deselecting previous entity")
-				# (visual feedback would be implemented here)
+				# Visual feedback would be implemented here
 				pass
 			
 			selected_entity = entity
-			print("GameController: New entity selected: " + entity.entity_name)
+			# Update active_player_index to match the selected entity
+			active_player_index = player_entities.find(entity)
+			print("GameController: New entity selected: " + entity.entity_name + " at index " + str(active_player_index))
 			# Visual feedback for selection would be implemented here
 
 # Move an entity to a specific tile
@@ -101,39 +229,178 @@ func move_entity_to_tile(entity, target_grid_pos):
 	
 	if path.size() > 0:
 		print("GameController: Path found with " + str(path.size()) + " steps")
+		
+		# Connect the movement_completed signal
+		if not entity.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
+			print("GameController: Connecting movement_completed signal for " + entity.entity_name)
+			entity.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(entity), CONNECT_ONE_SHOT)
+		
+		# Add to entities in motion
+		if not entity in entities_in_motion:
+			entities_in_motion.append(entity)
+		
+		# Set the entity's game_controller reference
+		entity.game_controller = self
+		
+		# Set the path
 		entity.set_path(path)
 	else:
 		print("GameController: No path found to target position")
 
-# Called when an entity finishes moving
-func _on_entity_movement_completed(entity : Node):
-	print("GameController: Entity " + entity.entity_name + " completed movement")
+# Called when an entity completes its movement
+func _on_entity_movement_completed(entity):
+	print("GameController: Entity " + entity.entity_name + " completed movement in state " + get_state_name(current_state))
+	
+	# Remove from entities in motion
+	if entity in entities_in_motion:
+		entities_in_motion.erase(entity)
+		print("GameController: Removed " + entity.entity_name + " from entities in motion. Remaining: " + str(entities_in_motion.size()))
+	
 	emit_signal("entity_moved", entity)
 	
-	# If it was player's turn, check if all player entities have moved
-	if current_turn == "player":
-		check_end_player_turn()
-	else:
-		check_end_enemy_turn()
+	# Handle player turn
+	if current_state == GameState.PLAYER_TURN_ACTIVE:
+		# Make sure the entity is a player entity
+		if entity in player_entities:
+			var player = entity
+			
+			# Check if this is the currently selected player
+			if player == selected_entity:
+				print("GameController: Player " + player.entity_name + " has " + str(player.action_points) + " action points left")
+				
+				# If player is out of action points, go to next player
+				if player.action_points <= 0:
+					print("GameController: Player " + player.entity_name + " out of action points")
+					deactivate_current_player()
+					
+					# Try to activate the next player
+					if not activate_next_player():
+						# If no players left to activate, end player turn
+						print("GameController: No more players to activate, ending turn")
+						change_state(GameState.PLAYER_TURN_END)
+	
+	# Handle enemy turn
+	elif current_state == GameState.ENEMY_TURN_ACTIVE:
+		# Check if entity is an enemy
+		if entity in enemy_entities:
+			print("GameController: Enemy " + entity.entity_name + " finished moving")
+			
+			# If we've processed all enemies and none are moving, end the turn
+			if processing_enemy_index >= enemy_entities.size() - 1 and entities_in_motion.size() == 0:
+				print("GameController: Last enemy was moving and now all are done, ending turn")
+				call_deferred("change_state", GameState.ENEMY_TURN_END)
+				return
+			
+			# If this enemy was the last one being processed and no more entities are moving
+			# and we're at the end of the enemy list, end the turn
+			if entity == enemy_entities[processing_enemy_index] and entities_in_motion.size() == 0:
+				if processing_enemy_index >= enemy_entities.size() - 1:
+					print("GameController: Last enemy processed and no more moving, ending turn")
+					call_deferred("change_state", GameState.ENEMY_TURN_END)
+					return
+				else:
+					# Process the next enemy
+					print("GameController: Enemy finished, processing next one")
+					call_deferred("process_next_enemy")
+			elif entities_in_motion.size() == 0:
+				# If no entities are moving, continue processing
+				print("GameController: No entities in motion, continuing enemy processing")
+				call_deferred("process_next_enemy")
+	
+	# Update the visual display after an entity moves
+	update_view()
 
-# Check if player turn should end
-func check_end_player_turn():
-	print("GameController: Checking if player turn should end")
-	# Check if current active player has no more action points
+# Process the next enemy in the list
+func process_next_enemy():
+	print("GameController: Processing next enemy, index: " + str(processing_enemy_index + 1) + "/" + str(enemy_entities.size()))
+	print("GameController: Entities in motion: " + str(entities_in_motion.size()))
+	
+	# Emergency check - if we've been stuck too long, force end turn
+	if processing_enemy_index >= enemy_entities.size():
+		print("GameController: WARNING - Processing index beyond enemy count, forcing turn end")
+		call_deferred("change_state", GameState.ENEMY_TURN_END)
+		return
+	
+	# Make sure we're still in the enemy turn
+	if current_state != GameState.ENEMY_TURN_ACTIVE:
+		print("GameController: Not in enemy turn state, aborting enemy processing")
+		return
+	
+	# If all enemies have been processed but some are still moving, wait for them
+	if processing_enemy_index == enemy_entities.size() - 1 and entities_in_motion.size() > 0:
+		print("GameController: All enemies processed but " + str(entities_in_motion.size()) + " still moving. Waiting...")
+		return
+	
+	# If we've processed all enemies and none are moving, end the turn
+	if processing_enemy_index >= enemy_entities.size() - 1 and entities_in_motion.size() == 0:
+		print("GameController: All enemies processed and none moving. Ending turn.")
+		call_deferred("change_state", GameState.ENEMY_TURN_END)
+		return
+	
+	# Increment to the next enemy
+	processing_enemy_index += 1
+	
+	# Sanity check - make sure we haven't gone beyond the array bounds
+	if processing_enemy_index >= enemy_entities.size():
+		print("GameController: Attempted to process beyond last enemy, ending turn")
+		call_deferred("change_state", GameState.ENEMY_TURN_END)
+		return
+	
+	# Get the current enemy to process
+	var enemy = enemy_entities[processing_enemy_index]
+	print("GameController: Processing enemy " + enemy.entity_name + " (" + str(processing_enemy_index) + ")")
+	
+	# Skip if this enemy is already moving
+	if enemy.is_moving:
+		print("GameController: Enemy " + enemy.entity_name + " is already moving, adding to tracking")
+		if not enemy in entities_in_motion:
+			entities_in_motion.append(enemy)
+		
+		# Continue to next enemy
+		call_deferred("process_next_enemy")
+		return
+	
+	# Ensure the movement signal is connected
+	if not enemy.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
+		print("GameController: Connecting movement signal for enemy " + enemy.entity_name)
+		enemy.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(enemy), CONNECT_ONE_SHOT)
+	
+	# Process the enemy's turn
+	print("GameController: Executing turn for enemy " + enemy.entity_name)
+	var did_move = enemy.process_turn(player_entities)
+	
+	if did_move:
+		print("GameController: Enemy " + enemy.entity_name + " started moving")
+		if not enemy in entities_in_motion:
+			entities_in_motion.append(enemy)
+			print("GameController: Added " + enemy.entity_name + " to entities in motion")
+	else:
+		# If enemy didn't move, immediately process the next enemy
+		print("GameController: Enemy " + enemy.entity_name + " didn't move, processing next")
+		call_deferred("process_next_enemy")
+	
+	# Check if this was the last enemy and finalize turn if needed
+	if processing_enemy_index >= enemy_entities.size() - 1 and entities_in_motion.size() == 0:
+		print("GameController: Last enemy processed and no entities moving, ending turn")
+		call_deferred("change_state", GameState.ENEMY_TURN_END)
+
+# Deactivate the current player
+func deactivate_current_player():
 	if active_player_index < player_entities.size():
-		var active_player = player_entities[active_player_index]
-		
-		if active_player.action_points <= 0:
-			print("GameController: Active player has no more action points")
-			activate_next_player()
-		
-	# If all players have moved (or we have no players)
-	if active_player_index >= player_entities.size():
-		print("GameController: All players have moved, ending turn")
-		end_player_turn()
+		var player = player_entities[active_player_index]
+		print("GameController: Deactivating player: " + player.entity_name)
+		# Additional visual feedback could be added here
+	
+	# Clear the selection
+	selected_entity = null
 
 # Activate the next player with action points
-func activate_next_player():
+# If reset is true, start from the first player
+func activate_next_player(reset: bool = false):
+	if reset:
+		active_player_index = -1
+	
+	print("GameController: Current active player index: " + str(active_player_index))
 	active_player_index += 1
 	print("GameController: Activating next player, index: " + str(active_player_index))
 	
@@ -144,108 +411,52 @@ func activate_next_player():
 			selected_entity = player
 			print("GameController: Activated player: " + player.entity_name + " with " + str(player.action_points) + " action points")
 			emit_signal("player_activated", player)
-			return
+			return true
+		
+		print("GameController: Player " + player.entity_name + " has no action points, skipping")
 		active_player_index += 1
 	
 	# If we get here, no players have action points left
 	print("GameController: No more players with action points")
 	selected_entity = null
+	return false
 
-# Check if enemy turn should end
-func check_end_enemy_turn():
-	print("GameController: Checking if enemy turn should end")
-	# Check if all enemies have moved
-	var all_enemies_moved = true
-	
-	for enemy in enemy_entities:
-		if enemy.is_moving:
-			all_enemies_moved = false
-			break
-	
-	if all_enemies_moved:
-		print("GameController: All enemies have moved, ending turn")
-		end_enemy_turn()
-
-# End the player's turn and start enemy turn
-func end_player_turn():
-	print("GameController: Ending player turn, starting enemy turn")
-	current_turn = "enemy"
-	game_state = "enemy_turn"
-	emit_signal("turn_changed", current_turn)
-	emit_signal("game_state_changed", game_state)
-	
-	# Start enemy AI actions
-	process_enemy_turn()
-
-# End the enemy's turn and start player turn
-func end_enemy_turn():
-	print("GameController: Ending enemy turn, starting player turn")
-	current_turn = "player"
-	game_state = "player_turn"
-	emit_signal("turn_changed", current_turn)
-	emit_signal("game_state_changed", game_state)
-	
-	# Reset player entities for new turn
-	active_player_index = 0
-	for player in player_entities:
-		player.start_turn()
-	
-	# Activate first player
-	if player_entities.size() > 0:
-		selected_entity = player_entities[0]
-		print("GameController: Activated first player: " + selected_entity.entity_name)
-		emit_signal("player_activated", selected_entity)
-	else:
-		selected_entity = null
-
-# Process the enemy turn with AI
-func process_enemy_turn():
-	print("GameController: Processing enemy turn for " + str(enemy_entities.size()) + " enemies")
-	# Process each enemy's turn
-	var any_enemy_moving = false
-	
-	for enemy in enemy_entities:
-		# Have the enemy process its turn
-		print("GameController: Processing turn for enemy: " + enemy.entity_name)
-		if enemy.process_turn(player_entities):
-			any_enemy_moving = true
-	
-	# If no enemies are moving, end the turn
-	if not any_enemy_moving:
-		print("GameController: No enemies are moving, ending turn")
-		end_enemy_turn()
+# Update the game view after changes
+func update_view():
+	# This function refreshes any visual elements that need updating
+	emit_signal("entity_moved", null)
 
 # Start a new game
 func start_game():
 	print("GameController: Starting new game")
-	game_state = "player_turn"
-	current_turn = "player"
-	active_player_index = 0
-	
-	# Reset all entities
-	for player in player_entities:
-		player.start_turn()
-	
-	emit_signal("game_state_changed", game_state)
-	emit_signal("turn_changed", current_turn)
-	
-	# Activate first player
-	if player_entities.size() > 0:
-		selected_entity = player_entities[0]
-		print("GameController: First player activated: " + selected_entity.entity_name)
-		emit_signal("player_activated", selected_entity)
+	change_state(GameState.PLAYER_TURN_INIT)
 
 # Spawn an entity helper function
 func _spawn_entity_helper(entity, grid_pos):
 	# Set the map reference
 	entity.isometric_map = isometric_map
 	
-	add_child(entity)
+	# Ensure game_controller reference is set
+	entity.game_controller = self
+	
+	# Add entity to the map's Y-sorted container
+	if isometric_map:
+		isometric_map.add_entity(entity)
+	else:
+		push_error("GameController: Cannot spawn entity - map is null")
+		return false
 	
 	# Place on the tile
 	var tile = isometric_map.get_tile(grid_pos)
 	if tile:
 		entity.place_on_tile(tile)
+		print("GameController: Entity placed on tile at " + str(grid_pos))
+		
+		# One more check to ensure the entity still has its GameController reference
+		if entity.game_controller != self:
+			print("GameController: WARNING - Entity lost GameController reference during placement, restoring")
+			entity.game_controller = self
+			
 		return true
 	else:
 		push_error("GameController: Could not find tile at " + str(grid_pos))
@@ -275,6 +486,10 @@ func spawn_player(grid_pos, player_type: String):
 			push_error("GameController: Unknown player type: " + player_type)
 			return null
 	
+	# Explicitly set the game_controller reference
+	entity.game_controller = self
+	print("GameController: Set self as game_controller for " + entity.entity_name)
+	
 	# Place the entity on the map
 	if not _spawn_entity_helper(entity, grid_pos):
 		return null
@@ -282,6 +497,11 @@ func spawn_player(grid_pos, player_type: String):
 	# Connect signals
 	entity.connect("entity_selected", Callable(self, "_on_entity_selected"))
 	entity.connect("died", Callable(self, "_on_entity_died"))
+	
+	# Ensure movement signal is connected
+	if not entity.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
+		print("GameController: Connecting movement signal during spawn for " + entity.entity_name)
+		entity.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(entity), CONNECT_ONE_SHOT)
 	
 	# Add to player entities array
 	player_entities.append(entity)
@@ -313,12 +533,21 @@ func spawn_enemy(grid_pos, enemy_type_id):
 			push_error("GameController: Unknown enemy type: " + str(enemy_type_id))
 			return null
 	
+	# Explicitly set the game_controller reference
+	entity.game_controller = self
+	print("GameController: Set self as game_controller for " + entity.entity_name)
+	
 	# Place the entity on the map
 	if not _spawn_entity_helper(entity, grid_pos):
 		return null
 	
 	# Connect signals
 	entity.connect("died", Callable(self, "_on_entity_died"))
+	
+	# Ensure movement signal is connected before processing
+	if not entity.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
+		print("GameController: Connecting movement signal during spawn for " + entity.entity_name)
+		entity.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(entity), CONNECT_ONE_SHOT)
 	
 	# Add to enemy entities array
 	enemy_entities.append(entity)
@@ -336,9 +565,7 @@ func _on_entity_died(entity):
 		
 		# Check if game is over (all players dead)
 		if player_entities.size() == 0:
-			game_state = "game_over"
-			print("GameController: Game over - all players are dead")
-			emit_signal("game_state_changed", game_state)
+			change_state(GameState.GAME_OVER)
 	
 	elif entity in enemy_entities:
 		enemy_entities.erase(entity)
@@ -348,4 +575,48 @@ func _on_entity_died(entity):
 		if enemy_entities.size() == 0:
 			# Victory condition
 			print("GameController: Victory - all enemies defeated")
-			pass 
+			pass
+
+# Called directly from a player entity when they run out of action points
+func check_player_action_points(player_entity):
+	print("GameController: Checking action points for " + player_entity.entity_name)
+	
+	# Only handle during player turn
+	if current_state != GameState.PLAYER_TURN_ACTIVE:
+		print("GameController: Not in player turn, ignoring action point check")
+		return
+	
+	# Make sure this is a player entity
+	if not player_entity in player_entities:
+		print("GameController: Entity is not a player, ignoring action point check")
+		return
+	
+	# Check if this is the currently selected player
+	if player_entity == selected_entity:
+		print("GameController: Selected player " + player_entity.entity_name + " is out of action points")
+		
+		# Check if player is really out of action points
+		if player_entity.action_points <= 0:
+			print("GameController: Deactivating " + player_entity.entity_name + " and trying next player")
+			deactivate_current_player()
+			
+			# Try to activate the next player
+			if not activate_next_player():
+				# If no players left to activate, end player turn
+				print("GameController: No more players to activate, ending player turn")
+				change_state(GameState.PLAYER_TURN_END)
+			
+	# This is not the active player but still needs to check for game state consistency
+	elif player_entity.action_points <= 0:
+		print("GameController: Non-active player " + player_entity.entity_name + " is out of action points")
+		
+		# Check if all players are out of action points
+		var all_out_of_points = true
+		for player in player_entities:
+			if player.action_points > 0:
+				all_out_of_points = false
+				break
+		
+		if all_out_of_points:
+			print("GameController: All players out of action points, ending player turn")
+			change_state(GameState.PLAYER_TURN_END)

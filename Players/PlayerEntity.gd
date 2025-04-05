@@ -96,4 +96,30 @@ func move_along_path(delta: float):
 	
 	# If we completed a step, consume an action point
 	if path.size() < original_path_size and original_path_size > 0:
-		action_points = max(0, action_points - 1) 
+		action_points = max(0, action_points - 1)
+		print("PlayerEntity: " + entity_name + " used action point, " + str(action_points) + " remaining")
+		
+		# If we're out of action points, make sure the game controller knows
+		if action_points <= 0:
+			print("PlayerEntity: " + entity_name + " is out of action points")
+			
+			# If we can't continue further because we're out of action points, stop and finish movement
+			if path.size() > 0:
+				print("PlayerEntity: " + entity_name + " stopping movement due to no action points")
+				finish_movement()
+				
+			# Notify the GameController
+			if game_controller and game_controller.has_method("check_player_action_points"):
+				print("PlayerEntity: " + entity_name + " notifying GameController about zero action points")
+				# Call deferred to avoid frame timing issues
+				call_deferred("notify_zero_action_points")
+
+# Helper to notify GameController about zero action points
+func notify_zero_action_points():
+	if game_controller and game_controller.has_method("check_player_action_points"):
+		print("PlayerEntity: " + entity_name + " calling check_player_action_points")
+		game_controller.check_player_action_points(self)
+
+# Get the current action points
+func get_action_points() -> int:
+	return action_points

@@ -88,8 +88,15 @@ func process_turn(player_entities: Array):
 		if alert_status == "alert":
 			# Check last known position
 			if last_known_player_position != Vector2i(-1, -1):
-				move_to_position(last_known_player_position)
-				if not is_moving:
+				# Move to last known position
+				var path_to_last_known = isometric_map.find_path(grid_position, last_known_player_position)
+				if path_to_last_known.size() > 0:
+					path = path_to_last_known
+					is_moving = true
+					
+					# Ensure movement signal is connected to GameController
+					ensure_movement_signal_connected()
+				else:
 					# Can't reach last known position, go back to patrol
 					last_known_player_position = Vector2i(-1, -1)
 					set_alert_status("suspicious")
@@ -102,12 +109,6 @@ func process_turn(player_entities: Array):
 			follow_patrol_path()
 	
 	return is_moving
-
-# Helper to set up a path to a specific position
-func move_to_position(target_pos: Vector2i):
-	var path_to_position = isometric_map.find_path(grid_position, target_pos)
-	if path_to_position.size() > 0:
-		set_path(path_to_position)
 
 # Find the closest player entity within detection range
 func find_closest_player(player_entities: Array) -> Entity:
@@ -182,16 +183,19 @@ func pursue_target():
 	if target_entity and isometric_map:
 		var path_to_target = isometric_map.find_path(grid_position, target_entity.grid_position)
 		
-		# If path exists
+		# If path exists and is longer than 1 tile
 		if path_to_target.size() > 0:
 			# Only move part of the way based on aggression level
 			var steps = max(1, round(path_to_target.size() * aggression_level))
-			var limited_path = []
+			path = []
 			
 			for i in range(min(steps, path_to_target.size())):
-				limited_path.append(path_to_target[i])
+				path.append(path_to_target[i])
 			
-			set_path(limited_path)
+			is_moving = true
+			
+			# Ensure movement signal is connected to GameController
+			ensure_movement_signal_connected()
 
 # Follow patrol path
 func follow_patrol_path():
@@ -210,13 +214,54 @@ func follow_patrol_path():
 	var path_to_patrol = isometric_map.find_path(grid_position, target_pos)
 	if path_to_patrol.size() > 0:
 		# Only take a few steps at a time
-		var limited_path = []
+		path = []
 		for i in range(min(2, path_to_patrol.size())):
-			limited_path.append(path_to_patrol[i])
-		set_path(limited_path)
+			path.append(path_to_patrol[i])
+		is_moving = true
+		
+		# Ensure movement signal is connected to GameController
+		ensure_movement_signal_connected()
 
 # Set alert status
 func set_alert_status(status: String):
 	if alert_status != status:
 		alert_status = status
 		emit_signal("alert_status_changed", status) 
+
+# Called when entity has completed following the path
+func finish_movement():
+	print("EnemyEntity: " + entity_name + " finished movement")
+	# Clear the path
+	path = []
+	is_moving = false
+	
+	# Ensure we're connected to the GameController before emitting
+	ensure_movement_signal_connected()
+	
+	# Emit signal that we've completed our movement
+	print("EnemyEntity: " + entity_name + " emitting movement_completed signal")
+	call_deferred("emit_signal", "movement_completed", self)
+
+# Debug helper to print the scene tree
+func print_scene_tree():
+	var root = get_tree().get_root()
+	print("Scene tree from root:")
+	_print_children(root, 0)
+
+# Recursive helper for print_scene_tree
+func _print_children(node, indent):
+	var space = ""
+	for i in range(indent):
+		space += "  "
+	print(space + node.get_name() + " (" + node.get_class() + ")")
+	for child in node.get_children():
+		_print_children(child, indent + 1)
+
+# Ensure movement signal is connected to GameController
+func ensure_movement_signal_connected():
+	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
+		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+			print("EnemyEntity: Connecting movement signal for " + entity_name)
+			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
+	else:
+		push_warning("EnemyEntity: " + entity_name + " - No GameController reference set") 

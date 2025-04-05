@@ -10,6 +10,7 @@ var facing_direction: Vector2i = Vector2i(1, 0)  # Default facing right
 
 # Map reference
 var isometric_map: IsometricMap = null
+var game_controller = null  # Direct reference to the GameController - this should be set by the GameController
 
 # Movement properties
 var move_speed: float = 1.0  # Speed multiplier
@@ -32,9 +33,14 @@ signal status_effect_applied(effect_name)
 signal status_effect_removed(effect_name)
 signal died()
 
-# Update the _ready method to ensure we connect input events
+# Update the _ready method to simplify reference handling
 func _ready():
 	print("Entity: Initializing " + entity_name + " [" + entity_id + "]")
+	
+	# No need to find GameController - it should have been set by the GameController itself
+	if not game_controller:
+		push_warning("Entity: " + entity_name + " - No GameController reference set!")
+	
 	# Connect Area2D input events if available
 	var area = get_node_or_null("Area2D")
 	if area:
@@ -61,73 +67,30 @@ func set_path(new_path: Array):
 
 # Helper method to ensure the movement_completed signal is connected to the GameController
 func ensure_movement_signal_connected():
-	var game_controller = get_parent()
 	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
 		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+			print("Entity: " + entity_name + " connecting movement signal to GameController")
 			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
-
-# Move along the current path
-func move_along_path(delta: float):
-	if path.size() == 0:
-		finish_movement()
-		return
-		
-	var next_position = path[0]
-	
-	# Get the map if not set
-	if not isometric_map:
-		isometric_map = get_node("/root/Main/Game/Map")
-		if not isometric_map:
-			push_error("Entity: " + entity_name + " - No isometric map found in Entity.move_along_path")
-			finish_movement()
-			return
-	
-	var target_tile = isometric_map.get_tile(next_position)
-	
-	if target_tile == null or not target_tile.is_walkable or (target_tile.is_occupied and target_tile != current_tile):
-		# Path is blocked, stop moving
-		print("Entity: " + entity_name + " path blocked at " + str(next_position))
-		finish_movement()
-		return
-		
-	# Calculate movement direction
-	var target_world_pos = target_tile.get_entity_position()
-	var direction = (target_world_pos - position).normalized()
-	var distance_to_move = move_speed * delta * 1000  # Adjust as needed
-	var distance_to_target = position.distance_to(target_world_pos)
-	
-	# Update facing direction based on movement
-	update_facing_direction(direction)
-	
-	# If we're close enough to the target, snap to it and move to the next tile
-	if distance_to_move >= distance_to_target:
-		position = target_world_pos
-		
-		# Update entity state
-		if current_tile:
-			current_tile.remove_entity()
-		
-		grid_position = next_position
-		current_tile = target_tile
-		current_tile.place_entity(self)
-		print("Entity: " + entity_name + " moved to " + str(grid_position))
-		
-		# Remove the reached position from the path
-		path.remove_at(0)
-		
-		# If the path is now empty, we're done moving
-		if path.size() == 0:
-			finish_movement()
 	else:
-		# Move toward the target
-		position += direction * distance_to_move
+		push_warning("Entity: " + entity_name + " - No GameController reference to connect movement_completed signal")
 
 # Helper to finish movement and emit signal
 func finish_movement():
 	is_moving = false
 	path.clear()
 	print("Entity: " + entity_name + " completed movement")
-	emit_signal("movement_completed")
+	
+	# Ensure we're connected to the GameController before emitting
+	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
+		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+			print("Entity: " + entity_name + " connecting movement signal to GameController")
+			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
+		
+		# Emit the movement_completed signal
+		print("Entity: " + entity_name + " emitting movement_completed signal")
+		call_deferred("emit_signal", "movement_completed", self)
+	else:
+		push_warning("Entity: " + entity_name + " - No GameController to connect movement signal")
 
 # Place entity on a tile
 func place_on_tile(tile: IsometricTile):
@@ -313,3 +276,59 @@ func _input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("Entity clicked: ", entity_name)
 		emit_signal("entity_selected", self) 
+
+# Move along the current path
+func move_along_path(delta: float):
+	if path.size() == 0:
+		finish_movement()
+		return
+		
+	var next_position = path[0]
+	
+	# Get the map if not set
+	if not isometric_map:
+		isometric_map = get_node("/root/Main/Game/Map")
+		if not isometric_map:
+			push_error("Entity: " + entity_name + " - No isometric map found in Entity.move_along_path")
+			finish_movement()
+			return
+	
+	var target_tile = isometric_map.get_tile(next_position)
+	
+	if target_tile == null or not target_tile.is_walkable or (target_tile.is_occupied and target_tile != current_tile):
+		# Path is blocked, stop moving
+		print("Entity: " + entity_name + " path blocked at " + str(next_position))
+		finish_movement()
+		return
+		
+	# Calculate movement direction
+	var target_world_pos = target_tile.get_entity_position()
+	var direction = (target_world_pos - position).normalized()
+	var distance_to_move = move_speed * delta * 1000  # Adjust as needed
+	var distance_to_target = position.distance_to(target_world_pos)
+	
+	# Update facing direction based on movement
+	update_facing_direction(direction)
+	
+	# If we're close enough to the target, snap to it and move to the next tile
+	if distance_to_move >= distance_to_target:
+		position = target_world_pos
+		
+		# Update entity state
+		if current_tile:
+			current_tile.remove_entity()
+		
+		grid_position = next_position
+		current_tile = target_tile
+		current_tile.place_entity(self)
+		print("Entity: " + entity_name + " moved to " + str(grid_position))
+		
+		# Remove the reached position from the path
+		path.remove_at(0)
+		
+		# If the path is now empty, we're done moving
+		if path.size() == 0:
+			finish_movement()
+	else:
+		# Move toward the target
+		position += direction * distance_to_move 

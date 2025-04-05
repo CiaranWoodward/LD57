@@ -17,6 +17,7 @@ signal tile_selected(tile)
 
 func _ready():
 	print("IsometricMap: Initializing")
+	
 	generate_map()
 
 # Generates the isometric map
@@ -288,4 +289,8 @@ func reconstruct_path(came_from: Dictionary, current_pos: Vector2i) -> Array:
 		total_path.remove_at(0)
 	
 	print("IsometricMap: Path found with " + str(total_path.size()) + " steps")
-	return total_path 
+	return total_path
+
+# Add entity to the map with Y-sorting
+func add_entity(entity: Node2D):
+	add_child(entity)  # Fallback 
