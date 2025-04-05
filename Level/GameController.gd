@@ -1,3 +1,4 @@
+class_name GameController
 extends Node
 
 # References to game nodes
@@ -225,33 +226,26 @@ func start_game():
 # Spawn a player entity on the map
 func spawn_player(grid_pos, player_type: String):
 	print("GameController: Spawning player of type " + player_type + " at " + str(grid_pos))
-	var entity = load("res://Players/PlayerEntity.gd").new()
+	var entity
 	
-	# Configure player based on type
+	# Instantiate the appropriate player scene based on type
 	match player_type.to_lower():
 		"heavy":
-			entity.entity_name = "Heavy"
-			entity.max_health = 15
-			entity.current_health = 15
-			entity.move_speed = 0.8
+			entity = load("res://Players/HeavyPlayer.tscn").instantiate()
 		
 		"support":
-			entity.entity_name = "Support"
-			entity.max_health = 10
-			entity.current_health = 10
-			entity.move_speed = 1.0
+			entity = load("res://Players/SupportPlayer.tscn").instantiate()
 		
 		"scout":
-			entity.entity_name = "Scout"
-			entity.max_health = 8
-			entity.current_health = 8
-			entity.move_speed = 1.5
+			entity = load("res://Players/ScoutPlayer.tscn").instantiate()
 		
 		"medic":
-			entity.entity_name = "Medic"
-			entity.max_health = 12
-			entity.current_health = 12
-			entity.move_speed = 1.0
+			entity = load("res://Players/MedicPlayer.tscn").instantiate()
+		
+		_:
+			# Fallback to generic player if type not recognized
+			push_error("GameController: Unknown player type: " + player_type)
+			return null
 	
 	# Set the map reference
 	entity.isometric_map = isometric_map
@@ -277,15 +271,12 @@ func spawn_player(grid_pos, player_type: String):
 	return entity
 
 # Spawn an enemy on the map
-func spawn_enemy(grid_pos, enemy_type_id, texture = null):
+func spawn_enemy(grid_pos, enemy_type_id):
 	print("GameController: Spawning enemy of type " + str(enemy_type_id) + " at " + str(grid_pos))
 	var entity = load("res://Level/EnemyEntity.gd").new()
 	
 	# Configure enemy
 	entity.set_enemy_type(enemy_type_id)
-	
-	if texture:
-		entity.set_texture(texture)
 	
 	# Set the map reference
 	entity.isometric_map = isometric_map

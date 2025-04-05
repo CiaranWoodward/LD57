@@ -25,16 +25,6 @@ func _ready():
 	else:
 		push_warning("IsometricTile: No Area2D found for tile at " + str(grid_position))
 
-# Set up tile texture
-func set_texture(texture: Texture2D):
-
-	var sprite = get_node_or_null("Sprite2D")
-	if sprite:
-#		sprite.texture = texture
-		pass
-	else:
-		push_warning("IsometricTile: No Sprite2D found for tile at " + str(grid_position))
-
 # Highlight tile (used for selection or movement range display)
 func highlight(highlight: bool = true):
 	is_highlighted = highlight

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://cx1f65la88ipk"]
+
+[ext_resource type="Script" uid="uid://dv3gno8hqdw6k" path="res://Players/MedicPlayer.gd" id="1_5yqom"]
+[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_73yr7"]
+
+[node name="MedicPlayer" type="Node2D"]
+script = ExtResource("1_5yqom")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+self_modulate = Color(0.227944, 0.427787, 0.175625, 1)
+texture = ExtResource("2_73yr7")

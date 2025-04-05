@@ -142,18 +142,6 @@ func place_on_tile(tile: IsometricTile):
 	# Update tile state
 	tile.place_entity(self)
 
-# Set texture for the entity
-func set_texture(texture: Texture2D):
-	print("Entity: " + entity_name + " setting texture")
-	var sprite = get_node_or_null("Sprite2D")
-	if not sprite:
-		print("Entity: " + entity_name + " creating Sprite2D node")
-		sprite = Sprite2D.new()
-		sprite.name = "Sprite2D"
-		add_child(sprite)
-	
-	#sprite.texture = texture
-
 # Update the facing direction based on movement
 func update_facing_direction(direction: Vector2):
 	var old_direction = facing_direction

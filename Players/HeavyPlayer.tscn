@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://cxqxbsg5imf4d"]
+
+[ext_resource type="Script" uid="uid://cux57ein80ay8" path="res://Players/HeavyPlayer.gd" id="1_y6ulq"]
+[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_ux8rl"]
+
+[node name="HeavyPlayer" type="Node2D"]
+script = ExtResource("1_y6ulq")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+self_modulate = Color(0.215902, 0.215902, 0.215902, 1)
+texture = ExtResource("2_ux8rl")

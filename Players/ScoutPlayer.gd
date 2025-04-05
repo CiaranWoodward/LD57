@@ -67,7 +67,7 @@ func move_along_path(delta: float):
 	var original_path_size = path.size()
 	
 	# Call parent implementation from Entity (skip PlayerEntity)
-	Entity.move_along_path(self, delta)
+	super.move_along_path(delta)
 	
 	# If we completed a step, consume action points with 25% chance of no cost
 	if path.size() < original_path_size and original_path_size > 0:
