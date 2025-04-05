@@ -12,5 +12,4 @@ func start_turn():
 	push_error("Cannot be called from abstract base class")
 
 func finish_turn():
-	push_error("Cannot be called from abstract base class")
 	on_turn_finished.emit()
