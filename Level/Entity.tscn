@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dchdvb1f6oouk"]
 
-[ext_resource type="Script" path="res://Level/Entity.gd" id="1_s4q2v"]
+[ext_resource type="Script" uid="uid://bwdwx4b7mnaoy" path="res://Level/Entity.gd" id="1_s4q2v"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1fq7g"]
 radius = 20.0
@@ -15,6 +15,3 @@ monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CircleShape2D_1fq7g")
-
-# Note: You'll need to set up the Sprite2D texture in the editor
-# This allows you to configure entity appearance through the Godot editor 

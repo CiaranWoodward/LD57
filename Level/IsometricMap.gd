@@ -16,105 +16,66 @@ var selected_tile: IsometricTile = null
 signal tile_selected(tile)
 
 func _ready():
+	print("IsometricMap: Initializing")
 	generate_map()
 
 # Generates the isometric map
 func generate_map():
+	print("IsometricMap: Generating map " + str(map_width) + "x" + str(map_height))
 	# Clear existing tiles if any
 	for child in get_children():
 		if child is IsometricTile:
+			if child.is_connected("tile_clicked", Callable(self, "_on_tile_clicked")):
+				child.disconnect("tile_clicked", Callable(self, "_on_tile_clicked"))
 			child.queue_free()
 	
 	tiles.clear()
+	print("IsometricMap: Cleared existing tiles")
+	
+	# Wait for next frame to ensure all old tiles are removed
+	await get_tree().process_frame
 	
 	# Create new tiles
+	var total_tiles = map_width * map_height
+	var created_tiles = 0
+	
+	print("IsometricMap: Creating " + str(total_tiles) + " tiles")
 	for x in range(map_width):
 		for y in range(map_height):
 			var grid_pos = Vector2i(x, y)
 			var tile = create_tile(grid_pos)
 			tiles[grid_pos] = tile
+			created_tiles += 1
 			
-			# Connect the tile's signal
-			if tile.has_signal("tile_clicked"):
-				tile.connect("tile_clicked", Callable(self, "_on_tile_clicked"))
+			if created_tiles % 25 == 0 or created_tiles == total_tiles:
+				print("IsometricMap: Created " + str(created_tiles) + "/" + str(total_tiles) + " tiles")
+	
+	print("IsometricMap: Map generation complete")
 
 # Creates a single tile at the specified grid position
-func create_tile(grid_pos: Vector2i) -> IsometricTile:
-	var tile: IsometricTile
+func create_tile(grid_pos: Vector2i, tile_type: String = "grass") -> IsometricTile:
+	print("IsometricMap: Instantiating tile scene for position " + str(grid_pos))
 	
-	if tile_scene:
-		# Instantiate the tile from the scene
-		tile = tile_scene.instantiate()
-	else:
-		# Create a tile from scratch
-		tile = IsometricTile.new()
-		
-		# Create required child nodes if they don't exist
-		var sprite = Sprite2D.new()
-		sprite.name = "Sprite2D"
-		tile.add_child(sprite)
-		
-		var area = Area2D.new()
-		area.name = "Area2D"
-		area.monitorable = false
-		tile.add_child(area)
-		
-		var collision = CollisionPolygon2D.new()
-		collision.name = "CollisionPolygon2D"
-		# Create diamond-shaped polygon
-		var points = PackedVector2Array([
-			Vector2(0, -tile_height/2),           # Top
-			Vector2(tile_width/2, 0),             # Right
-			Vector2(0, tile_height/2),            # Bottom
-			Vector2(-tile_width/2, 0)             # Left
-		])
-		collision.polygon = points
-		area.add_child(collision)
+	# Instantiate the tile scene
+	var tile
+	tile = tile_scene.instantiate()
 	
+	# Set tile properties
 	tile.grid_position = grid_pos
+	tile.type = tile_type
 	
-	# Set tile dimensions and update collision shape
-	tile.tile_width = tile_width
-	tile.tile_height = tile_height
-	
-	# Calculate world position using isometric projection
+	# Set the tile's position in the world
 	var world_pos = grid_to_world(grid_pos)
 	tile.position = world_pos
 	
-	# Add the tile to the scene
+	# Add tile to the map
 	add_child(tile)
 	
-	# Ensure the Area2D exists and has a CollisionPolygon2D
-	ensure_area2d_exists(tile)
+	# Connect tile signals
+	if not tile.is_connected("tile_clicked", Callable(self, "_on_tile_clicked")):
+		tile.connect("tile_clicked", Callable(self, "_on_tile_clicked"))
 	
 	return tile
-
-# Ensures the Area2D exists in the tile
-func ensure_area2d_exists(tile: IsometricTile):
-	# Check if Area2D exists
-	var area = tile.get_node_or_null("Area2D")
-	if not area:
-		# Create Area2D
-		area = Area2D.new()
-		area.name = "Area2D"
-		area.monitorable = false
-		tile.add_child(area)
-	
-	# Check if CollisionPolygon2D exists
-	var collision = area.get_node_or_null("CollisionPolygon2D")
-	if not collision:
-		# Create CollisionPolygon2D
-		collision = CollisionPolygon2D.new()
-		collision.name = "CollisionPolygon2D"
-		# Create diamond-shaped polygon
-		var points = PackedVector2Array([
-			Vector2(0, -tile_height/2),           # Top
-			Vector2(tile_width/2, 0),             # Right
-			Vector2(0, tile_height/2),            # Bottom
-			Vector2(-tile_width/2, 0)             # Left
-		])
-		collision.polygon = points
-		area.add_child(collision)
 
 # Convert grid coordinates to isometric world position
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
@@ -130,21 +91,27 @@ func world_to_grid(world_pos: Vector2) -> Vector2i:
 
 # Handle tile click events
 func _on_tile_clicked(tile: IsometricTile):
+	print("IsometricMap: Tile clicked at " + str(tile.grid_position))
 	if selected_tile:
-		selected_tile.highlight_tile(false)
+		print("IsometricMap: Deselecting previous tile at " + str(selected_tile.grid_position))
+		selected_tile.highlight(false)
 	
 	selected_tile = tile
-	tile.highlight_tile(true)
+	print("IsometricMap: Highlighting tile at " + str(tile.grid_position))
+	tile.highlight(true)
+	print("IsometricMap: Emitting tile_selected signal")
 	emit_signal("tile_selected", tile)
 
 # Get a tile at a specific grid position
 func get_tile(grid_pos: Vector2i) -> IsometricTile:
 	if tiles.has(grid_pos):
 		return tiles[grid_pos]
+	print("IsometricMap: Tile not found at " + str(grid_pos))
 	return null
 
 # Get neighbors of a tile (orthogonal only, not diagonal)
 func get_neighbors(grid_pos: Vector2i) -> Array:
+	print("IsometricMap: Getting neighbors for tile at " + str(grid_pos))
 	var neighbors = []
 	var directions = [
 		Vector2i(1, 0),  # Right
@@ -157,25 +124,32 @@ func get_neighbors(grid_pos: Vector2i) -> Array:
 		var neighbor_pos = grid_pos + dir
 		if tiles.has(neighbor_pos):
 			neighbors.append(tiles[neighbor_pos])
-			
+	
+	print("IsometricMap: Found " + str(neighbors.size()) + " neighbors")
 	return neighbors
 
 # Check if a position is valid on the grid
 func is_valid_position(grid_pos: Vector2i) -> bool:
-	return grid_pos.x >= 0 and grid_pos.x < map_width and grid_pos.y >= 0 and grid_pos.y < map_height
+	var valid = grid_pos.x >= 0 and grid_pos.x < map_width and grid_pos.y >= 0 and grid_pos.y < map_height
+	if not valid:
+		print("IsometricMap: Position " + str(grid_pos) + " is outside of map bounds")
+	return valid
 	
 # Get the path between two tiles (simple implementation, can be expanded later)
 func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
+	print("IsometricMap: Finding path from " + str(start_pos) + " to " + str(end_pos))
 	# This is a placeholder. Consider implementing A* pathfinding here
 	# For now, just return a straight line between the points
 	var path = []
 	
 	# Validate positions
 	if not is_valid_position(start_pos) or not is_valid_position(end_pos):
+		print("IsometricMap: Cannot find path - invalid positions")
 		return path
 		
 	# For now, just add the end position
 	# This should be replaced with proper pathfinding
 	path.append(end_pos)
 	
+	print("IsometricMap: Path found with " + str(path.size()) + " steps")
 	return path 

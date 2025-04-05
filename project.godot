@@ -12,9 +12,31 @@ config_version=5
 
 config/name="LD57"
 run/main_scene="uid://b8b4e2g65h7tn"
-config/features=PackedStringArray("4.4", "Mobile")
+config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*res://Global.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[global_group_class]
+
+Entity="*res://Level/Entity.gd"
+IsometricTile="*res://Level/IsometricTile.gd"
+IsometricMap="*res://Level/IsometricMap.gd"
+PlayerEntity="*res://Players/PlayerEntity.gd"
+HeavyPlayer="*res://Players/HeavyPlayer.gd"
+ScoutPlayer="*res://Players/ScoutPlayer.gd"
+SupportPlayer="*res://Players/SupportPlayer.gd"
+MedicPlayer="*res://Players/MedicPlayer.gd"
+EnemyEntity="*res://Level/EnemyEntity.gd"
+GameController="*res://Level/GameController.gd"
 
 [rendering]
 
-renderer/rendering_method="mobile"
+renderer/rendering_method="gl_compatibility"
