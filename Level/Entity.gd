@@ -55,6 +55,12 @@ func set_path(new_path: Array):
 		print("Entity: " + entity_name + " setting new path with " + str(new_path.size()) + " steps")
 		path = new_path
 		is_moving = true
+		
+		# Ensure the parent (GameController) is connected to the movement_completed signal
+		var game_controller = get_parent()
+		if game_controller and game_controller.has_method("_on_entity_movement_completed"):
+			if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+				connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
 	else:
 		print("Entity: " + entity_name + " received empty path")
 

@@ -93,6 +93,12 @@ func process_turn(player_entities: Array):
 				if path_to_last_known.size() > 0:
 					path = path_to_last_known
 					is_moving = true
+					
+					# Make sure the GameController gets notified when movement completes
+					var game_controller = get_parent()
+					if game_controller.has_method("_on_entity_movement_completed"):
+						if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+							connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
 				else:
 					# Can't reach last known position, go back to patrol
 					last_known_player_position = Vector2i(-1, -1)
@@ -181,7 +187,7 @@ func pursue_target():
 		var path_to_target = isometric_map.find_path(grid_position, target_entity.grid_position)
 		
 		# If path exists and is longer than 1 tile
-		if path_to_target.size() > 1:
+		if path_to_target.size() > 0:
 			# Only move part of the way based on aggression level
 			var steps = max(1, round(path_to_target.size() * aggression_level))
 			path = []
@@ -190,6 +196,12 @@ func pursue_target():
 				path.append(path_to_target[i])
 			
 			is_moving = true
+			
+			# Make sure the GameController gets notified when movement completes
+			var game_controller = get_parent()
+			if game_controller.has_method("_on_entity_movement_completed"):
+				if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+					connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
 
 # Follow patrol path
 func follow_patrol_path():
@@ -212,6 +224,12 @@ func follow_patrol_path():
 		for i in range(min(2, path_to_patrol.size())):
 			path.append(path_to_patrol[i])
 		is_moving = true
+		
+		# Make sure the GameController gets notified when movement completes
+		var game_controller = get_parent()
+		if game_controller.has_method("_on_entity_movement_completed"):
+			if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+				connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
 
 # Set alert status
 func set_alert_status(status: String):
