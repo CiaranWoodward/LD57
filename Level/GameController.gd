@@ -289,10 +289,26 @@ func spawn_player(grid_pos, player_type: String):
 # Spawn an enemy on the map
 func spawn_enemy(grid_pos, enemy_type_id):
 	print("GameController: Spawning enemy of type " + str(enemy_type_id) + " at " + str(grid_pos))
-	var entity = load("res://Level/EnemyEntity.gd").new()
+	var entity
 	
-	# Configure enemy
-	entity.set_enemy_type(enemy_type_id)
+	# Instantiate the appropriate enemy scene based on type
+	match enemy_type_id:
+		EnemyEntity.EnemyType.GRUNT:
+			entity = load("res://Enemies/GruntEnemy.tscn").instantiate()
+		
+		EnemyEntity.EnemyType.ELITE:
+			entity = load("res://Enemies/EliteEnemy.tscn").instantiate()
+		
+		EnemyEntity.EnemyType.BOSS:
+			entity = load("res://Enemies/BossEnemy.tscn").instantiate()
+		
+		EnemyEntity.EnemyType.MINION:
+			entity = load("res://Enemies/MinionEnemy.tscn").instantiate()
+		
+		_:
+			# Fallback to generic enemy if type not recognized
+			push_error("GameController: Unknown enemy type: " + str(enemy_type_id))
+			return null
 	
 	# Set the map reference
 	entity.isometric_map = isometric_map

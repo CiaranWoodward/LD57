@@ -54,8 +54,6 @@ func generate_map():
 
 # Creates a single tile at the specified grid position
 func create_tile(grid_pos: Vector2i, tile_type: String = "grass") -> IsometricTile:
-	print("IsometricMap: Instantiating tile scene for position " + str(grid_pos))
-	
 	# Instantiate the tile scene
 	var tile
 	tile = tile_scene.instantiate()

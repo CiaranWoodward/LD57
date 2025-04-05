@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://bl3petyk1hi0y"]
+
+[ext_resource type="Script" uid="uid://uo235dtxwwq0" path="res://Enemies/EliteEnemy.gd" id="1_hsdep"]
+[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_68xh1"]
+
+[node name="EliteEnemy" type="Node2D"]
+script = ExtResource("1_hsdep")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+self_modulate = Color(0.408598, 0.407394, 1.92523e-07, 1)
+texture = ExtResource("2_68xh1")

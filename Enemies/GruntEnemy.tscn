@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://pny8rin8hw87"]
+
+[ext_resource type="Script" uid="uid://c1ysclhtkgbjq" path="res://Enemies/GruntEnemy.gd" id="1_rdtcw"]
+[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_wgdkr"]
+
+[node name="GruntEnemy" type="Node2D"]
+script = ExtResource("1_rdtcw")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+self_modulate = Color(0.915337, 0.000705597, 0.919708, 1)
+texture = ExtResource("2_wgdkr")

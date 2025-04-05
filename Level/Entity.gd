@@ -91,7 +91,7 @@ func move_along_path(delta: float):
 	# Calculate movement direction
 	var target_world_pos = target_tile.position
 	var direction = (target_world_pos - position).normalized()
-	var distance_to_move = move_speed * delta * 100  # Adjust as needed
+	var distance_to_move = move_speed * delta * 1000  # Adjust as needed
 	var distance_to_target = position.distance_to(target_world_pos)
 	
 	# Update facing direction based on movement
