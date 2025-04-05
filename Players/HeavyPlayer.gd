@@ -3,8 +3,10 @@ extends PlayerEntity
 
 func configure_player():
 	entity_name = "Heavy"
-	max_action_points = 2
+	max_action_points = 4  # Heavy has more action points for abilities
 	action_points = max_action_points
+	max_movement_points = 2  # But limited movement
+	movement_points = max_movement_points
 	move_speed = 0.7
 	abilities = ["shield_bash", "taunt"]
 	max_health = 15
@@ -61,8 +63,13 @@ func get_nearby_enemies(radius: int) -> Array:
 	
 	return nearby
 
-# Override level up to focus on defense/tankiness
+# Heavy has slower movement but more efficient with action points
 func on_level_up():
-	super.on_level_up()
+	# Increase health more than action points
 	max_health += 2
-	current_health += 2 
+	current_health += 2
+	
+	# Custom allocation favoring action points over movement
+	max_action_points += 1
+	if level % 2 == 0:  # Only every other level
+		max_movement_points += 1 

@@ -158,27 +158,27 @@ func move_entity_to_tile(entity, target_grid_pos):
 	if path.size() > 0:
 		print("GameController: Path found with " + str(path.size()) + " steps")
 		
-		# For player entities, check and consume action points before movement
+		# For player entities, check and consume movement points before movement
 		if entity in player_entities:
-			# Check if path length exceeds available action points
-			if path.size() > entity.action_points:
-				print("GameController: Path too long for available action points")
+			# Check if path length exceeds available movement points
+			if path.size() > entity.movement_points:
+				print("GameController: Path too long for available movement points")
 				
-				# Optionally, could limit the path to the available action points
-				path = path.slice(0, entity.action_points)
-				print("GameController: Path trimmed to " + str(path.size()) + " steps to match action points")
+				# Optionally, could limit the path to the available movement points
+				path = path.slice(0, entity.movement_points)
+				print("GameController: Path trimmed to " + str(path.size()) + " steps to match movement points")
 				
 				# If the destination is now different, get that tile instead
 				if path.size() > 0:
 					target_grid_pos = path[path.size() - 1]
 					target_tile = isometric_map.get_tile(target_grid_pos)
 				else:
-					print("GameController: No valid path within action point range")
+					print("GameController: No valid path within movement point range")
 					return
 			
-			# Consume action points for the path
-			if not entity.consume_action_points_for_path(path.size()):
-				print("GameController: Entity doesn't have enough action points for the path")
+			# Consume movement points for the path
+			if not entity.consume_movement_points_for_path(path.size()):
+				print("GameController: Entity doesn't have enough movement points for the path")
 				return
 		
 		# Set the entity's game_controller reference
@@ -193,23 +193,33 @@ func move_entity_to_tile(entity, target_grid_pos):
 		# Signal that entity is moving
 		emit_signal("entity_moved", entity)
 		
-		# Connect to the entity's action_points_changed signal to update highlights
-		if entity in player_entities and not entity.is_connected("action_points_changed", Callable(self, "_on_player_action_points_changed")):
-			entity.connect("action_points_changed", Callable(self, "_on_player_action_points_changed"))
+		# Connect to the entity's movement_points_changed signal to update highlights
+		if entity in player_entities:
+			if not entity.is_connected("movement_points_changed", Callable(self, "_on_player_movement_points_changed")):
+				entity.connect("movement_points_changed", Callable(self, "_on_player_movement_points_changed"))
 	else:
 		print("GameController: No path found to target position")
 
-# Handle when a player's action points change
-func _on_player_action_selection_changed():
-	# If we have a selected entity, update its movement range
+# Handle when a player's movement points change
+func _on_player_movement_points_changed(_current, _maximum):
 	update_highlights()
 	
+# Handle when a player's action points change
+func _on_player_action_points_changed(_current, _maximum):
+	# We don't need to update movement highlights when action points change
+	pass
+
+# When player selections/states change
+func _on_player_action_selection_changed():
+	update_highlights()
+	
+# Update highlight display based on movement points
 func update_highlights():
 	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
 		# First clear all highlights
 		clear_all_highlights()
-		# Then highlight new movement range if the entity still has action points
-		if selected_entity.action_points > 0:
+		# Then highlight new movement range if the entity still has movement points
+		if selected_entity.movement_points > 0:
 			highlight_movement_range(selected_entity)
 
 # Event handler for when a turn starts for a character
@@ -354,6 +364,8 @@ func spawn_player(grid_pos, player_type: String):
 	
 	# Connect to relevant signals
 	entity.connect("action_selection_changed", _on_player_action_selection_changed)
+	entity.connect("movement_points_changed", _on_player_movement_points_changed)
+	entity.connect("action_points_changed", _on_player_action_points_changed)
 	
 	# Add to turn sequencer's player group
 	turn_sequencer.add_character_to_group(entity, "player")
@@ -452,17 +464,17 @@ func highlight_movement_range(entity):
 	if not isometric_map or not entity:
 		return
 		
-	# Get entity's current position and action points
+	# Get entity's current position and movement points
 	var start_pos = entity.grid_position
-	var max_ap = entity.action_points
+	var max_mp = entity.movement_points
 	
-	# Make sure the entity has action points to move
-	if max_ap <= 0:
-		print("GameController: Entity has no action points, not highlighting movement range")
+	# Make sure the entity has movement points to move
+	if max_mp <= 0:
+		print("GameController: Entity has no movement points, not highlighting movement range")
 		return
 	
-	# Use the method to find all reachable tiles within action points range
-	var movable_tiles = isometric_map.find_reachable_tiles(start_pos, max_ap)
+	# Use the method to find all reachable tiles within movement points range
+	var movable_tiles = isometric_map.find_reachable_tiles(start_pos, max_mp)
 	
 	# Highlight all movable tiles
 	for tile in movable_tiles:
