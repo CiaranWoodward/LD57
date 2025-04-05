@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://b8b4e2g65h7tn"]
+
+[ext_resource type="PackedScene" uid="uid://bop5wmjudg5xh" path="res://Level/map.tscn" id="1_nvo2m"]
+[ext_resource type="Script" uid="uid://mcvrnl5fj1d2" path="res://Level/GameController.gd" id="2_o2qps"]
+[ext_resource type="Script" uid="uid://17bsv2qhlrlk" path="res://Level/GameInit.gd" id="3_3rfbj"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("3_3rfbj")
+
+[node name="Map" parent="." instance=ExtResource("1_nvo2m")]
+
+[node name="GameController" type="Node" parent="."]
+script = ExtResource("2_o2qps")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(480, 270)
+zoom = Vector2(0.5, 0.5)
