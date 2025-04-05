@@ -33,13 +33,12 @@ signal status_effect_applied(effect_name)
 signal status_effect_removed(effect_name)
 signal died()
 
-# Update the _ready method to simplify reference handling
+# Update the _ready method to assert controller reference is set
 func _ready():
 	print("Entity: Initializing " + entity_name + " [" + entity_id + "]")
 	
-	# No need to find GameController - it should have been set by the GameController itself
-	if not game_controller:
-		push_warning("Entity: " + entity_name + " - No GameController reference set!")
+	# Assert that the GameController reference is set
+	assert(game_controller != null, "Entity: " + entity_name + " - GameController reference not set!")
 	
 	# Connect Area2D input events if available
 	var area = get_node_or_null("Area2D")
@@ -48,7 +47,7 @@ func _ready():
 		if not area.is_connected("input_event", Callable(self, "_input_event")):
 			area.connect("input_event", Callable(self, "_input_event"))
 	else:
-		push_warning("Entity: " + entity_name + " has no Area2D node")
+		push_error("Entity: " + entity_name + " has no Area2D node")
 
 func _process(delta):
 	# Handle entity movement if we have a path
@@ -67,12 +66,13 @@ func set_path(new_path: Array):
 
 # Helper method to ensure the movement_completed signal is connected to the GameController
 func ensure_movement_signal_connected():
-	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
-		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
-			print("Entity: " + entity_name + " connecting movement signal to GameController")
-			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
-	else:
-		push_warning("Entity: " + entity_name + " - No GameController reference to connect movement_completed signal")
+	assert(game_controller != null, "Entity: " + entity_name + " - GameController reference not set!")
+	assert(game_controller.has_method("_on_entity_movement_completed"), 
+		"Entity: " + entity_name + " - GameController missing _on_entity_movement_completed method!")
+	
+	if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+		print("Entity: " + entity_name + " connecting movement signal to GameController")
+		connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
 
 # Helper to finish movement and emit signal
 func finish_movement():
@@ -80,17 +80,19 @@ func finish_movement():
 	path.clear()
 	print("Entity: " + entity_name + " completed movement")
 	
-	# Ensure we're connected to the GameController before emitting
-	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
-		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
-			print("Entity: " + entity_name + " connecting movement signal to GameController")
-			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
-		
-		# Emit the movement_completed signal
-		print("Entity: " + entity_name + " emitting movement_completed signal")
-		call_deferred("emit_signal", "movement_completed", self)
-	else:
-		push_warning("Entity: " + entity_name + " - No GameController to connect movement signal")
+	# Assert that GameController reference exists and has required method
+	assert(game_controller != null, "Entity: " + entity_name + " - GameController reference not set!")
+	assert(game_controller.has_method("_on_entity_movement_completed"), 
+		"Entity: " + entity_name + " - GameController missing _on_entity_movement_completed method!")
+	
+	# Ensure proper signal connection
+	if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+		print("Entity: " + entity_name + " connecting movement signal to GameController")
+		connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
+	
+	# Emit the movement_completed signal
+	print("Entity: " + entity_name + " emitting movement_completed signal")
+	emit_signal("movement_completed", self)
 
 # Place entity on a tile
 func place_on_tile(tile: IsometricTile):
@@ -285,13 +287,11 @@ func move_along_path(delta: float):
 		
 	var next_position = path[0]
 	
-	# Get the map if not set
+	# Assert that isometric_map reference exists
 	if not isometric_map:
-		isometric_map = get_node("/root/Main/Game/Map")
-		if not isometric_map:
-			push_error("Entity: " + entity_name + " - No isometric map found in Entity.move_along_path")
-			finish_movement()
-			return
+		push_error("Entity: " + entity_name + " - No isometric map found in Entity.move_along_path")
+		finish_movement()
+		return
 	
 	var target_tile = isometric_map.get_tile(next_position)
 	

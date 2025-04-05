@@ -230,17 +230,21 @@ func move_entity_to_tile(entity, target_grid_pos):
 	if path.size() > 0:
 		print("GameController: Path found with " + str(path.size()) + " steps")
 		
-		# Connect the movement_completed signal
-		if not entity.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
-			print("GameController: Connecting movement_completed signal for " + entity.entity_name)
-			entity.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(entity), CONNECT_ONE_SHOT)
+		# Set the entity's game_controller reference
+		entity.game_controller = self
+		
+		# Disconnect any existing movement signal to prevent duplicates
+		if entity.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
+			print("GameController: Disconnecting existing movement signal for " + entity.entity_name)
+			entity.disconnect("movement_completed", Callable(self, "_on_entity_movement_completed"))
+		
+		# Connect the movement_completed signal explicitly
+		print("GameController: Connecting movement_completed signal for " + entity.entity_name)
+		entity.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(entity), CONNECT_ONE_SHOT)
 		
 		# Add to entities in motion
 		if not entity in entities_in_motion:
 			entities_in_motion.append(entity)
-		
-		# Set the entity's game_controller reference
-		entity.game_controller = self
 		
 		# Set the path
 		entity.set_path(path)
@@ -251,8 +255,10 @@ func move_entity_to_tile(entity, target_grid_pos):
 func _on_entity_movement_completed(entity):
 	print("GameController: Entity " + entity.entity_name + " completed movement in state " + get_state_name(current_state))
 	
-	# Remove from entities in motion
-	if entity in entities_in_motion:
+	# Handle only once per entity per movement cycle
+	if not entity in entities_in_motion:
+		print("GameController: WARNING - Entity " + entity.entity_name + " movement completed but not in entities_in_motion list!")
+	else:
 		entities_in_motion.erase(entity)
 		print("GameController: Removed " + entity.entity_name + " from entities in motion. Remaining: " + str(entities_in_motion.size()))
 	
@@ -285,27 +291,12 @@ func _on_entity_movement_completed(entity):
 		if entity in enemy_entities:
 			print("GameController: Enemy " + entity.entity_name + " finished moving")
 			
-			# If we've processed all enemies and none are moving, end the turn
-			if processing_enemy_index >= enemy_entities.size() - 1 and entities_in_motion.size() == 0:
-				print("GameController: Last enemy was moving and now all are done, ending turn")
-				call_deferred("change_state", GameState.ENEMY_TURN_END)
-				return
-			
-			# If this enemy was the last one being processed and no more entities are moving
-			# and we're at the end of the enemy list, end the turn
-			if entity == enemy_entities[processing_enemy_index] and entities_in_motion.size() == 0:
-				if processing_enemy_index >= enemy_entities.size() - 1:
-					print("GameController: Last enemy processed and no more moving, ending turn")
-					call_deferred("change_state", GameState.ENEMY_TURN_END)
-					return
-				else:
-					# Process the next enemy
-					print("GameController: Enemy finished, processing next one")
-					call_deferred("process_next_enemy")
-			elif entities_in_motion.size() == 0:
-				# If no entities are moving, continue processing
-				print("GameController: No entities in motion, continuing enemy processing")
+			# Process the next enemy only if all entities have stopped moving
+			if entities_in_motion.size() == 0:
+				print("GameController: All entities finished moving, processing next enemy")
 				call_deferred("process_next_enemy")
+		else:
+			print("GameController: WARNING - Non-enemy entity " + entity.entity_name + " movement completed during enemy turn")
 	
 	# Update the visual display after an entity moves
 	update_view()
@@ -315,55 +306,56 @@ func process_next_enemy():
 	print("GameController: Processing next enemy, index: " + str(processing_enemy_index + 1) + "/" + str(enemy_entities.size()))
 	print("GameController: Entities in motion: " + str(entities_in_motion.size()))
 	
-	# Emergency check - if we've been stuck too long, force end turn
-	if processing_enemy_index >= enemy_entities.size():
-		print("GameController: WARNING - Processing index beyond enemy count, forcing turn end")
-		call_deferred("change_state", GameState.ENEMY_TURN_END)
-		return
-	
 	# Make sure we're still in the enemy turn
 	if current_state != GameState.ENEMY_TURN_ACTIVE:
 		print("GameController: Not in enemy turn state, aborting enemy processing")
 		return
 	
-	# If all enemies have been processed but some are still moving, wait for them
-	if processing_enemy_index == enemy_entities.size() - 1 and entities_in_motion.size() > 0:
-		print("GameController: All enemies processed but " + str(entities_in_motion.size()) + " still moving. Waiting...")
-		return
-	
-	# If we've processed all enemies and none are moving, end the turn
-	if processing_enemy_index >= enemy_entities.size() - 1 and entities_in_motion.size() == 0:
-		print("GameController: All enemies processed and none moving. Ending turn.")
-		call_deferred("change_state", GameState.ENEMY_TURN_END)
+	# If we've processed all enemies (index is at or past the last enemy)
+	if processing_enemy_index >= enemy_entities.size() - 1:
+		print("GameController: All enemies have been processed")
+		
+		# If no entities are still moving, end the turn
+		if entities_in_motion.size() == 0:
+			print("GameController: Enemy turn complete, ending turn")
+			call_deferred("change_state", GameState.ENEMY_TURN_END)
+		else:
+			print("GameController: Some entities still moving, waiting for completion")
 		return
 	
 	# Increment to the next enemy
 	processing_enemy_index += 1
 	
-	# Sanity check - make sure we haven't gone beyond the array bounds
-	if processing_enemy_index >= enemy_entities.size():
-		print("GameController: Attempted to process beyond last enemy, ending turn")
-		call_deferred("change_state", GameState.ENEMY_TURN_END)
-		return
-	
 	# Get the current enemy to process
 	var enemy = enemy_entities[processing_enemy_index]
 	print("GameController: Processing enemy " + enemy.entity_name + " (" + str(processing_enemy_index) + ")")
+	
+	# Ensure the enemy has its game_controller reference set
+	enemy.game_controller = self
 	
 	# Skip if this enemy is already moving
 	if enemy.is_moving:
 		print("GameController: Enemy " + enemy.entity_name + " is already moving, adding to tracking")
 		if not enemy in entities_in_motion:
 			entities_in_motion.append(enemy)
+			print("GameController: Added " + enemy.entity_name + " to entities in motion")
 		
-		# Continue to next enemy
-		call_deferred("process_next_enemy")
+		# Check if this was the last enemy
+		if processing_enemy_index >= enemy_entities.size() - 1:
+			print("GameController: Last enemy is already moving, waiting for completion")
+		else:
+			# Continue to next enemy
+			call_deferred("process_next_enemy")
 		return
 	
-	# Ensure the movement signal is connected
-	if not enemy.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
-		print("GameController: Connecting movement signal for enemy " + enemy.entity_name)
-		enemy.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(enemy), CONNECT_ONE_SHOT)
+	# Disconnect any existing movement signal to prevent duplicates
+	if enemy.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
+		print("GameController: Disconnecting existing movement signal for " + enemy.entity_name)
+		enemy.disconnect("movement_completed", Callable(self, "_on_entity_movement_completed"))
+	
+	# Connect the movement signal explicitly
+	print("GameController: Connecting movement signal for enemy " + enemy.entity_name)
+	enemy.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(enemy), CONNECT_ONE_SHOT)
 	
 	# Process the enemy's turn
 	print("GameController: Executing turn for enemy " + enemy.entity_name)
@@ -374,15 +366,24 @@ func process_next_enemy():
 		if not enemy in entities_in_motion:
 			entities_in_motion.append(enemy)
 			print("GameController: Added " + enemy.entity_name + " to entities in motion")
+			
+		# If this was the last enemy and it's now moving, we wait for its completion
+		if processing_enemy_index >= enemy_entities.size() - 1:
+			print("GameController: Last enemy started moving, waiting for completion")
 	else:
-		# If enemy didn't move, immediately process the next enemy
-		print("GameController: Enemy " + enemy.entity_name + " didn't move, processing next")
-		call_deferred("process_next_enemy")
-	
-	# Check if this was the last enemy and finalize turn if needed
-	if processing_enemy_index >= enemy_entities.size() - 1 and entities_in_motion.size() == 0:
-		print("GameController: Last enemy processed and no entities moving, ending turn")
-		call_deferred("change_state", GameState.ENEMY_TURN_END)
+		print("GameController: Enemy " + enemy.entity_name + " didn't move")
+		
+		# Check if we've processed all enemies
+		if processing_enemy_index >= enemy_entities.size() - 1:
+			# If this was the last enemy and no entities are moving, end the turn
+			if entities_in_motion.size() == 0:
+				print("GameController: All enemies processed with no movement, ending turn")
+				call_deferred("change_state", GameState.ENEMY_TURN_END)
+			else:
+				print("GameController: Last enemy processed but waiting for others to complete movement")
+		else:
+			# Continue to next enemy
+			call_deferred("process_next_enemy")
 
 # Deactivate the current player
 func deactivate_current_player():

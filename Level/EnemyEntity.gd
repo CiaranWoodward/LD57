@@ -66,6 +66,9 @@ func set_patrol_path(path_positions: Array):
 
 # Process AI behavior during enemy turn
 func process_turn(player_entities: Array):
+	# Assert that isometric_map is set
+	assert(isometric_map != null, "EnemyEntity: " + entity_name + " - isometric_map reference not set!")
+	
 	# Reset movement
 	is_moving = false
 	path = []
@@ -94,7 +97,7 @@ func process_turn(player_entities: Array):
 					path = path_to_last_known
 					is_moving = true
 					
-					# Ensure movement signal is connected to GameController
+					# Ensure signal is connected
 					ensure_movement_signal_connected()
 				else:
 					# Can't reach last known position, go back to patrol
@@ -180,27 +183,33 @@ func get_line(start: Vector2i, end: Vector2i) -> Array:
 
 # Pursue target entity
 func pursue_target():
-	if target_entity and isometric_map:
-		var path_to_target = isometric_map.find_path(grid_position, target_entity.grid_position)
+	# Assert required references exist
+	assert(target_entity != null, "EnemyEntity: " + entity_name + " - target_entity is null in pursue_target")
+	assert(isometric_map != null, "EnemyEntity: " + entity_name + " - isometric_map is null in pursue_target")
+	
+	var path_to_target = isometric_map.find_path(grid_position, target_entity.grid_position)
+	
+	# If path exists and is longer than 1 tile
+	if path_to_target.size() > 0:
+		# Only move part of the way based on aggression level
+		var steps = max(1, round(path_to_target.size() * aggression_level))
+		path = []
 		
-		# If path exists and is longer than 1 tile
-		if path_to_target.size() > 0:
-			# Only move part of the way based on aggression level
-			var steps = max(1, round(path_to_target.size() * aggression_level))
-			path = []
-			
-			for i in range(min(steps, path_to_target.size())):
-				path.append(path_to_target[i])
-			
-			is_moving = true
-			
-			# Ensure movement signal is connected to GameController
-			ensure_movement_signal_connected()
+		for i in range(min(steps, path_to_target.size())):
+			path.append(path_to_target[i])
+		
+		is_moving = true
+		
+		# Ensure movement signal is connected
+		ensure_movement_signal_connected()
 
 # Follow patrol path
 func follow_patrol_path():
 	if patrol_path.size() == 0:
 		return
+	
+	# Assert isometric_map exists
+	assert(isometric_map != null, "EnemyEntity: " + entity_name + " - isometric_map is null in follow_patrol_path")
 		
 	# Get next patrol point
 	var target_pos = patrol_path[current_patrol_index]
@@ -219,7 +228,7 @@ func follow_patrol_path():
 			path.append(path_to_patrol[i])
 		is_moving = true
 		
-		# Ensure movement signal is connected to GameController
+		# Ensure movement signal is connected
 		ensure_movement_signal_connected()
 
 # Set alert status
@@ -240,28 +249,9 @@ func finish_movement():
 	
 	# Emit signal that we've completed our movement
 	print("EnemyEntity: " + entity_name + " emitting movement_completed signal")
-	call_deferred("emit_signal", "movement_completed", self)
-
-# Debug helper to print the scene tree
-func print_scene_tree():
-	var root = get_tree().get_root()
-	print("Scene tree from root:")
-	_print_children(root, 0)
-
-# Recursive helper for print_scene_tree
-func _print_children(node, indent):
-	var space = ""
-	for i in range(indent):
-		space += "  "
-	print(space + node.get_name() + " (" + node.get_class() + ")")
-	for child in node.get_children():
-		_print_children(child, indent + 1)
+	emit_signal("movement_completed", self)
 
 # Ensure movement signal is connected to GameController
 func ensure_movement_signal_connected():
-	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
-		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
-			print("EnemyEntity: Connecting movement signal for " + entity_name)
-			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
-	else:
-		push_warning("EnemyEntity: " + entity_name + " - No GameController reference set") 
+	# Use the base implementation which now has proper assertions
+	super.ensure_movement_signal_connected() 

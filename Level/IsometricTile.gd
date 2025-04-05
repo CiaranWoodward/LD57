@@ -19,11 +19,10 @@ signal tile_clicked(tile)
 func _ready():
 	# Connect the input signal of Area2D
 	var area = get_node_or_null("Area2D")
-	if area:
-		if not area.is_connected("input_event", Callable(self, "_on_area_input_event")):
-			area.connect("input_event", Callable(self, "_on_area_input_event"))
-	else:
-		push_warning("IsometricTile: No Area2D found for tile at " + str(grid_position))
+	assert(area != null, "IsometricTile: No Area2D found for tile at " + str(grid_position))
+	
+	if not area.is_connected("input_event", Callable(self, "_on_area_input_event")):
+		area.connect("input_event", Callable(self, "_on_area_input_event"))
 
 # Highlight tile (used for selection or movement range display)
 func highlight(highlight: bool = true):
@@ -31,13 +30,12 @@ func highlight(highlight: bool = true):
 	print("IsometricTile: " + ("Highlighting" if highlight else "Unhighlighting") + " tile at " + str(grid_position))
 	
 	var sprite = get_node_or_null("Sprite2D")
-	if sprite:
-		if highlight:
-			sprite.modulate = highlight_color
-		else:
-			sprite.modulate = Color(1, 1, 1, 1)
+	assert(sprite != null, "IsometricTile: Cannot highlight - No Sprite2D found for tile at " + str(grid_position))
+	
+	if highlight:
+		sprite.modulate = highlight_color
 	else:
-		push_warning("IsometricTile: Cannot highlight - No Sprite2D found for tile at " + str(grid_position))
+		sprite.modulate = Color(1, 1, 1, 1)
 
 # Place an entity on this tile
 func place_entity(entity: Entity):

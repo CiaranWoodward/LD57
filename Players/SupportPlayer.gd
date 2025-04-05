@@ -54,11 +54,13 @@ func execute_ability(ability_name: String, target) -> bool:
 func get_allies_in_range(range_tiles: int) -> Array:
 	var allies = []
 	
-	var game_controller = get_parent()
-	if game_controller is GameController:
-		for player in game_controller.player_entities:
-			if player != self and grid_position.distance_to(player.grid_position) <= range_tiles:
-				allies.append(player)
+	# Use the game_controller reference directly with assertion
+	assert(game_controller != null, "SupportPlayer: " + entity_name + " - GameController reference not set")
+	assert(game_controller is GameController, "SupportPlayer: " + entity_name + " - game_controller is not a GameController instance")
+	
+	for player in game_controller.player_entities:
+		if player != self and grid_position.distance_to(player.grid_position) <= range_tiles:
+			allies.append(player)
 	
 	return allies
 

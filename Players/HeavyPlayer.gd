@@ -51,12 +51,13 @@ func execute_ability(ability_name: String, target) -> bool:
 func get_nearby_enemies(radius: int) -> Array:
 	var nearby = []
 	
-	# This assumes the GameController is a parent or has a reference to all enemies
-	var game_controller = get_parent()
-	if game_controller is GameController:
-		for enemy in game_controller.enemy_entities:
-			if grid_position.distance_to(enemy.grid_position) <= radius:
-				nearby.append(enemy)
+	# Use the game_controller reference directly with assertion
+	assert(game_controller != null, "HeavyPlayer: " + entity_name + " - GameController reference not set")
+	assert(game_controller is GameController, "HeavyPlayer: " + entity_name + " - game_controller is not a GameController instance")
+	
+	for enemy in game_controller.enemy_entities:
+		if grid_position.distance_to(enemy.grid_position) <= radius:
+			nearby.append(enemy)
 	
 	return nearby
 

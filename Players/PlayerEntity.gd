@@ -63,9 +63,8 @@ func get_ability_cost(ability_name: String) -> int:
 
 # Execute an ability - override in subclasses with specific ability implementations
 func execute_ability(ability_name: String, target) -> bool:
-	# Base class implementation does nothing
-	# Subclasses should override this with actual ability logic
-	push_warning("Using base class ability implementation for: " + ability_name)
+	# Base class implementation should never be called directly
+	push_error("PlayerEntity: " + entity_name + " - Using base class implementation for ability: " + ability_name + ". This should be overridden in subclasses.")
 	return false
 
 # Add experience and handle level up if needed
@@ -88,6 +87,9 @@ func on_level_up():
 
 # Override move_along_path to consume action points
 func move_along_path(delta: float):
+	# Assert GameController reference exists
+	assert(game_controller != null, "PlayerEntity: " + entity_name + " - GameController reference not set!")
+	
 	# Store the original path length
 	var original_path_size = path.size()
 	
@@ -108,17 +110,21 @@ func move_along_path(delta: float):
 				print("PlayerEntity: " + entity_name + " stopping movement due to no action points")
 				finish_movement()
 				
-			# Notify the GameController
-			if game_controller and game_controller.has_method("check_player_action_points"):
-				print("PlayerEntity: " + entity_name + " notifying GameController about zero action points")
-				# Call deferred to avoid frame timing issues
-				call_deferred("notify_zero_action_points")
+			# Verify GameController has required method
+			assert(game_controller.has_method("check_player_action_points"), 
+				"PlayerEntity: " + entity_name + " - GameController missing check_player_action_points method!")
+			
+			# Call deferred to avoid frame timing issues
+			call_deferred("notify_zero_action_points")
 
 # Helper to notify GameController about zero action points
 func notify_zero_action_points():
-	if game_controller and game_controller.has_method("check_player_action_points"):
-		print("PlayerEntity: " + entity_name + " calling check_player_action_points")
-		game_controller.check_player_action_points(self)
+	assert(game_controller != null, "PlayerEntity: " + entity_name + " - GameController reference not set!")
+	assert(game_controller.has_method("check_player_action_points"), 
+		"PlayerEntity: " + entity_name + " - GameController missing check_player_action_points method!")
+	
+	print("PlayerEntity: " + entity_name + " calling check_player_action_points")
+	game_controller.check_player_action_points(self)
 
 # Get the current action points
 func get_action_points() -> int:
