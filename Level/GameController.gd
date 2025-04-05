@@ -114,13 +114,16 @@ func _on_entity_selected(entity):
 		if selected_entity:
 			# Deselect previous entity
 			print("GameController: Deselecting previous entity")
-			# Visual feedback would be implemented here
-			pass
+			# Clear all highlighted tiles
+			clear_all_highlights()
 		
 		selected_entity = entity
 		print("GameController: New entity selected: " + entity.entity_name)
 		# Visual feedback for selection would be implemented here
 		emit_signal("player_activated", entity)
+		
+		# Highlight movement range for the selected entity
+		highlight_movement_range(entity)
 
 # Move an entity to a specific tile
 func move_entity_to_tile(entity, target_grid_pos):
@@ -165,13 +168,30 @@ func move_entity_to_tile(entity, target_grid_pos):
 		# Set the entity's game_controller reference
 		entity.game_controller = self
 		
+		# Clear highlighted tiles before movement
+		clear_all_highlights()
+		
 		# Set the path
 		entity.set_path(path)
 		
 		# Signal that entity is moving
 		emit_signal("entity_moved", entity)
+		
 	else:
 		print("GameController: No path found to target position")
+
+# Handle when a player's action points change
+func _on_player_action_selection_changed():
+	# If we have a selected entity, update its movement range
+	update_highlights()
+	
+func update_highlights():
+	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		# First clear all highlights
+		clear_all_highlights()
+		# Then highlight new movement range if the entity still has action points
+		if selected_entity.action_points > 0:
+			highlight_movement_range(selected_entity)
 
 # Event handler for when a turn starts for a character
 func _on_turn_started(character):
@@ -313,6 +333,9 @@ func spawn_player(grid_pos, player_type: String):
 	player_entities.append(entity)
 	print("GameController: Player " + entity.entity_name + " added to player entities")
 	
+	# Connect to relevant signals
+	entity.connect("action_selection_changed", _on_player_action_selection_changed)
+	
 	# Add to turn sequencer's player group
 	turn_sequencer.add_character_to_group(entity, "player")
 	print("GameController: Player " + entity.entity_name + " added to turn sequencer player group")
@@ -395,3 +418,30 @@ func _on_entity_died(entity):
 			# Victory condition
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
+
+# Clear all tile highlights on the map
+func clear_all_highlights():
+	if not isometric_map:
+		return
+		
+	for tile in isometric_map.tiles.values():
+		if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable:
+			tile.highlight(false)
+
+# Highlight tiles within movement range of the entity
+func highlight_movement_range(entity):
+	if not isometric_map or not entity:
+		return
+		
+	# Get entity's current position and action points
+	var start_pos = entity.grid_position
+	var max_ap = entity.action_points
+	
+	# Use the new method to find all reachable tiles within action points range
+	var movable_tiles = isometric_map.find_reachable_tiles(start_pos, max_ap)
+	
+	# Highlight all movable tiles
+	for tile in movable_tiles:
+		tile.set_move_selectable(true)
+		
+	print("GameController: Highlighted " + str(movable_tiles.size()) + " movable tiles")

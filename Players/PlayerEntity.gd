@@ -12,6 +12,7 @@ var level: int = 1
 signal ability_used(ability_name)
 signal level_up(new_level)
 signal action_points_changed(current, maximum)
+signal action_selection_changed
 
 func _init():
 	super._init()
@@ -48,6 +49,7 @@ func start_turn():
 	# The turn will be finished by the user's actions (movement/abilities)
 	# or by the UI "End Turn" button
 	print("PlayerEntity: " + entity_name + " waiting for player input")
+	emit_signal("action_selection_changed")
 
 # Use an ability (returns true if successfully used)
 func use_ability(ability_name: String, target) -> bool:
@@ -68,6 +70,7 @@ func use_ability(ability_name: String, target) -> bool:
 		action_points -= ap_cost
 		emit_signal("action_points_changed", action_points, max_action_points)
 		emit_signal("ability_used", ability_name)
+		emit_signal("action_selection_changed")
 		
 		# Check if we should finish our turn due to no action points
 		if action_points <= 0:
@@ -146,3 +149,15 @@ func end_turn():
 # Get the current action points
 func get_action_points() -> int:
 	return action_points
+
+# Called when the entity has completed following its path
+func _on_path_completed():
+	super._on_path_completed()
+	
+	# Check if this was during our turn, and if so, we might finish our turn
+	if is_turn_active:
+		if action_points == 0:
+			print("Entity: " + entity_name + " will finish turn after movement completed")
+			call_deferred("finish_turn")
+		else:
+			emit_signal("action_selection_changed")

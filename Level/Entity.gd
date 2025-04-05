@@ -322,8 +322,3 @@ func _on_path_completed():
 	print("Entity: " + entity_name + " completed movement")
 	is_moving = false
 	path.clear()
-	
-	# Check if this was during our turn, and if so, we might finish our turn
-	if is_turn_active:
-		print("Entity: " + entity_name + " will finish turn after movement completed")
-		call_deferred("finish_turn") 

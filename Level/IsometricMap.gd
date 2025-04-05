@@ -130,7 +130,6 @@ func get_tile(grid_pos: Vector2i) -> IsometricTile:
 
 # Get neighbors of a tile (orthogonal only, not diagonal)
 func get_neighbors(grid_pos: Vector2i) -> Array:
-	print("IsometricMap: Getting neighbors for tile at " + str(grid_pos))
 	var neighbors = []
 	var directions = [
 		Vector2i(1, 0),  # Right
@@ -144,7 +143,6 @@ func get_neighbors(grid_pos: Vector2i) -> Array:
 		if tiles.has(neighbor_pos):
 			neighbors.append(tiles[neighbor_pos])
 	
-	print("IsometricMap: Found " + str(neighbors.size()) + " neighbors")
 	return neighbors
 
 # Check if a position is valid on the grid
@@ -162,64 +160,20 @@ func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
 	if not is_valid_path_request(start_pos, end_pos):
 		return []
 	
-	# Get tiles for start and end
-	var start_tile = get_tile(start_pos)
-	var end_tile = get_tile(end_pos)
+	# Use generic A* search with path finding configuration
+	var path_result = a_star_search(
+		start_pos,
+		func(pos): return pos == end_pos,   # Goal test function
+		func(from_pos): return heuristic_cost_estimate(from_pos, end_pos),  # Heuristic function
+		end_pos  # Pass end_pos for neighbor validation
+	)
 	
-	# A* pathfinding
-	var open_set = []  # Tiles to be evaluated
-	var closed_set = []  # Tiles already evaluated
-	var came_from = {}  # Keep track of best path
-	
-	# Cost from start to current position
-	var g_score = {}
-	g_score[start_pos] = 0
-	
-	# Estimated total cost from start to goal through this position
-	var f_score = {}
-	f_score[start_pos] = heuristic_cost_estimate(start_pos, end_pos)
-	
-	# Add start to open set
-	open_set.append(start_pos)
-	
-	while not open_set.is_empty():
-		# Find tile with lowest f_score in open_set
-		var current_pos = find_lowest_f_score_position(open_set, f_score)
+	if path_result.is_empty():
+		print("IsometricMap: No path found from " + str(start_pos) + " to " + str(end_pos))
+		return []
 		
-		# If we reached the goal, reconstruct and return the path
-		if current_pos == end_pos:
-			return reconstruct_path(came_from, current_pos)
-		
-		# Move current from open to closed set
-		open_set.erase(current_pos)
-		closed_set.append(current_pos)
-		
-		# Process each neighbor
-		for neighbor_pos in get_valid_neighbors(current_pos, end_pos):
-			# Skip if already evaluated
-			if neighbor_pos in closed_set:
-				continue
-				
-			var neighbor_tile = get_tile(neighbor_pos)
-			
-			# Calculate tentative g_score
-			var tentative_g_score = g_score[current_pos] + neighbor_tile.movement_cost
-			
-			# Add to open set if not already there
-			if not neighbor_pos in open_set:
-				open_set.append(neighbor_pos)
-			elif tentative_g_score >= g_score.get(neighbor_pos, INF):
-				# This is not a better path
-				continue
-			
-			# This is the best path so far
-			came_from[neighbor_pos] = current_pos
-			g_score[neighbor_pos] = tentative_g_score
-			f_score[neighbor_pos] = g_score[neighbor_pos] + heuristic_cost_estimate(neighbor_pos, end_pos)
-	
-	# No path found
-	print("IsometricMap: No path found from " + str(start_pos) + " to " + str(end_pos))
-	return []
+	# Return just the path
+	return reconstruct_path(path_result.came_from, end_pos)
 
 # Helper to validate path request
 func is_valid_path_request(start_pos: Vector2i, end_pos: Vector2i) -> bool:
@@ -246,30 +200,27 @@ func is_valid_path_request(start_pos: Vector2i, end_pos: Vector2i) -> bool:
 
 # Helper to find the position with lowest f_score in the open set
 func find_lowest_f_score_position(open_set: Array, f_score: Dictionary) -> Vector2i:
+	return find_lowest_score_position(open_set, f_score)
+
+# Helper to find the position with lowest score in the open set
+func find_position_with_lowest_score(open_set: Array, score_dict: Dictionary) -> Vector2i:
+	return find_lowest_score_position(open_set, score_dict)
+
+# Generic helper to find position with lowest score in a set
+func find_lowest_score_position(open_set: Array, score_dict: Dictionary) -> Vector2i:
+	if open_set.is_empty():
+		push_error("IsometricMap: Cannot find lowest score position in empty set")
+		return Vector2i(0, 0)
+		
 	var current_pos = open_set[0]
-	var current_f_score = f_score[current_pos]
+	var current_score = score_dict[current_pos]
 	
 	for pos in open_set:
-		if f_score[pos] < current_f_score:
+		if score_dict[pos] < current_score:
 			current_pos = pos
-			current_f_score = f_score[pos]
+			current_score = score_dict[pos]
 			
 	return current_pos
-
-# Helper to get valid neighbors for pathfinding
-func get_valid_neighbors(current_pos: Vector2i, end_pos: Vector2i) -> Array:
-	var valid_neighbors = []
-	
-	for neighbor_tile in get_neighbors(current_pos):
-		var neighbor_pos = neighbor_tile.grid_position
-		
-		# Skip if neighbor is not walkable or is occupied (unless it's the destination)
-		if not neighbor_tile.is_walkable or (neighbor_tile.is_occupied and neighbor_pos != end_pos):
-			continue
-			
-		valid_neighbors.append(neighbor_pos)
-	
-	return valid_neighbors
 
 # Helper for A* pathfinding - estimate cost
 func heuristic_cost_estimate(from_pos: Vector2i, to_pos: Vector2i) -> float:
@@ -290,6 +241,139 @@ func reconstruct_path(came_from: Dictionary, current_pos: Vector2i) -> Array:
 	
 	print("IsometricMap: Path found with " + str(total_path.size()) + " steps")
 	return total_path
+
+# Find all tiles that are reachable within a certain number of action points
+func find_reachable_tiles(start_pos: Vector2i, max_action_points: int) -> Array:
+	print("IsometricMap: Finding all tiles reachable from " + str(start_pos) + 
+		" within " + str(max_action_points) + " action points")
+		
+	# Use generic A* search with reachable tiles configuration
+	var search_result = a_star_search(
+		start_pos,
+		func(_pos): return false,  # No specific goal - explore until action points exhausted
+		func(_pos): return 0,      # No heuristic needed for reachable tiles search
+		null,                      # No specific end position
+		max_action_points          # Limit by action points
+	)
+	
+	# Process all discovered positions to get reachable tiles
+	var reachable_tiles = []
+	for pos in search_result.g_score.keys():
+		# Skip the starting position and positions that exceed action point limit
+		if pos == start_pos or search_result.g_score[pos] > max_action_points:
+			continue
+			
+		var tile = get_tile(pos)
+		if tile and tile.is_walkable and not tile.is_occupied:
+			reachable_tiles.append(tile)
+	
+	print("IsometricMap: Found " + str(reachable_tiles.size()) + " reachable tiles")
+	return reachable_tiles
+
+# Generic A* search algorithm that can be used for both pathfinding and finding reachable tiles
+# Returns a dictionary with search results including g_score and came_from
+func a_star_search(
+	start_pos: Vector2i, 
+	is_goal_func: Callable,    # Function that determines if a position is the goal
+	heuristic_func: Callable,  # Function that provides the heuristic value
+	end_pos = null,            # Optional end position for neighbor validation
+	max_cost = INF             # Optional maximum cost limit
+) -> Dictionary:
+	# Ensure the start position is valid
+	if not is_valid_position(start_pos):
+		print("IsometricMap: Invalid start position for A* search")
+		return {}
+		
+	# A* data structures
+	var open_set = []  # Positions to be evaluated
+	var closed_set = [] # Positions already evaluated
+	var came_from = {}  # Track the best path
+	
+	# Cost from start to position
+	var g_score = {}
+	g_score[start_pos] = 0
+	
+	# Estimated total cost from start to goal through position
+	var f_score = {}
+	f_score[start_pos] = heuristic_func.call(start_pos)
+	
+	# Add start to open set
+	open_set.append(start_pos)
+	
+	while not open_set.is_empty():
+		# Find position with lowest f_score in open_set
+		var current_pos = find_lowest_score_position(open_set, f_score)
+		
+		# Check if we've reached the goal
+		if is_goal_func.call(current_pos):
+			print("IsometricMap: Goal found in A* search")
+			return {"came_from": came_from, "g_score": g_score}
+		
+		# Check if we've reached the cost limit
+		if g_score[current_pos] > max_cost:
+			# Don't explore this branch further, but keep processing others
+			open_set.erase(current_pos)
+			closed_set.append(current_pos)
+			continue
+		
+		# Move current from open to closed set
+		open_set.erase(current_pos)
+		closed_set.append(current_pos)
+		
+		# Process each neighbor
+		for neighbor_pos in get_valid_neighbors(current_pos, end_pos):
+			# Skip if already evaluated
+			if neighbor_pos in closed_set:
+				continue
+				
+			var neighbor_tile = get_tile(neighbor_pos)
+			
+			# Calculate tentative g_score (cost from start)
+			var tentative_g_score = g_score[current_pos] + neighbor_tile.movement_cost
+			
+			# Skip if cost exceeds maximum
+			if tentative_g_score > max_cost:
+				continue
+			
+			# Add to open set if not already there
+			if not neighbor_pos in open_set:
+				open_set.append(neighbor_pos)
+				f_score[neighbor_pos] = tentative_g_score + heuristic_func.call(neighbor_pos)
+			elif tentative_g_score >= g_score.get(neighbor_pos, INF):
+				# This is not a better path
+				continue
+			
+			# This is the best path so far
+			came_from[neighbor_pos] = current_pos
+			g_score[neighbor_pos] = tentative_g_score
+			f_score[neighbor_pos] = tentative_g_score + heuristic_func.call(neighbor_pos)
+	
+	# No goal found but we've explored all reachable positions
+	print("IsometricMap: A* search completed without finding goal")
+	return {"came_from": came_from, "g_score": g_score}
+
+# Get valid neighbors for pathfinding
+func get_valid_neighbors(current_pos: Vector2i, end_pos = null) -> Array:
+	var valid_neighbors = []
+	
+	for neighbor_tile in get_neighbors(current_pos):
+		var neighbor_pos = neighbor_tile.grid_position
+		
+		# Skip if neighbor is not walkable
+		if not neighbor_tile.is_walkable:
+			continue
+			
+		# For normal pathfinding (with a destination), check if it's occupied unless it's the destination
+		if end_pos != null:
+			if neighbor_tile.is_occupied and neighbor_pos != end_pos:
+				continue
+		# For reachable tiles search, skip occupied tiles
+		elif neighbor_tile.is_occupied:
+			continue
+			
+		valid_neighbors.append(neighbor_pos)
+	
+	return valid_neighbors
 
 # Add entity to the map with Y-sorting
 func add_entity(entity: Node2D):

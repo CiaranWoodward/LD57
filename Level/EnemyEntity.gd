@@ -221,3 +221,12 @@ func set_alert_status(status: String):
 	if alert_status != status:
 		alert_status = status
 		emit_signal("alert_status_changed", status)
+
+# Called when the entity has completed following its path
+func _on_path_completed():
+	super._on_path_completed()
+	
+	# Check if this was during our turn, and if so, we might finish our turn
+	if is_turn_active:
+		print("Entity: " + entity_name + " will finish turn after movement completed")
+		call_deferred("finish_turn") 
