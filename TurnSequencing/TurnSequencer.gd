@@ -129,8 +129,9 @@ func _start_next_character_turn():
 		print("TurnSequencer: All characters processed in group " + current_group)
 		
 		# Signal that this group's turns are completed
-		emit_signal("group_turns_completed", current_group)
+		var old_group = current_group
 		current_group = ""
+		emit_signal("group_turns_completed", old_group)
 		return
 	
 	var character = characters[current_index]

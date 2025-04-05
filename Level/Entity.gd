@@ -34,7 +34,6 @@ signal died()
 
 # Update the _ready method to initialize entity
 func _ready():
-	super._ready()
 	print("Entity: Initializing " + entity_name + " [" + entity_id + "]")
 	
 	# Connect Area2D input events if available

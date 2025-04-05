@@ -32,10 +32,7 @@ func start_turn():
 	super.start_turn()
 	print("EnemyEntity: " + entity_name + " starting turn")
 	
-	# Only process turn if not already moving
-	if is_moving:
-		print("EnemyEntity: " + entity_name + " is already moving, delaying turn processing")
-		return
+	assert(!is_moving)
 	
 	# Get player entities from game controller
 	var player_entities = []
