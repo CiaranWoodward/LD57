@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://ctaeg60vimnlh"]
+[gd_scene load_steps=10 format=3 uid="uid://ctaeg60vimnlh"]
 
 [ext_resource type="Script" uid="uid://bi03uqtchp46e" path="res://UI/hud.gd" id="1_7i7fj"]
 [ext_resource type="Texture2D" uid="uid://bt1u3xtfej64n" path="res://images/image_act.png" id="1_ktti3"]
@@ -8,7 +8,6 @@
 [ext_resource type="Texture2D" uid="uid://4leq60s6j6fn" path="res://images/image_face.png" id="3_7dvkv"]
 [ext_resource type="Texture2D" uid="uid://blhl16ar0sq21" path="res://images/icon_guard.png" id="3_wm3ai"]
 [ext_resource type="Texture2D" uid="uid://bmtdje21c1ggw" path="res://images/button_endturn.png" id="7_vdcm2"]
-[ext_resource type="Texture2D" uid="uid://dwphob32jg6xj" path="res://images/button_menu.png" id="8_6rmj2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2r41h"]
 
@@ -23,10 +22,11 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="ButtonMenu" type="TextureButton" parent="MenuMargin"]
+[node name="ButtonMenu" type="Button" parent="MenuMargin"]
 custom_minimum_size = Vector2(135, 45)
 layout_mode = 2
-texture_normal = ExtResource("8_6rmj2")
+theme_override_font_sizes/font_size = 32
+text = "Menu"
 
 [node name="Info" type="PanelContainer" parent="."]
 anchors_preset = 2

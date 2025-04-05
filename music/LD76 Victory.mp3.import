@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://tn4hgsiogvcf"
+path="res://.godot/imported/LD76 Victory.mp3-3f43aca705fa81a972fc233ecb68199a.mp3str"
+
+[deps]
+
+source_file="res://music/LD76 Victory.mp3"
+dest_files=["res://.godot/imported/LD76 Victory.mp3-3f43aca705fa81a972fc233ecb68199a.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

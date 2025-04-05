@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cjmpr2ydniu8i"
+path="res://.godot/imported/LD76 Level 1 Loop (Low Health).mp3-3476c0c113eee0633b1209fc5d1a1de1.mp3str"
+
+[deps]
+
+source_file="res://music/LD76 Level 1 Loop (Low Health).mp3"
+dest_files=["res://.godot/imported/LD76 Level 1 Loop (Low Health).mp3-3476c0c113eee0633b1209fc5d1a1de1.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
