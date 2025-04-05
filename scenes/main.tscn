@@ -1,0 +1,48 @@
+[gd_scene load_steps=8 format=3 uid="uid://crfl4qv4cvgwq"]
+
+[ext_resource type="Script" uid="uid://uktqrdqbw21b" path="res://main.gd" id="1_jyhfs"]
+[ext_resource type="PackedScene" uid="uid://dw4dfv2w8nfqf" path="res://UI/menu_main.tscn" id="3_tefeu"]
+[ext_resource type="PackedScene" uid="uid://ctaeg60vimnlh" path="res://UI/HUD.tscn" id="4_o6xl0"]
+[ext_resource type="PackedScene" uid="uid://8r4xmp8negky" path="res://UI/menu_options.tscn" id="4_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://dvnr08tnqqvmu" path="res://UI/menu_debug.tscn" id="6_tefeu"]
+
+[sub_resource type="Gradient" id="Gradient_ltcc5"]
+colors = PackedColorArray(0, 0, 0, 1, 0.478431, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_tefeu"]
+gradient = SubResource("Gradient_ltcc5")
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jyhfs")
+
+[node name="BG" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = SubResource("GradientTexture1D_tefeu")
+
+[node name="MenuMain" parent="." instance=ExtResource("3_tefeu")]
+
+[node name="MenuOptions" parent="." instance=ExtResource("4_tbgi4")]
+visible = false
+
+[node name="HUD" parent="." instance=ExtResource("4_o6xl0")]
+visible = false
+
+[node name="MenuDebug" parent="." instance=ExtResource("6_tefeu")]
+visible = false
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+
+[connection signal="new_game_pressed" from="MenuMain" to="." method="_on_menu_main_new_game_pressed"]
+[connection signal="options_pressed" from="MenuMain" to="." method="_on_menu_main_options_pressed"]
+[connection signal="resume_pressed" from="MenuMain" to="." method="_on_menu_main_resume_pressed"]
+[connection signal="back_pressed" from="MenuOptions" to="." method="_on_menu_options_back_pressed"]
+[connection signal="vol_changed" from="MenuOptions" to="." method="_on_menu_options_vol_changed"]
+[connection signal="PauseMenu" from="HUD" to="." method="_on_hud_pause_menu"]

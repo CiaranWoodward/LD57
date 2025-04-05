@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://8r4xmp8negky"]
+
+[ext_resource type="Script" uid="uid://phqsdwca7oh4" path="res://UI/menu_options.gd" id="1_k01u3"]
+
+[node name="MenuOptions" type="CanvasLayer"]
+script = ExtResource("1_k01u3")
+
+[node name="OptionsMargin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 500
+theme_override_constants/margin_right = 500
+
+[node name="OptionsVBox" type="VBoxContainer" parent="OptionsMargin"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+
+[node name="MusicVolVBox" type="VBoxContainer" parent="OptionsMargin/OptionsVBox"]
+layout_mode = 2
+
+[node name="MusicVolLabel" type="Label" parent="OptionsMargin/OptionsVBox/MusicVolVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Music Volume"
+
+[node name="MusicVolHSlider" type="HSlider" parent="OptionsMargin/OptionsVBox/MusicVolVBox"]
+layout_mode = 2
+value = 100.0
+
+[node name="Button" type="Button" parent="OptionsMargin/OptionsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Back"
+
+[connection signal="value_changed" from="OptionsMargin/OptionsVBox/MusicVolVBox/MusicVolHSlider" to="." method="_on_h_slider_value_changed"]
+[connection signal="pressed" from="OptionsMargin/OptionsVBox/Button" to="." method="_on_button_pressed"]
