@@ -4,7 +4,7 @@ extends Control
 
 #All game levels:
 var levels : Array[PackedScene] = [
-	load("res://Level/map.tscn")
+	load("res://Level/Game.tscn")
 ]
 
 #All music tracks:
