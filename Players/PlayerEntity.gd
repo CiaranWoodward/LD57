@@ -110,29 +110,35 @@ func on_level_up():
 
 # Override move_along_path to consume action points
 func move_along_path(delta: float):
-	# Store the original path length
-	var original_path_size = path.size()
-	
-	# Call parent implementation
+	# Call parent implementation without consuming action points
 	super.move_along_path(delta)
 	
-	# If we completed a step, consume an action point
-	if path.size() < original_path_size and original_path_size > 0:
-		action_points = max(0, action_points - 1)
-		print("PlayerEntity: " + entity_name + " used action point, " + str(action_points) + " remaining")
-		emit_signal("action_points_changed", action_points, max_action_points)
+	# Check if we've completed all movement
+	if path.size() == 0 and is_turn_active:
+		print("PlayerEntity: " + entity_name + " completed movement")
+		emit_signal("action_selection_changed")
 		
-		# If we're out of action points, stop movement and finish turn
-		if action_points <= 0 and path.size() > 0:
-			print("PlayerEntity: " + entity_name + " stopping movement due to no action points")
-			path.clear()
-			is_moving = false
-			call_deferred("_on_path_completed")
-		
-		# Otherwise, check if the player has completed all their movement
-		if path.size() == 0 and action_points <= 0:
-			print("PlayerEntity: " + entity_name + " out of action points after movement, finishing turn")
+		# If no action points left, finish turn
+		if action_points <= 0:
+			print("PlayerEntity: " + entity_name + " out of action points, finishing turn")
 			call_deferred("finish_turn")
+
+# Pre-consume action points for a path
+func consume_action_points_for_path(path_length: int) -> bool:
+	if path_length <= 0:
+		return true  # No action points needed for empty path
+		
+	# Check if we have enough action points
+	if action_points < path_length:
+		print("PlayerEntity: " + entity_name + " doesn't have enough action points for path of length " + str(path_length))
+		return false
+		
+	# Consume the action points
+	action_points = max(0, action_points - path_length)
+	print("PlayerEntity: " + entity_name + " consumed " + str(path_length) + " action points, " + str(action_points) + " remaining")
+	emit_signal("action_points_changed", action_points, max_action_points)
+	
+	return true
 
 # Force end the player's turn when requested by UI
 func end_turn():

@@ -135,13 +135,6 @@ func move_entity_to_tile(entity, target_grid_pos):
 	if entity.is_moving:
 		print("GameController: Entity is already moving, cannot set new path")
 		return
-		
-	# For player entities, check action points
-	if entity in player_entities:
-		if entity.action_points <= 0:
-			# Not enough action points
-			print("GameController: Entity has no action points left")
-			return
 	
 	# Get the target tile
 	var target_tile = isometric_map.get_tile(target_grid_pos)
@@ -165,6 +158,29 @@ func move_entity_to_tile(entity, target_grid_pos):
 	if path.size() > 0:
 		print("GameController: Path found with " + str(path.size()) + " steps")
 		
+		# For player entities, check and consume action points before movement
+		if entity in player_entities:
+			# Check if path length exceeds available action points
+			if path.size() > entity.action_points:
+				print("GameController: Path too long for available action points")
+				
+				# Optionally, could limit the path to the available action points
+				path = path.slice(0, entity.action_points)
+				print("GameController: Path trimmed to " + str(path.size()) + " steps to match action points")
+				
+				# If the destination is now different, get that tile instead
+				if path.size() > 0:
+					target_grid_pos = path[path.size() - 1]
+					target_tile = isometric_map.get_tile(target_grid_pos)
+				else:
+					print("GameController: No valid path within action point range")
+					return
+			
+			# Consume action points for the path
+			if not entity.consume_action_points_for_path(path.size()):
+				print("GameController: Entity doesn't have enough action points for the path")
+				return
+		
 		# Set the entity's game_controller reference
 		entity.game_controller = self
 		
@@ -177,6 +193,9 @@ func move_entity_to_tile(entity, target_grid_pos):
 		# Signal that entity is moving
 		emit_signal("entity_moved", entity)
 		
+		# Connect to the entity's action_points_changed signal to update highlights
+		if entity in player_entities and not entity.is_connected("action_points_changed", Callable(self, "_on_player_action_points_changed")):
+			entity.connect("action_points_changed", Callable(self, "_on_player_action_points_changed"))
 	else:
 		print("GameController: No path found to target position")
 
@@ -437,7 +456,12 @@ func highlight_movement_range(entity):
 	var start_pos = entity.grid_position
 	var max_ap = entity.action_points
 	
-	# Use the new method to find all reachable tiles within action points range
+	# Make sure the entity has action points to move
+	if max_ap <= 0:
+		print("GameController: Entity has no action points, not highlighting movement range")
+		return
+	
+	# Use the method to find all reachable tiles within action points range
 	var movable_tiles = isometric_map.find_reachable_tiles(start_pos, max_ap)
 	
 	# Highlight all movable tiles

@@ -35,11 +35,14 @@ func _ready():
 	# Connect mouse_exited signal
 	if not area.is_connected("mouse_exited", Callable(self, "_on_area_mouse_exited")):
 		area.connect("mouse_exited", Callable(self, "_on_area_mouse_exited"))
+		
+	var sprite : Sprite2D = get_node_or_null("Sprite2D")
+	if sprite:
+		sprite.position.y += randf_range(-5, 5)
 
 # Highlight tile (used for selection or movement range display)
 func highlight(highlight: bool = true):
 	is_highlighted = highlight
-	print("IsometricTile: " + ("Highlighting" if highlight else "Unhighlighting") + " tile at " + str(grid_position))
 	
 	var sprite = get_node_or_null("Sprite2D")
 	assert(sprite != null, "IsometricTile: Cannot highlight - No Sprite2D found for tile at " + str(grid_position))

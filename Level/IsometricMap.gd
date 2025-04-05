@@ -116,7 +116,6 @@ func _on_tile_clicked(tile: IsometricTile):
 		selected_tile.highlight(false)
 	
 	selected_tile = tile
-	print("IsometricMap: Highlighting tile at " + str(tile.grid_position))
 	tile.highlight(true)
 	print("IsometricMap: Emitting tile_selected signal")
 	emit_signal("tile_selected", tile)
