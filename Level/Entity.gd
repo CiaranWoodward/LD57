@@ -55,21 +55,21 @@ func set_path(new_path: Array):
 		print("Entity: " + entity_name + " setting new path with " + str(new_path.size()) + " steps")
 		path = new_path
 		is_moving = true
-		
-		# Ensure the parent (GameController) is connected to the movement_completed signal
-		var game_controller = get_parent()
-		if game_controller and game_controller.has_method("_on_entity_movement_completed"):
-			if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
-				connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
+		ensure_movement_signal_connected()
 	else:
 		print("Entity: " + entity_name + " received empty path")
+
+# Helper method to ensure the movement_completed signal is connected to the GameController
+func ensure_movement_signal_connected():
+	var game_controller = get_parent()
+	if game_controller and game_controller.has_method("_on_entity_movement_completed"):
+		if not is_connected("movement_completed", Callable(game_controller, "_on_entity_movement_completed")):
+			connect("movement_completed", Callable(game_controller, "_on_entity_movement_completed").bind(self), CONNECT_ONE_SHOT)
 
 # Move along the current path
 func move_along_path(delta: float):
 	if path.size() == 0:
-		is_moving = false
-		print("Entity: " + entity_name + " reached end of path")
-		emit_signal("movement_completed")
+		finish_movement()
 		return
 		
 	var next_position = path[0]
@@ -79,19 +79,15 @@ func move_along_path(delta: float):
 		isometric_map = get_node("/root/Main/Game/Map")
 		if not isometric_map:
 			push_error("Entity: " + entity_name + " - No isometric map found in Entity.move_along_path")
-			is_moving = false
-			path.clear()
-			emit_signal("movement_completed")
+			finish_movement()
 			return
 	
 	var target_tile = isometric_map.get_tile(next_position)
 	
 	if target_tile == null or not target_tile.is_walkable or (target_tile.is_occupied and target_tile != current_tile):
 		# Path is blocked, stop moving
-		is_moving = false
-		path.clear()
 		print("Entity: " + entity_name + " path blocked at " + str(next_position))
-		emit_signal("movement_completed")
+		finish_movement()
 		return
 		
 	# Calculate movement direction
@@ -121,12 +117,17 @@ func move_along_path(delta: float):
 		
 		# If the path is now empty, we're done moving
 		if path.size() == 0:
-			is_moving = false
-			print("Entity: " + entity_name + " completed movement")
-			emit_signal("movement_completed")
+			finish_movement()
 	else:
 		# Move toward the target
 		position += direction * distance_to_move
+
+# Helper to finish movement and emit signal
+func finish_movement():
+	is_moving = false
+	path.clear()
+	print("Entity: " + entity_name + " completed movement")
+	emit_signal("movement_completed")
 
 # Place entity on a tile
 func place_on_tile(tile: IsometricTile):

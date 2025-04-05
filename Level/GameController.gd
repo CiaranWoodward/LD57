@@ -101,10 +101,6 @@ func move_entity_to_tile(entity, target_grid_pos):
 	
 	if path.size() > 0:
 		print("GameController: Path found with " + str(path.size()) + " steps")
-		# Set the path for the entity to follow
-		if not entity.is_connected("movement_completed", Callable(self, "_on_entity_movement_completed")):
-			print("GameController: Connecting movement_completed signal")
-			entity.connect("movement_completed", Callable(self, "_on_entity_movement_completed").bind(entity), CONNECT_ONE_SHOT)
 		entity.set_path(path)
 	else:
 		print("GameController: No path found to target position")
@@ -239,6 +235,22 @@ func start_game():
 		print("GameController: First player activated: " + selected_entity.entity_name)
 		emit_signal("player_activated", selected_entity)
 
+# Spawn an entity helper function
+func _spawn_entity_helper(entity, grid_pos):
+	# Set the map reference
+	entity.isometric_map = isometric_map
+	
+	add_child(entity)
+	
+	# Place on the tile
+	var tile = isometric_map.get_tile(grid_pos)
+	if tile:
+		entity.place_on_tile(tile)
+		return true
+	else:
+		push_error("GameController: Could not find tile at " + str(grid_pos))
+		return false
+
 # Spawn a player entity on the map
 func spawn_player(grid_pos, player_type: String):
 	print("GameController: Spawning player of type " + player_type + " at " + str(grid_pos))
@@ -263,18 +275,9 @@ func spawn_player(grid_pos, player_type: String):
 			push_error("GameController: Unknown player type: " + player_type)
 			return null
 	
-	# Set the map reference
-	entity.isometric_map = isometric_map
-	
-	add_child(entity)
-	
-	# Place on the tile
-	var tile = isometric_map.get_tile(grid_pos)
-	if tile:
-		entity.place_on_tile(tile)
-		print("GameController: Player placed on tile at " + str(grid_pos))
-	else:
-		push_error("GameController: Could not find tile at " + str(grid_pos))
+	# Place the entity on the map
+	if not _spawn_entity_helper(entity, grid_pos):
+		return null
 	
 	# Connect signals
 	entity.connect("entity_selected", Callable(self, "_on_entity_selected"))
@@ -310,18 +313,9 @@ func spawn_enemy(grid_pos, enemy_type_id):
 			push_error("GameController: Unknown enemy type: " + str(enemy_type_id))
 			return null
 	
-	# Set the map reference
-	entity.isometric_map = isometric_map
-	
-	add_child(entity)
-	
-	# Place on the tile
-	var tile = isometric_map.get_tile(grid_pos)
-	if tile:
-		entity.place_on_tile(tile)
-		print("GameController: Enemy placed on tile at " + str(grid_pos))
-	else:
-		push_error("GameController: Could not find tile at " + str(grid_pos))
+	# Place the entity on the map
+	if not _spawn_entity_helper(entity, grid_pos):
+		return null
 	
 	# Connect signals
 	entity.connect("died", Callable(self, "_on_entity_died"))

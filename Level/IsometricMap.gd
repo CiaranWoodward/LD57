@@ -157,24 +157,13 @@ func is_valid_position(grid_pos: Vector2i) -> bool:
 func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
 	print("IsometricMap: Finding path from " + str(start_pos) + " to " + str(end_pos))
 	
-	# Validate positions
-	if not is_valid_position(start_pos) or not is_valid_position(end_pos):
-		print("IsometricMap: Cannot find path - invalid positions")
+	# Validate positions and check if path is possible
+	if not is_valid_path_request(start_pos, end_pos):
 		return []
 	
 	# Get tiles for start and end
 	var start_tile = get_tile(start_pos)
 	var end_tile = get_tile(end_pos)
-	
-	# Check if the end position is already occupied by a different entity
-	if end_tile.is_occupied and end_tile != start_tile:
-		print("IsometricMap: Cannot find path - destination is occupied")
-		return []
-		
-	# Check if the end position is unwalkable
-	if not end_tile.is_walkable:
-		print("IsometricMap: Cannot find path - destination is not walkable")
-		return []
 	
 	# A* pathfinding
 	var open_set = []  # Tiles to be evaluated
@@ -194,13 +183,7 @@ func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
 	
 	while not open_set.is_empty():
 		# Find tile with lowest f_score in open_set
-		var current_pos = open_set[0]
-		var current_f_score = f_score[current_pos]
-		
-		for pos in open_set:
-			if f_score[pos] < current_f_score:
-				current_pos = pos
-				current_f_score = f_score[pos]
+		var current_pos = find_lowest_f_score_position(open_set, f_score)
 		
 		# If we reached the goal, reconstruct and return the path
 		if current_pos == end_pos:
@@ -210,17 +193,13 @@ func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
 		open_set.erase(current_pos)
 		closed_set.append(current_pos)
 		
-		# Check neighbors
-		for neighbor_tile in get_neighbors(current_pos):
-			var neighbor_pos = neighbor_tile.grid_position
-			
+		# Process each neighbor
+		for neighbor_pos in get_valid_neighbors(current_pos, end_pos):
 			# Skip if already evaluated
 			if neighbor_pos in closed_set:
 				continue
-			
-			# Skip if neighbor is not walkable or is occupied
-			if not neighbor_tile or not neighbor_tile.is_walkable or (neighbor_tile.is_occupied and neighbor_tile != end_tile):
-				continue
+				
+			var neighbor_tile = get_tile(neighbor_pos)
 			
 			# Calculate tentative g_score
 			var tentative_g_score = g_score[current_pos] + neighbor_tile.movement_cost
@@ -240,6 +219,56 @@ func find_path(start_pos: Vector2i, end_pos: Vector2i) -> Array:
 	# No path found
 	print("IsometricMap: No path found from " + str(start_pos) + " to " + str(end_pos))
 	return []
+
+# Helper to validate path request
+func is_valid_path_request(start_pos: Vector2i, end_pos: Vector2i) -> bool:
+	# Validate positions
+	if not is_valid_position(start_pos) or not is_valid_position(end_pos):
+		print("IsometricMap: Cannot find path - invalid positions")
+		return false
+	
+	# Get tiles for start and end
+	var start_tile = get_tile(start_pos)
+	var end_tile = get_tile(end_pos)
+	
+	# Check if the end position is already occupied by a different entity
+	if end_tile.is_occupied and end_tile != start_tile:
+		print("IsometricMap: Cannot find path - destination is occupied")
+		return false
+		
+	# Check if the end position is unwalkable
+	if not end_tile.is_walkable:
+		print("IsometricMap: Cannot find path - destination is not walkable")
+		return false
+		
+	return true
+
+# Helper to find the position with lowest f_score in the open set
+func find_lowest_f_score_position(open_set: Array, f_score: Dictionary) -> Vector2i:
+	var current_pos = open_set[0]
+	var current_f_score = f_score[current_pos]
+	
+	for pos in open_set:
+		if f_score[pos] < current_f_score:
+			current_pos = pos
+			current_f_score = f_score[pos]
+			
+	return current_pos
+
+# Helper to get valid neighbors for pathfinding
+func get_valid_neighbors(current_pos: Vector2i, end_pos: Vector2i) -> Array:
+	var valid_neighbors = []
+	
+	for neighbor_tile in get_neighbors(current_pos):
+		var neighbor_pos = neighbor_tile.grid_position
+		
+		# Skip if neighbor is not walkable or is occupied (unless it's the destination)
+		if not neighbor_tile.is_walkable or (neighbor_tile.is_occupied and neighbor_pos != end_pos):
+			continue
+			
+		valid_neighbors.append(neighbor_pos)
+	
+	return valid_neighbors
 
 # Helper for A* pathfinding - estimate cost
 func heuristic_cost_estimate(from_pos: Vector2i, to_pos: Vector2i) -> float:
