@@ -19,18 +19,13 @@ var last_known_player_position: Vector2i = Vector2i(-1, -1)
 signal alert_status_changed(new_status)
 
 func _init():
+	super._init()
 	entity_name = "Enemy"
 	entity_id = "enemy_" + str(randi())
-
-# Override ready to add enemy-specific initialization
-func _ready():
-	super._ready()
-	# Enemy-specific initialization here
 
 # Override start_turn from Entity
 func start_turn():
 	super.start_turn()
-	print("EnemyEntity: " + entity_name + " starting turn")
 	
 	assert(!is_moving)
 	
@@ -225,13 +220,4 @@ func follow_patrol_path():
 func set_alert_status(status: String):
 	if alert_status != status:
 		alert_status = status
-		emit_signal("alert_status_changed", status) 
-
-# Override _on_path_completed to check movement completion
-func _on_path_completed():
-	super._on_path_completed()
-	
-	# For enemy entities, check if we need to finish our turn after movement
-	if is_turn_active:
-		print("EnemyEntity: " + entity_name + " path completed during active turn, will finish turn")
-		call_deferred("finish_turn") 
+		emit_signal("alert_status_changed", status)

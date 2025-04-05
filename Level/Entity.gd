@@ -3,7 +3,6 @@ extends ActionableCharacter
 
 # Entity properties
 var entity_id: String = ""
-var entity_name: String = ""
 var current_tile: IsometricTile = null
 var grid_position: Vector2i = Vector2i(0, 0)
 var facing_direction: Vector2i = Vector2i(1, 0)  # Default facing right
@@ -33,6 +32,10 @@ signal status_effect_removed(effect_name)
 signal died()
 
 # Update the _ready method to initialize entity
+func _init():
+	entity_id = "entity_" + str(randi())
+	entity_name = "Entity"
+
 func _ready():
 	print("Entity: Initializing " + entity_name + " [" + entity_id + "]")
 	

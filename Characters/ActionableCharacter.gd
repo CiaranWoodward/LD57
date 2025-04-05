@@ -5,10 +5,11 @@ signal turn_finished(character)
 signal turn_started(character)
 
 var is_turn_active: bool = false
+var entity_name: String = "Character"  # Base name for logging
 
 # Called by the TurnSequencer to start this character's turn
 func start_turn():
-	print(self.name + ": Starting turn")
+	print(entity_name + ": Starting turn")
 	is_turn_active = true
 	emit_signal("turn_started", self)
 	
@@ -20,6 +21,6 @@ func finish_turn():
 	if not is_turn_active:
 		return
 		
-	print(self.name + ": Finishing turn")
+	print(entity_name + ": Finishing turn")
 	is_turn_active = false
 	emit_signal("turn_finished", self)

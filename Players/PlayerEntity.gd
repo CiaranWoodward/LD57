@@ -14,6 +14,7 @@ signal level_up(new_level)
 signal action_points_changed(current, maximum)
 
 func _init():
+	super._init()
 	entity_name = "Player"
 	entity_id = "player_" + str(randi())
 
@@ -35,7 +36,6 @@ func configure_player():
 func start_turn():
 	# Call parent implementation first
 	super.start_turn()
-	print("PlayerEntity: " + entity_name + " starting turn")
 	
 	# Reset action points for new turn
 	action_points = max_action_points
@@ -48,17 +48,6 @@ func start_turn():
 	# The turn will be finished by the user's actions (movement/abilities)
 	# or by the UI "End Turn" button
 	print("PlayerEntity: " + entity_name + " waiting for player input")
-
-# Override finish_turn from Entity
-func finish_turn():
-	print("PlayerEntity: " + entity_name + " finishing turn")
-	
-	# Check if still moving
-	if is_moving:
-		print("PlayerEntity: " + entity_name + " is still moving, delaying turn finish")
-		return
-	
-	super.finish_turn()
 
 # Use an ability (returns true if successfully used)
 func use_ability(ability_name: String, target) -> bool:
@@ -135,21 +124,12 @@ func move_along_path(delta: float):
 			print("PlayerEntity: " + entity_name + " stopping movement due to no action points")
 			path.clear()
 			is_moving = false
-			_on_path_completed()
+			call_deferred("_on_path_completed")
 		
 		# Otherwise, check if the player has completed all their movement
 		if path.size() == 0 and action_points <= 0:
 			print("PlayerEntity: " + entity_name + " out of action points after movement, finishing turn")
 			call_deferred("finish_turn")
-
-# Override _on_path_completed to handle turn completion
-func _on_path_completed():
-	super._on_path_completed()
-	
-	# Check if we're out of action points
-	if action_points <= 0:
-		print("PlayerEntity: " + entity_name + " path completed with no action points, finishing turn")
-		call_deferred("finish_turn")
 
 # Force end the player's turn when requested by UI
 func end_turn():
