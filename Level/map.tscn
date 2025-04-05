@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dhwekn2c03xu3" path="res://Level/IsometricTile.tscn" id="2_tvs4f"]
 
 [node name="Map" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_4enjn")
 map_width = 15
 map_height = 15

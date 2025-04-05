@@ -91,7 +91,7 @@ func move_along_path(delta: float):
 		return
 		
 	# Calculate movement direction
-	var target_world_pos = target_tile.position
+	var target_world_pos = target_tile.get_entity_position()
 	var direction = (target_world_pos - position).normalized()
 	var distance_to_move = move_speed * delta * 1000  # Adjust as needed
 	var distance_to_target = position.distance_to(target_world_pos)
@@ -143,7 +143,7 @@ func place_on_tile(tile: IsometricTile):
 	# Update entity state
 	current_tile = tile
 	grid_position = tile.grid_position
-	position = tile.position
+	position = tile.get_entity_position()
 	print("Entity: " + entity_name + " placed on tile at " + str(grid_position))
 	
 	# Update tile state

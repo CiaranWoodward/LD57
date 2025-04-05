@@ -1,19 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://bg7qadqkh8rle"]
+[gd_scene load_steps=3 format=3 uid="uid://bg7qadqkh8rle"]
 
-[ext_resource type="Script" path="res://Level/Tiles/StoneFloorTile.gd" id="1_o1jfm"]
-[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_fuvfk"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_n88mp"]
-size = Vector2(128, 64)
+[ext_resource type="Script" uid="uid://bkwe477ow8ohd" path="res://Level/Tiles/StoneFloorTile.gd" id="1_o1jfm"]
+[ext_resource type="Texture2D" uid="uid://b32d3u1usg2jt" path="res://Graphics/super_Tile.png" id="2_dywkd"]
 
 [node name="StoneFloorTile" type="Node2D"]
 script = ExtResource("1_o1jfm")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.6, 0.6, 0.6, 1)
-texture = ExtResource("2_fuvfk")
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("2_dywkd")
 
 [node name="Area2D" type="Area2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource("RectangleShape2D_n88mp") 
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Area2D"]
+polygon = PackedVector2Array(0, -32, 64, 0, 0, 32, -64, 0)
