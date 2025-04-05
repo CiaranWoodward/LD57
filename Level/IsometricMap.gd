@@ -43,7 +43,19 @@ func generate_map():
 	for x in range(map_width):
 		for y in range(map_height):
 			var grid_pos = Vector2i(x, y)
-			var tile = create_tile(grid_pos)
+			
+			# Determine tile type - this is a simple example pattern
+			var tile_type = "stone_floor"
+			
+			# Create walls around the perimeter
+			if x == 0 or x == map_width - 1 or y == 0 or y == map_height - 1:
+				tile_type = "stone_wall"
+			
+			# Create some additional wall structures for demonstration
+			if (x == 3 and y >= 3 and y <= 6) or (y == 3 and x >= 3 and x <= 6):
+				tile_type = "stone_wall"
+				
+			var tile = create_tile(grid_pos, tile_type)
 			tiles[grid_pos] = tile
 			created_tiles += 1
 			
@@ -53,14 +65,22 @@ func generate_map():
 	print("IsometricMap: Map generation complete")
 
 # Creates a single tile at the specified grid position
-func create_tile(grid_pos: Vector2i, tile_type: String = "grass") -> IsometricTile:
-	# Instantiate the tile scene
+func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> IsometricTile:
+	# Instantiate the appropriate tile scene based on the type
 	var tile
-	tile = tile_scene.instantiate()
+	
+	match tile_type:
+		"stone_floor":
+			tile = load("res://Level/Tiles/StoneFloorTile.tscn").instantiate()
+		"stone_wall":
+			tile = load("res://Level/Tiles/StoneWallTile.tscn").instantiate()
+		_:
+			# Default to stone floor if type not recognized
+			print("IsometricMap: Unknown tile type: " + tile_type + ", defaulting to stone_floor")
+			tile = load("res://Level/Tiles/StoneFloorTile.tscn").instantiate()
 	
 	# Set tile properties
 	tile.grid_position = grid_pos
-	tile.type = tile_type
 	
 	# Set the tile's position in the world
 	var world_pos = grid_to_world(grid_pos)
