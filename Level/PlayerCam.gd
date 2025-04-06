@@ -79,6 +79,7 @@ func _input(event):
 	if dragging && event is InputEventMouseMotion:
 		unshaken_position -= event.relative / zoom.x
 		_bound_level()
+		position = unshaken_position
 
 func _bound_level():
 	if unshaken_position.x < -MaxPos.x:
