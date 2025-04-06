@@ -184,18 +184,54 @@ func pursue_target():
 	assert(target_entity != null, "EnemyEntity: " + entity_name + " - target_entity is null in pursue_target")
 	assert(isometric_map != null, "EnemyEntity: " + entity_name + " - isometric_map is null in pursue_target")
 	
-	var path_to_target = isometric_map.find_path(grid_position, target_entity.grid_position)
+	# Instead of pathing directly to the player's position (which is occupied),
+	# find adjacent tiles and path to the closest one
+	var adjacent_positions = find_adjacent_positions_to_target()
 	
-	# If path exists and is longer than 1 tile
-	if path_to_target.size() > 0:
-		# Only move part of the way based on aggression level
-		var steps = max(1, round(path_to_target.size() * aggression_level))
-		path = []
+	# If we found adjacent positions, find a path to the closest one
+	if adjacent_positions.size() > 0:
+		var closest_adjacent = find_closest_position(adjacent_positions)
 		
-		for i in range(min(steps, path_to_target.size())):
-			path.append(path_to_target[i])
+		var path_to_target = isometric_map.find_path(grid_position, closest_adjacent)
 		
-		is_moving = true
+		# If path exists and is longer than 0 tiles
+		if path_to_target.size() > 0:
+			# Only move part of the way based on aggression level
+			var steps = max(1, round(path_to_target.size() * aggression_level))
+			path = []
+			
+			for i in range(min(steps, path_to_target.size())):
+				path.append(path_to_target[i])
+			
+			is_moving = true
+	
+# Find positions adjacent to the target that are walkable and not occupied
+func find_adjacent_positions_to_target() -> Array:
+	var adjacent_positions = []
+	
+	# Check all neighbors of target position
+	var target_pos = target_entity.grid_position
+	var neighbors = isometric_map.get_neighbors(target_pos)
+	
+	for neighbor_tile in neighbors:
+		# Only consider walkable and unoccupied tiles
+		if neighbor_tile.is_walkable and not neighbor_tile.is_occupied:
+			adjacent_positions.append(neighbor_tile.grid_position)
+	
+	return adjacent_positions
+
+# Find the closest position from a list of positions
+func find_closest_position(positions: Array) -> Vector2i:
+	var closest_distance = INF
+	var closest_position = Vector2i(-1, -1)
+	
+	for pos in positions:
+		var distance = grid_position.distance_to(pos)
+		if distance < closest_distance:
+			closest_distance = distance
+			closest_position = pos
+	
+	return closest_position
 
 # Follow patrol path
 func follow_patrol_path():
