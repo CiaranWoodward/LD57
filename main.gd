@@ -30,9 +30,8 @@ var current_level : Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	music_player.resize(2)
-	music_player[0] = $Music0
-	music_player[1] = $Music1
+	music_player.append($Music0)
+	music_player.append($Music1)
 	music_player[0].volume_linear = music_volume
 	music_player[1].volume_linear = music_volume
 	music_track(0)
@@ -51,7 +50,7 @@ func music_fade_in(music_player, track, start_point) :
 	music_player.stream = tracks[track]
 	music_player.volume_linear = 0
 	music_player.play(start_point)
-	var tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_EXPO)
+	var tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(music_player, "volume_linear", music_volume, 2)
 	
 func music_fade_out(music_player) :
@@ -91,24 +90,50 @@ func show_options(enable : bool) -> void:
 	$MenuOptions.visible = enable	
 
 
+#Visibility of upgrades menu:
+func show_upgrade(enable : bool) -> void:	
+	$MenuUpgrade.visible = enable
+
+
+func set_upgrade(enable : bool) -> void:
+	show_hud(!enable)
+	show_upgrade(enable)
+	show_bg(enable)
+	if (enable) :
+		get_tree().root.remove_child(current_level)
+	else :
+		get_tree().root.add_child(current_level)
+
+
 #Visibility of ingame HUD:
 func show_hud(enable : bool) -> void :
 	$HUD.visible = enable
-	
+
+
+#Visibility of menu background:
 func show_bg(enable : bool) -> void :
 	$BG.visible = enable	
 
 
-func set_paused(en) -> void:
-	paused = en
-	show_bg(en)
-	show_hud(!en)
-	show_menu(en)
-	if (en) :
+#Visibility of XP indicator:
+func show_xp(enable : bool) -> void :
+	print("toggling XP!")
+	$XP.visible = enable	
+
+
+func set_paused(enable) -> void:
+	paused = enable
+	show_hud(!enable)
+	show_xp(!enable)
+	show_bg(enable)
+	show_menu(enable)
+	
+	if (enable) :
 		get_tree().root.remove_child(current_level)
+		show_upgrade(!enable)
 	else :
 		get_tree().root.add_child(current_level)
-		show_options(en)
+		show_options(enable)
 
 
 #Resume level:
@@ -122,9 +147,7 @@ func _on_menu_main_new_game_pressed() -> void:
 	game_started = true
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/NewGame.visible = !game_started
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/Resume.visible = game_started
-	
-	set_paused(0)
-	
+		
 	#Hide menu, enable HUD and show first level:
 	current_level = levels[0].instantiate()
 	set_paused(0)
@@ -170,3 +193,11 @@ func _on_menu_options_vol_changed(volume: Variant) -> void:
 
 func _on_menu_debug_dbg_music_mode() -> void:
 	music_toggle_urgency()
+
+
+func _on_hud_upgrade_menu() -> void:
+	set_upgrade(1)
+
+
+func _on_menu_upgrade_upgrade_exit() -> void:
+	set_upgrade(0)

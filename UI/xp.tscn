@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://ciipa7f45i015"]
+
+[node name="XP" type="CanvasLayer"]
+
+[node name="XPMargin" type="MarginContainer" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="XPPanel" type="PanelContainer" parent="XPMargin"]
+layout_mode = 2
+
+[node name="XPLabelMargin" type="MarginContainer" parent="XPMargin/XPPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="XPHBox" type="HBoxContainer" parent="XPMargin/XPPanel/XPLabelMargin"]
+layout_mode = 2
+
+[node name="XPLabel" type="Label" parent="XPMargin/XPPanel/XPLabelMargin/XPHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
+theme_override_font_sizes/font_size = 32
+text = "XP:"
+
+[node name="XPValLabel" type="Label" parent="XPMargin/XPPanel/XPLabelMargin/XPHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
+theme_override_font_sizes/font_size = 32
+text = "0"
