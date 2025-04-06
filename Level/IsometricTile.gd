@@ -23,6 +23,7 @@ var attack_color: Color = Color(1.3, 0.7, 0.7, 1) # Red-ish for attack range
 
 # Signals
 signal tile_clicked(tile)
+signal tile_hover_change(tile)
 
 func _ready():
 	# Connect the input signal of Area2D
@@ -64,6 +65,7 @@ func set_hovered(hovered: bool):
 		var sprite = get_node_or_null("Sprite2D")
 		if sprite:
 			sprite.modulate = Color(1, 1, 1, 1)
+	emit_signal("tile_hover_change", self)
 
 # Set movement selectable state
 func set_move_selectable(selectable: bool):
