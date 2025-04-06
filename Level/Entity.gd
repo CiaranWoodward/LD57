@@ -99,19 +99,42 @@ func place_on_tile(tile: IsometricTile):
 		push_error("Entity: " + entity_name + " - Cannot place on null tile")
 		return
 		
+	# Log attempt to place
+	print("Entity: " + entity_name + " (ID: " + entity_id + ") attempting to place on tile at " + str(tile.grid_position) + " on level " + str(current_level))
+	
+	# Check if the tile is already occupied by another entity
+	if tile.is_occupied and tile.occupying_entity != self:
+		push_error("Entity: " + entity_name + " - Cannot place on tile at " + str(tile.grid_position) + " - already occupied by " + 
+			(tile.occupying_entity.entity_name if tile.occupying_entity else "unknown entity"))
+		return
+		
 	# Remove from current tile if any
 	if current_tile:
-		print("Entity: " + entity_name + " removing from current tile at " + str(current_tile.grid_position))
-		current_tile.remove_entity()
+		print("Entity: " + entity_name + " removing from current tile at " + str(current_tile.grid_position) + " on level " + str(current_level))
+		
+		# Verify that we are the occupying entity before removing
+		if current_tile.is_occupied and current_tile.occupying_entity == self:
+			current_tile.remove_entity()
+		else:
+			push_error("Entity: " + entity_name + " - Current tile is occupied by different entity or not occupied at all")
+			if current_tile.occupying_entity:
+				print("   Current occupying entity: " + current_tile.occupying_entity.entity_name)
+			
+			# Force clear our reference, but don't touch the tile state
+			current_tile = null
 	
 	# Update entity state
 	current_tile = tile
 	grid_position = tile.grid_position
 	position = tile.get_entity_position()
-	print("Entity: " + entity_name + " placed on tile at " + str(grid_position))
+	print("Entity: " + entity_name + " placed on tile at " + str(grid_position) + " on level " + str(current_level))
 	
 	# Update tile state
 	tile.place_entity(self)
+	
+	# Verify that we are properly set as the occupying entity
+	if not tile.is_occupied or tile.occupying_entity != self:
+		push_error("Entity: " + entity_name + " - Failed to properly set occupation on tile at " + str(grid_position))
 
 # Update the facing direction based on movement
 func update_facing_direction(direction: Vector2):
@@ -343,9 +366,17 @@ func move_along_path(delta: float):
 	
 	var target_tile = isometric_map.get_tile(next_position)
 	
-	if target_tile == null or not target_tile.is_walkable or (target_tile.is_occupied and target_tile != current_tile):
+	if target_tile == null or not target_tile.is_walkable:
 		# Path is blocked, stop moving
-		print("Entity: " + entity_name + " path blocked at " + str(next_position))
+		print("Entity: " + entity_name + " path blocked at " + str(next_position) + " - tile is null or not walkable")
+		_on_path_completed()
+		return
+	
+	# Check if the tile is occupied by a different entity
+	if target_tile.is_occupied and target_tile.occupying_entity != self:
+		print("Entity: " + entity_name + " path blocked at " + str(next_position) + 
+			  " on level " + str(current_level) + " - tile is occupied by " + 
+			  (target_tile.occupying_entity.entity_name if target_tile.occupying_entity else "unknown entity"))
 		_on_path_completed()
 		return
 		
@@ -364,12 +395,33 @@ func move_along_path(delta: float):
 		
 		# Update entity state
 		if current_tile:
-			current_tile.remove_entity()
+			# Verify that we are the occupying entity before removing
+			if current_tile.is_occupied and current_tile.occupying_entity == self:
+				current_tile.remove_entity()
+			else:
+				push_error("Entity: " + entity_name + " - Current tile is not properly occupied before update in move_along_path")
+				if current_tile.occupying_entity:
+					print("   Current occupying entity: " + current_tile.occupying_entity.entity_name)
 		
 		grid_position = next_position
 		current_tile = target_tile
+		
+		# Double-check if the tile is still available
+		if target_tile.is_occupied and target_tile.occupying_entity != self:
+			push_error("Entity: " + entity_name + " - Target tile became occupied during movement!")
+			# Find an alternative tile to move to
+			var nearby_tile = find_nearby_unoccupied_tile(target_tile)
+			if nearby_tile:
+				print("Entity: " + entity_name + " - Found nearby unoccupied tile at " + str(nearby_tile.grid_position))
+				current_tile = nearby_tile
+				grid_position = nearby_tile.grid_position
+			else:
+				push_error("Entity: " + entity_name + " - No nearby unoccupied tiles found!")
+				_on_path_completed()
+				return
+		
 		current_tile.place_entity(self)
-		print("Entity: " + entity_name + " moved to " + str(grid_position))
+		print("Entity: " + entity_name + " moved to " + str(grid_position) + " on level " + str(current_level))
 		
 		# Remove the reached position from the path
 		path.remove_at(0)
@@ -379,7 +431,7 @@ func move_along_path(delta: float):
 			_on_path_completed()
 	else:
 		# Move toward the target
-		position += direction * distance_to_move 
+		position += direction * distance_to_move
 
 # Called when the entity has completed following its path
 func _on_path_completed():
@@ -391,23 +443,147 @@ func _on_path_completed():
 func set_level(level_index: int):
 	print("Entity: " + entity_name + " changing from level " + str(current_level) + " to level " + str(level_index))
 	current_level = level_index
+	
+	# Update the isometric_map reference to match the new level
+	if game_controller and game_controller.level_manager:
+		var new_map = game_controller.level_manager.level_nodes.get(level_index)
+		
+		if new_map:
+			if isometric_map != new_map:
+				print("Entity: " + entity_name + " updating isometric_map reference for level " + str(level_index))
+				isometric_map = new_map
+		else:
+			push_error("Entity: " + entity_name + " - Cannot find isometric_map for level " + str(level_index))
+	else:
+		push_error("Entity: " + entity_name + " - No game_controller or level_manager to update isometric_map reference")
 
 # Method for descending to a lower level
 # This will be used when implementing the drilling mechanic
 func descend_to_level(next_level_index: int, target_tile: IsometricTile):
-	print("Entity: " + entity_name + " descending from level " + str(current_level) + " to level " + str(next_level_index))
+	print("Entity: " + entity_name + " (ID: " + entity_id + ") descending from level " + str(current_level) + " to level " + str(next_level_index))
 	
-	# Remove from current tile
-	if current_tile:
-		current_tile.remove_entity()
-		current_tile = null
+	# Get the current tile before changing levels
+	var previous_tile = current_tile
+	var previous_level = current_level
 	
-	# Change level
+	# Remove from current tile - but don't set current_tile to null yet
+	if previous_tile:
+		if previous_tile.is_occupied and previous_tile.occupying_entity == self:
+			print("Entity: " + entity_name + " removing from tile at " + str(previous_tile.grid_position) + " on level " + str(current_level))
+			previous_tile.remove_entity()
+		else:
+			push_error("Entity: " + entity_name + " - Current tile is not properly occupied on level " + str(current_level))
+	
+	# Change level - this will also update the isometric_map reference through set_level
+	var old_level = current_level
 	set_level(next_level_index)
 	
-	# Place on target tile in new level
-	if target_tile:
-		place_on_tile(target_tile)
-	else:
-		push_error("Entity: " + entity_name + " - Cannot descend to null tile")
+	# Verify that isometric_map was properly updated
+	if game_controller and game_controller.level_manager:
+		var expected_map = game_controller.level_manager.level_nodes.get(next_level_index)
+		if expected_map != isometric_map:
+			push_error("Entity: " + entity_name + " - isometric_map reference was not properly updated! Fixing it now.")
+			isometric_map = expected_map
 	
+	# Check if target tile exists and is available
+	if target_tile:
+		# Ensure the target tile belongs to the correct level map
+		if target_tile.get_parent() != isometric_map:
+			push_error("Entity: " + entity_name + " - Target tile is from the wrong level map!")
+			# Try to get the equivalent tile from the correct map
+			if isometric_map:
+				var equivalent_tile = isometric_map.get_tile(target_tile.grid_position)
+				if equivalent_tile:
+					print("Entity: " + entity_name + " - Found equivalent tile on correct level map")
+					target_tile = equivalent_tile
+				else:
+					push_error("Entity: " + entity_name + " - Could not find equivalent tile on level " + str(next_level_index))
+					
+					# Revert to old level
+					set_level(old_level)
+					if previous_tile and previous_tile.is_walkable and not previous_tile.is_occupied:
+						place_on_tile(previous_tile)
+					return false
+		
+		# Check if the target tile is already occupied
+		if target_tile.is_occupied and target_tile.occupying_entity != self:
+			push_error("Entity: " + entity_name + " - Target tile at " + str(target_tile.grid_position) + 
+				" on level " + str(next_level_index) + " is already occupied by " + 
+				(target_tile.occupying_entity.entity_name if target_tile.occupying_entity else "unknown entity"))
+			
+			# Try to find a nearby unoccupied tile
+			print("Entity: " + entity_name + " - Searching for a nearby unoccupied tile on level " + str(next_level_index))
+			var nearby_tile = find_nearby_unoccupied_tile(target_tile)
+			
+			if nearby_tile:
+				print("Entity: " + entity_name + " - Found nearby unoccupied tile at " + str(nearby_tile.grid_position))
+				target_tile = nearby_tile
+			else:
+				push_error("Entity: " + entity_name + " - No nearby unoccupied tiles found on level " + str(next_level_index))
+				# Revert to old level if we can't find a place on the new level
+				set_level(old_level)
+				if previous_tile and previous_tile.is_walkable and not previous_tile.is_occupied:
+					place_on_tile(previous_tile)
+				return false
+		
+		# Place on target tile in new level
+		place_on_tile(target_tile)
+		
+		# Verify entity is correctly placed
+		if current_tile != target_tile or current_level != next_level_index:
+			push_error("Entity: " + entity_name + " - Failed to place on target tile after level change")
+			return false
+			
+		print("Entity: " + entity_name + " successfully descended from level " + str(previous_level) + 
+			  " to level " + str(current_level) + " and placed on tile at " + str(current_tile.grid_position))
+		return true
+	else:
+		push_error("Entity: " + entity_name + " - Cannot descend to null tile on level " + str(next_level_index))
+		
+		# Try to restore to old level if possible
+		set_level(old_level)
+		if previous_tile and previous_tile.is_walkable and not previous_tile.is_occupied:
+			place_on_tile(previous_tile)
+		return false
+
+# Find an unoccupied tile near the given tile
+func find_nearby_unoccupied_tile(center_tile: IsometricTile) -> IsometricTile:
+	if not isometric_map:
+		push_error("Entity: " + entity_name + " - Cannot find nearby tile, no isometric_map reference")
+		return null
+		
+	# Get directions
+	var directions = [
+		Vector2i(0, 1),   # Down
+		Vector2i(1, 0),   # Right
+		Vector2i(0, -1),  # Up
+		Vector2i(-1, 0),  # Left
+		Vector2i(1, 1),   # Down-Right
+		Vector2i(-1, 1),  # Down-Left
+		Vector2i(1, -1),  # Up-Right
+		Vector2i(-1, -1)  # Up-Left
+	]
+	
+	# Check center_tile first
+	if not center_tile.is_occupied and center_tile.is_walkable:
+		return center_tile
+	
+	# Then check neighbors in order of directions
+	for dir in directions:
+		var pos = center_tile.grid_position + dir
+		var tile = isometric_map.get_tile(pos)
+		
+		if tile and tile.is_walkable and not tile.is_occupied:
+			return tile
+	
+	# If still not found, try a wider search
+	for dir in directions:
+		for dist in range(2, 4):  # Check 2 and 3 tiles away
+			var pos = center_tile.grid_position + (dir * dist)
+			var tile = isometric_map.get_tile(pos)
+			
+			if tile and tile.is_walkable and not tile.is_occupied:
+				return tile
+	
+	# No suitable tile found
+	return null

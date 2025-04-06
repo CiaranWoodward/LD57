@@ -184,9 +184,15 @@ func is_valid_path_request(start_pos: Vector2i, end_pos: Vector2i) -> bool:
 	var start_tile = get_tile(start_pos)
 	var end_tile = get_tile(end_pos)
 	
+	if not start_tile or not end_tile:
+		print("IsometricMap: Cannot find path - start or end tile is null")
+		return false
+	
 	# Check if the end position is already occupied by a different entity
-	if end_tile.is_occupied and end_tile != start_tile:
-		print("IsometricMap: Cannot find path - destination is occupied")
+	if end_tile.is_occupied and end_tile.occupying_entity != start_tile.occupying_entity:
+		print("IsometricMap: Cannot find path - destination tile at " + str(end_pos) + 
+			" on level " + str(level_index) + " is occupied by " + 
+			(end_tile.occupying_entity.entity_name if end_tile.occupying_entity else "unknown entity"))
 		return false
 		
 	# Check if the end position is unwalkable

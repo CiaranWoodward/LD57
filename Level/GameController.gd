@@ -165,6 +165,14 @@ func move_entity_to_tile(entity, target_grid_pos):
 		push_error("GameController: Cannot move entity - entity is null")
 		return
 	
+	# Verify the entity has the correct isometric_map reference for its level
+	if level_manager and level_manager.level_nodes.has(entity.current_level):
+		var expected_map = level_manager.level_nodes[entity.current_level]
+		if entity.isometric_map != expected_map:
+			push_error("GameController: Entity has incorrect isometric_map reference for level " + 
+					  str(entity.current_level) + " - fixing it now")
+			entity.isometric_map = expected_map
+	
 	# Get the map that belongs to this entity
 	var entity_map = entity.isometric_map
 	if not entity_map:
@@ -188,15 +196,17 @@ func move_entity_to_tile(entity, target_grid_pos):
 		return
 	
 	# Check if target tile is already occupied by a different entity
-	if target_tile.is_occupied and target_tile != entity.current_tile:
-		print("GameController: Cannot move - target tile is already occupied")
+	if target_tile.is_occupied and target_tile.occupying_entity != entity:
+		print("GameController: Cannot move - target tile at " + str(target_grid_pos) + 
+			" on level " + str(entity.current_level) + " is occupied by " + 
+			(target_tile.occupying_entity.entity_name if target_tile.occupying_entity else "unknown entity"))
 		return
 	
 	# Get the path to the target (A* will also verify tile occupation)
 	var path = entity_map.find_path(entity.grid_position, target_grid_pos)
 	
 	if path.size() > 0:
-		print("GameController: Path found with " + str(path.size()) + " steps")
+		print("GameController: Path found with " + str(path.size()) + " steps for entity " + entity.entity_name)
 		
 		# For player entities, check and consume movement points before movement
 		if entity in player_entities:
@@ -215,6 +225,11 @@ func move_entity_to_tile(entity, target_grid_pos):
 				else:
 					print("GameController: No valid path within movement point range")
 					return
+			
+			# Double-check that the target tile is still available
+			if target_tile.is_occupied and target_tile.occupying_entity != entity:
+				print("GameController: Target tile became occupied during path planning")
+				return
 			
 			# Consume movement points for the path
 			if not entity.consume_movement_points_for_path(path.size()):
