@@ -239,7 +239,6 @@ func _on_menu_options_music_vol_changed(volume: Variant) -> void:
 func _on_menu_options_sfx_vol_changed(volume: Variant) -> void:
 	sfx_volume = volume/1000
 	sfx_player.volume_linear = sfx_volume
-	print("CHANGING SFX VOL")
 	if !sfx_player.playing :
 		sfx_player.set_stream(load("res://sfx/LD57 Fireball.mp3"))
 		sfx_player.play(0)
