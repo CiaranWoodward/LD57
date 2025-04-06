@@ -18,9 +18,11 @@ var tracks : Array[AudioStreamMP3] = [
 	]
 
 var music_player : Array[AudioStreamPlayer]
+var sfx_player : AudioStreamPlayer
 var current_stream_player : int = 0
 var current_track : int = 0
 var music_volume : float = 0.08
+var sfx_volume : float = 0.08
 var music_urgency : bool = false
 var bloody_offset : int = (len(tracks)-1)/2
 
@@ -30,6 +32,8 @@ var current_level : Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	sfx_player = $SFX
+	sfx_player.volume_linear = sfx_volume
 	music_player.append($Music0)
 	music_player.append($Music1)
 	music_player[0].volume_linear = music_volume
@@ -38,13 +42,12 @@ func _ready() -> void:
 	music_player[0].finished.connect(music_loop)
 	music_player[1].finished.connect(music_loop)
 
+
 func music_track(track) -> void:
 	current_track = track
 	music_player[current_stream_player].stream = tracks[track]
 	music_player[current_stream_player].play(0)
-	
-func music_fade(track) -> void:
-	pass
+
 
 func music_fade_in(music_player, track, start_point) :
 	music_player.stream = tracks[track]
@@ -52,11 +55,13 @@ func music_fade_in(music_player, track, start_point) :
 	music_player.play(start_point)
 	var tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(music_player, "volume_linear", music_volume, 2)
-	
+
+
 func music_fade_out(music_player) :
 	var tween = create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(music_player, "volume_linear", 0, 2)
-	
+
+
 #Toggle music urgency:
 func music_toggle_urgency() -> void:
 	
@@ -75,10 +80,12 @@ func music_toggle_urgency() -> void:
 		current_stream_player = 0
 	music_fade_in(music_player[current_stream_player],current_track,start_point)
 
+
 #Loop current track:
 func music_loop() -> void:
 	music_player[current_stream_player].play(0)
 		
+
 
 #Visibility of main menu:
 func show_menu(enable : bool) -> void:	
@@ -95,6 +102,11 @@ func show_upgrade(enable : bool) -> void:
 	$MenuUpgrade.visible = enable
 
 
+#Visibility of endgame screen menu:
+func show_gameover(enable : bool) -> void:	
+	$MenuGameOver.visible = enable
+
+
 func set_upgrade(enable : bool) -> void:
 	show_hud(!enable)
 	show_upgrade(enable)
@@ -105,6 +117,26 @@ func set_upgrade(enable : bool) -> void:
 		get_tree().root.add_child(current_level)
 
 
+func gameover() -> void :
+	show_xp(0)
+	show_hud(0)
+	show_menu(0)
+	get_tree().root.remove_child(current_level)
+	show_bg(1)
+	show_gameover(1)
+	print("gameover")
+	music_player[current_stream_player].stop()
+	sfx_player.stream = load("res://music/LD76 Defeat.mp3")
+	sfx_player.play(0)
+	game_started = 0
+
+func restart_game() -> void :
+	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/NewGame.visible = !game_started
+	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/Resume.visible = game_started
+	show_gameover(0)
+	show_menu(1)
+	music_track(0)
+	
 #Visibility of ingame HUD:
 func show_hud(enable : bool) -> void :
 	$HUD.visible = enable
@@ -117,7 +149,6 @@ func show_bg(enable : bool) -> void :
 
 #Visibility of XP indicator:
 func show_xp(enable : bool) -> void :
-	print("toggling XP!")
 	$XP.visible = enable	
 
 
@@ -186,18 +217,35 @@ func _on_hud_pause_menu() -> void:
 	set_paused(1)
 
 
-func _on_menu_options_vol_changed(volume: Variant) -> void:
-	music_volume = volume/1000
-	music_player[current_stream_player].volume_linear = music_volume
-
-
-func _on_menu_debug_dbg_music_mode() -> void:
-	music_toggle_urgency()
-
-
 func _on_hud_upgrade_menu() -> void:
 	set_upgrade(1)
 
 
 func _on_menu_upgrade_upgrade_exit() -> void:
 	set_upgrade(0)
+
+
+func _on_menu_options_music_vol_changed(volume: Variant) -> void:
+	music_volume = volume/1000
+	music_player[current_stream_player].volume_linear = music_volume
+
+
+func _on_menu_options_sfx_vol_changed(volume: Variant) -> void:
+	sfx_volume = volume/1000
+	sfx_player.volume_linear = music_volume
+
+
+func _on_menu_debug_dbg_add_xp(value: Variant) -> void:
+	$XP.add_xp(100)
+
+
+func _on_menu_debug_dbg_gameover() -> void:
+	gameover()
+
+
+func _on_menu_debug_dbg_music_mode() -> void:
+	music_toggle_urgency()
+
+
+func _on_menu_game_over_gameover_menu() -> void:
+	restart_game()

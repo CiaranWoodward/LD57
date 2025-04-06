@@ -20,6 +20,18 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 20
 
+[node name="SFXVolVBox" type="VBoxContainer" parent="OptionsMargin/OptionsVBox"]
+layout_mode = 2
+
+[node name="SFXVolLabel" type="Label" parent="OptionsMargin/OptionsVBox/SFXVolVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Sound Volume"
+
+[node name="SFXVolHSlider" type="HSlider" parent="OptionsMargin/OptionsVBox/SFXVolVBox"]
+layout_mode = 2
+value = 80.0
+
 [node name="MusicVolVBox" type="VBoxContainer" parent="OptionsMargin/OptionsVBox"]
 layout_mode = 2
 
@@ -37,5 +49,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Back"
 
+[connection signal="value_changed" from="OptionsMargin/OptionsVBox/SFXVolVBox/SFXVolHSlider" to="." method="_on_sfx_vol_h_slider_value_changed"]
 [connection signal="value_changed" from="OptionsMargin/OptionsVBox/MusicVolVBox/MusicVolHSlider" to="." method="_on_h_slider_value_changed"]
 [connection signal="pressed" from="OptionsMargin/OptionsVBox/Button" to="." method="_on_button_pressed"]

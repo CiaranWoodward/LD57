@@ -1,0 +1,111 @@
+[gd_scene load_steps=3 format=3 uid="uid://clkpyn8jrew5m"]
+
+[ext_resource type="Script" uid="uid://vquguug2g76j" path="res://UI/menu_game_over.gd" id="1_v5da2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ivttt"]
+bg_color = Color(0.577008, 0.577008, 0.577008, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[node name="MenuGameOver" type="CanvasLayer"]
+script = ExtResource("1_v5da2")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -171.0
+offset_top = -50.0
+offset_right = 171.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ivttt")
+
+[node name="MenuMargin" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="MenuVBox" type="VBoxContainer" parent="PanelContainer/MenuMargin"]
+layout_mode = 2
+
+[node name="GameOver" type="Label" parent="PanelContainer/MenuMargin/MenuVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.273004, 0, 0, 1)
+theme_override_font_sizes/font_size = 100
+text = "Game Over"
+
+[node name="GameOver2" type="Label" parent="PanelContainer/MenuMargin/MenuVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.273004, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "The forces of evil have prevailed"
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MenuMargin/MenuVBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 20
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 9
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.273004, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "Enemies vanquished:"
+
+[node name="Label2" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "0"
+
+[node name="Label3" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.273004, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "Deepest level reached:"
+
+[node name="Label4" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "0"
+
+[node name="Label5" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.273004, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "Experience remaining:"
+
+[node name="Label6" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "0"
+
+[node name="Button" type="Button" parent="PanelContainer/MenuMargin/MenuVBox"]
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 22
+text = "Main Menu"
+
+[connection signal="pressed" from="PanelContainer/MenuMargin/MenuVBox/Button" to="." method="_on_button_pressed"]

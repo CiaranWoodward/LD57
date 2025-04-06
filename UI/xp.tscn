@@ -1,6 +1,9 @@
-[gd_scene load_steps=0 format=3 uid="uid://ciipa7f45i015"]
+[gd_scene load_steps=2 format=3 uid="uid://ciipa7f45i015"]
+
+[ext_resource type="Script" uid="uid://b3ymsgt80ee8p" path="res://UI/xp.gd" id="1_thmjx"]
 
 [node name="XP" type="CanvasLayer"]
+script = ExtResource("1_thmjx")
 
 [node name="XPMargin" type="MarginContainer" parent="."]
 offset_right = 40.0
