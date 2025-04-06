@@ -67,8 +67,14 @@ func process_turn(player_entities: Array):
 	is_moving = false
 	path = []
 	
+	# Filter player entities to only include those on the same level
+	var same_level_players = []
+	for player in player_entities:
+		if player.current_level == current_level:
+			same_level_players.append(player)
+	
 	# Check for player entities in range
-	var closest_player = find_closest_player(player_entities)
+	var closest_player = find_closest_player(same_level_players)
 	
 	if closest_player:
 		# Player detected - pursue or attack
@@ -110,7 +116,7 @@ func find_closest_player(player_entities: Array) -> Entity:
 	var closest_player = null
 	
 	for player in player_entities:
-		if player.is_defeated():
+		if player.is_defeated() or player.current_level != current_level:
 			continue
 			
 		var distance = grid_position.distance_to(player.grid_position)

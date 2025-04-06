@@ -22,6 +22,9 @@ var enemy_entities = []
 var current_state = GameState.IDLE
 var current_turn_count: int = 0  # Tracks the number of turns that have passed
 
+# Add a property to track the current active level
+var current_active_level: int = 0
+
 # Signals
 signal turn_changed(turn)
 signal entity_moved(entity)
@@ -131,8 +134,14 @@ func _on_entity_selected(entity):
 
 # Move an entity to a specific tile
 func move_entity_to_tile(entity, target_grid_pos):
-	if not entity or not isometric_map:
-		push_error("GameController: Cannot move entity - entity or map is null")
+	if not entity:
+		push_error("GameController: Cannot move entity - entity is null")
+		return
+	
+	# Get the map that belongs to this entity
+	var entity_map = entity.isometric_map
+	if not entity_map:
+		push_error("GameController: Cannot move entity - entity's map is null")
 		return
 		
 	# Check if entity is already moving
@@ -141,7 +150,7 @@ func move_entity_to_tile(entity, target_grid_pos):
 		return
 	
 	# Get the target tile
-	var target_tile = isometric_map.get_tile(target_grid_pos)
+	var target_tile = entity_map.get_tile(target_grid_pos)
 	if not target_tile:
 		print("GameController: Cannot move - target tile does not exist")
 		return
@@ -157,7 +166,7 @@ func move_entity_to_tile(entity, target_grid_pos):
 		return
 	
 	# Get the path to the target (A* will also verify tile occupation)
-	var path = isometric_map.find_path(entity.grid_position, target_grid_pos)
+	var path = entity_map.find_path(entity.grid_position, target_grid_pos)
 	
 	if path.size() > 0:
 		print("GameController: Path found with " + str(path.size()) + " steps")
@@ -175,7 +184,7 @@ func move_entity_to_tile(entity, target_grid_pos):
 				# If the destination is now different, get that tile instead
 				if path.size() > 0:
 					target_grid_pos = path[path.size() - 1]
-					target_tile = isometric_map.get_tile(target_grid_pos)
+					target_tile = entity_map.get_tile(target_grid_pos)
 				else:
 					print("GameController: No valid path within movement point range")
 					return
@@ -228,7 +237,15 @@ func update_highlights():
 
 # Event handler for when a turn starts for a character
 func _on_turn_started(character):
-	print("GameController: Character " + character.entity_name + " turn started")
+	print("GameController: Character " + character.entity_name + " turn started on level " + str(character.current_level))
+	
+	# Skip if this character is not on the active level
+	if character.current_level != current_active_level:
+		print("GameController: Skipping character on inactive level " + str(character.current_level))
+		# End the turn immediately for characters on other levels
+		if character.has_method("end_turn"):
+			character.end_turn()
+		return
 	
 	# If this is a player entity, activate it in the UI
 	if character in player_entities:
@@ -305,24 +322,36 @@ func get_player_entities():
 
 # Spawn an entity helper function
 func _spawn_entity_helper(entity, grid_pos):
-	# Set the map reference
-	entity.isometric_map = isometric_map
+	# We need access to the level manager to get the correct map
+	var level_manager = get_node_or_null("../LevelManager")
+	if not level_manager:
+		push_error("GameController: Cannot find LevelManager, using current active map")
+		# Fallback to current map if level manager not found
+		entity.isometric_map = isometric_map
+	else:
+		# Get the correct map for this entity's level
+		var entity_map = level_manager.level_nodes.get(entity.current_level)
+		if entity_map:
+			entity.isometric_map = entity_map
+		else:
+			push_error("GameController: Cannot find map for level " + str(entity.current_level) + ", using current active map")
+			entity.isometric_map = isometric_map
 	
 	# Ensure game_controller reference is set
 	entity.game_controller = self
 	
-	# Add entity to the map's Y-sorted container
-	if isometric_map:
-		isometric_map.add_entity(entity)
+	# Add entity to the Y-sorted container of the appropriate map
+	if entity.isometric_map:
+		entity.isometric_map.add_entity(entity)
 	else:
-		push_error("GameController: Cannot spawn entity - map is null")
+		push_error("GameController: Cannot spawn entity - map is null for entity level " + str(entity.current_level))
 		return false
 	
 	# Place on the tile
-	var tile = isometric_map.get_tile(grid_pos)
+	var tile = entity.isometric_map.get_tile(grid_pos)
 	if tile:
 		entity.place_on_tile(tile)
-		print("GameController: Entity placed on tile at " + str(grid_pos))
+		print("GameController: Entity placed on tile at " + str(grid_pos) + " on level " + str(entity.current_level))
 		
 		# One more check to ensure the entity still has its GameController reference
 		if entity.game_controller != self:
@@ -331,12 +360,12 @@ func _spawn_entity_helper(entity, grid_pos):
 			
 		return true
 	else:
-		push_error("GameController: Could not find tile at " + str(grid_pos))
+		push_error("GameController: Could not find tile at " + str(grid_pos) + " on level " + str(entity.current_level))
 		return false
 
 # Spawn a player entity on the map
-func spawn_player(grid_pos, player_type: String):
-	print("GameController: Spawning player of type " + player_type + " at " + str(grid_pos))
+func spawn_player(grid_pos, player_type: String, level_index: int = 0):
+	print("GameController: Spawning player of type " + player_type + " at " + str(grid_pos) + " on level " + str(level_index))
 	var entity
 	
 	# Instantiate the appropriate player scene based on type
@@ -360,6 +389,7 @@ func spawn_player(grid_pos, player_type: String):
 	
 	# Explicitly set the game_controller reference
 	entity.game_controller = self
+	entity.current_level = level_index
 	print("GameController: Set self as game_controller for " + entity.entity_name)
 	
 	# Place the entity on the map
@@ -386,8 +416,8 @@ func spawn_player(grid_pos, player_type: String):
 	return entity
 
 # Spawn an enemy on the map
-func spawn_enemy(grid_pos, enemy_type_id):
-	print("GameController: Spawning enemy of type " + str(enemy_type_id) + " at " + str(grid_pos))
+func spawn_enemy(grid_pos, enemy_type_id, level_index: int = 0):
+	print("GameController: Spawning enemy of type " + str(enemy_type_id) + " at " + str(grid_pos) + " on level " + str(level_index))
 	var entity
 	
 	# Instantiate the appropriate enemy scene based on type
@@ -411,6 +441,7 @@ func spawn_enemy(grid_pos, enemy_type_id):
 	
 	# Explicitly set the game_controller reference
 	entity.game_controller = self
+	entity.current_level = level_index
 	print("GameController: Set self as game_controller for " + entity.entity_name)
 	
 	# Place the entity on the map
@@ -473,7 +504,12 @@ func clear_all_highlights():
 
 # Highlight tiles within movement range of the entity
 func highlight_movement_range(entity):
-	if not isometric_map or not entity:
+	if not entity:
+		return
+		
+	var entity_map = entity.isometric_map
+	if not entity_map:
+		push_error("GameController: Cannot highlight movement range - entity's map is null")
 		return
 		
 	# Get entity's current position and movement points
@@ -486,10 +522,51 @@ func highlight_movement_range(entity):
 		return
 	
 	# Use the method to find all reachable tiles within movement points range
-	var movable_tiles = isometric_map.find_reachable_tiles(start_pos, max_mp)
+	var movable_tiles = entity_map.find_reachable_tiles(start_pos, max_mp)
 	
 	# Highlight all movable tiles
 	for tile in movable_tiles:
 		tile.set_move_selectable(true)
 		
 	print("GameController: Highlighted " + str(movable_tiles.size()) + " movable tiles")
+
+# Set the current active level and change the isometric_map reference
+func set_active_level(level_index: int, level_map: IsometricMap):
+	print("GameController: Setting active level to " + str(level_index))
+	
+	# Disconnect signal from old map if it exists
+	if isometric_map and isometric_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
+		isometric_map.tile_selected.disconnect(_on_tile_selected)
+		print("GameController: Disconnected tile_selected signal from previous map")
+	
+	# Change active level and map
+	current_active_level = level_index
+	isometric_map = level_map
+	
+	# Connect signal to new map
+	if isometric_map and not isometric_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
+		isometric_map.tile_selected.connect(_on_tile_selected)
+		print("GameController: Connected tile_selected signal to new map at level " + str(level_index))
+
+# Get all active entities for a specific level
+func get_entities_at_level(level_index: int, entity_type: String = "all") -> Array:
+	var result = []
+	
+	match entity_type:
+		"player":
+			for entity in player_entities:
+				if entity.current_level == level_index:
+					result.append(entity)
+		"enemy":
+			for entity in enemy_entities:
+				if entity.current_level == level_index:
+					result.append(entity)
+		_: # "all" or any other value
+			for entity in player_entities:
+				if entity.current_level == level_index:
+					result.append(entity)
+			for entity in enemy_entities:
+				if entity.current_level == level_index:
+					result.append(entity)
+	
+	return result

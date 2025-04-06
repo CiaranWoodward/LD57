@@ -6,6 +6,7 @@ var entity_id: String = ""
 var current_tile: IsometricTile = null
 var grid_position: Vector2i = Vector2i(0, 0)
 var facing_direction: Vector2i = Vector2i(1, 0)  # Default facing right
+var current_level: int = 0  # Track which level this entity is on
 
 # Map reference
 var isometric_map: IsometricMap = null
@@ -322,3 +323,29 @@ func _on_path_completed():
 	print("Entity: " + entity_name + " completed movement")
 	is_moving = false
 	path.clear()
+
+# Set the entity's level index
+func set_level(level_index: int):
+	print("Entity: " + entity_name + " changing from level " + str(current_level) + " to level " + str(level_index))
+	current_level = level_index
+
+# Method for descending to a lower level
+# This will be used when implementing the drilling mechanic
+func descend_to_level(next_level_index: int, target_tile: IsometricTile):
+	print("Entity: " + entity_name + " descending from level " + str(current_level) + " to level " + str(next_level_index))
+	
+	# Remove from current tile
+	if current_tile:
+		current_tile.remove_entity()
+		current_tile = null
+	
+	# Change level
+	set_level(next_level_index)
+	
+	# Place on target tile in new level
+	if target_tile:
+		place_on_tile(target_tile)
+	else:
+		push_error("Entity: " + entity_name + " - Cannot descend to null tile")
+	
+	# This method would be expanded when implementing drilling

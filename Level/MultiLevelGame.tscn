@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://511yfws3k7j0"]
+
+[ext_resource type="Script" uid="uid://bm6stx12rmae5" path="res://Level/GameController.gd" id="1_m2ops"]
+[ext_resource type="Script" uid="uid://bi1gvr4rtwk3o" path="res://Level/MultiLevelGameInit.gd" id="2_wuxbk"]
+[ext_resource type="Script" uid="uid://2tf66shq75ga" path="res://Level/LevelManager.gd" id="3_mnkwh"]
+[ext_resource type="Script" uid="uid://b4b0l20yg5653" path="res://Level/PlayerCam.gd" id="4_uafkm"]
+
+[node name="MultiLevelGame" type="Node2D"]
+script = ExtResource("2_wuxbk")
+
+[node name="GameController" type="Node" parent="."]
+script = ExtResource("1_m2ops")
+
+[node name="LevelManager" type="Node2D" parent="."]
+script = ExtResource("3_mnkwh")
+level_vertical_offset = 400.0
+
+[node name="PlayerCam" type="Camera2D" parent="."]
+position = Vector2(480, 270)
+zoom = Vector2(0.4, 0.4)
+script = ExtResource("4_uafkm")
+MAX_SPEED = 2000.0
+ACCEL_TIME = 0.2

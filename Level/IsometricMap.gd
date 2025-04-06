@@ -8,6 +8,8 @@ extends Node2D
 @export var tile_height: int = 64  # Height of tile in pixels
 @export var tile_scene: PackedScene  # Reference to the tile scene to instantiate
 
+var level_index = 0
+
 # References
 var tiles: Dictionary = {}  # Dictionary of Vector2i -> IsometricTile
 var selected_tile: IsometricTile = null
@@ -32,9 +34,6 @@ func generate_map():
 	
 	tiles.clear()
 	print("IsometricMap: Cleared existing tiles")
-	
-	# Wait for next frame to ensure all old tiles are removed
-	await get_tree().process_frame
 	
 	# Create new tiles
 	var total_tiles = map_width * map_height
@@ -110,7 +109,7 @@ func world_to_grid(world_pos: Vector2) -> Vector2i:
 
 # Handle tile click events
 func _on_tile_clicked(tile: IsometricTile):
-	print("IsometricMap: Tile clicked at " + str(tile.grid_position))
+	print("IsometricMap: Tile clicked at " + str(tile.grid_position) + ", level: " + str(level_index))
 	if selected_tile:
 		print("IsometricMap: Deselecting previous tile at " + str(selected_tile.grid_position))
 		selected_tile.highlight(false)

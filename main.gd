@@ -7,7 +7,7 @@ var paused : bool = true
 
 #All game levels:
 var levels : Array[PackedScene] = [
-	load("res://Level/Game.tscn")
+	load("res://Level/MultiLevelGame.tscn")
 ]
 
 #All music tracks:
