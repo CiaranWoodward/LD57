@@ -41,10 +41,12 @@ visible = false
 visible = false
 
 [node name="MenuDebug" parent="." instance=ExtResource("6_tefeu")]
-process_mode = 4
 visible = false
 
-[node name="Music" type="AudioStreamPlayer" parent="."]
+[node name="Music0" type="AudioStreamPlayer" parent="."]
+volume_db = 0.627
+
+[node name="Music1" type="AudioStreamPlayer" parent="."]
 volume_db = 0.627
 
 [connection signal="new_game_pressed" from="MenuMain" to="." method="_on_menu_main_new_game_pressed"]
@@ -53,3 +55,4 @@ volume_db = 0.627
 [connection signal="back_pressed" from="MenuOptions" to="." method="_on_menu_options_back_pressed"]
 [connection signal="vol_changed" from="MenuOptions" to="." method="_on_menu_options_vol_changed"]
 [connection signal="PauseMenu" from="HUD" to="." method="_on_hud_pause_menu"]
+[connection signal="dbg_music_mode" from="MenuDebug" to="." method="_on_menu_debug_dbg_music_mode"]
