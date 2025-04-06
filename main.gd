@@ -116,23 +116,29 @@ func set_upgrade(enable : bool) -> void:
 	else :
 		get_tree().root.add_child(current_level)
 
-
-func gameover() -> void :
+#Call for gameover screen. State = 1 for victory, 0 for defeat.
+func gameover(state) -> void :
+	
+	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label6.text = str($XP.get_total_xp())
+	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label6.text = str($XP.get_total_xp())
+	$MenuGameOver.set_victory(state)
 	show_xp(0)
 	show_hud(0)
 	show_menu(0)
 	get_tree().root.remove_child(current_level)
 	show_bg(1)
 	show_gameover(1)
-	print("gameover")
+	
 	music_player[current_stream_player].stop()
 	sfx_player.stream = load("res://music/LD76 Defeat.mp3")
 	sfx_player.play(0)
+	
 	game_started = 0
 
 func restart_game() -> void :
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/NewGame.visible = !game_started
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/Resume.visible = game_started
+	$XP.reset_xp()
 	show_gameover(0)
 	show_menu(1)
 	music_track(0)
@@ -232,15 +238,21 @@ func _on_menu_options_music_vol_changed(volume: Variant) -> void:
 
 func _on_menu_options_sfx_vol_changed(volume: Variant) -> void:
 	sfx_volume = volume/1000
-	sfx_player.volume_linear = music_volume
+	sfx_player.volume_linear = sfx_volume
+	print("CHANGING SFX VOL")
+	if !sfx_player.playing :
+		sfx_player.set_stream(load("res://sfx/LD57 Fireball.mp3"))
+		sfx_player.play(0)
 
 
 func _on_menu_debug_dbg_add_xp(value: Variant) -> void:
 	$XP.add_xp(100)
 
+func _on_menu_debug_dbg_win() -> void:
+	gameover(1)
 
 func _on_menu_debug_dbg_gameover() -> void:
-	gameover()
+	gameover(0)
 
 
 func _on_menu_debug_dbg_music_mode() -> void:

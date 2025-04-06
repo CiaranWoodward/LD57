@@ -93,7 +93,7 @@ text = "0"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.273004, 0, 0, 1)
 theme_override_font_sizes/font_size = 22
-text = "Experience remaining:"
+text = "Experience gathered:"
 
 [node name="Label6" type="Label" parent="PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer"]
 layout_mode = 2
