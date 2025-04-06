@@ -38,6 +38,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Game Over"
 
+[node name="Win" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Win"
+
 [node name="MusicMode" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -49,5 +54,6 @@ theme_override_font_sizes/font_size = 32
 text = "+100 XP"
 
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/GameOver" to="." method="_on_game_over_pressed"]
+[connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/Win" to="." method="_on_win_pressed"]
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/MusicMode" to="." method="_on_music_mode_pressed"]
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/AddXP" to="." method="_on_add_xp_pressed"]
