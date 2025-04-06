@@ -57,6 +57,7 @@ func add_character_to_group(character, group_name: String):
 
 # Remove a character from the sequence
 func remove_character(character):
+	# Remove from main character list
 	if character in characters:
 		characters.erase(character)
 		
@@ -65,20 +66,24 @@ func remove_character(character):
 			character.turn_finished.disconnect(_on_character_turn_finished)
 		
 		print("TurnSequencer: Removed character " + character.name)
+	
+	# Remove from all character groups
+	for group_name in character_groups:
+		if character in character_groups[group_name]:
+			character_groups[group_name].erase(character)
+			print("TurnSequencer: Removed character " + character.name + " from group " + group_name)
+	
+	# If we're in a group turn, make sure our characters array matches the current group
+	if current_group != "":
+		characters = character_groups[current_group].duplicate()
+	
+	# Adjust current_index if needed
+	if current_index >= characters.size() and characters.size() > 0:
+		current_index = characters.size() - 1
 		
-		# Remove from all groups
-		for group_name in character_groups:
-			if character in character_groups[group_name]:
-				character_groups[group_name].erase(character)
-		
-		# Adjust current_index if needed
-		if current_index >= characters.size():
-			current_index = characters.size() - 1
-			
-		# If we're now in the middle of a turn cycle, we might need to adjust
-		# who goes next to avoid skipping turns
-		if current_index == characters.size() - 1 and characters.size() > 0:
-			call_deferred("_start_next_character_turn")
+	# If we're in the middle of a turn cycle, adjust who goes next
+	if current_index >= 0 and current_index < characters.size():
+		call_deferred("_start_next_character_turn")
 
 # Connect signals for a character
 func _connect_character_signals(character):

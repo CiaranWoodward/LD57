@@ -30,7 +30,7 @@ signal entity_selected(entity)
 signal health_changed(current, maximum)
 signal status_effect_applied(effect_name)
 signal status_effect_removed(effect_name)
-signal died()
+signal died(entity)
 
 # Drilling state properties
 var is_drilling: bool = false
@@ -318,7 +318,13 @@ func die():
 	print("Entity: " + entity_name + " died")
 	is_dead = true
 	is_moving = false
-	emit_signal("died")
+	
+	# Clean up the tile this entity was occupying
+	if current_tile and current_tile.is_occupied and current_tile.occupying_entity == self:
+		print("Entity: " + entity_name + " removing from tile at " + str(current_tile.grid_position) + " on death")
+		current_tile.remove_entity()
+	
+	emit_signal("died", self)
 
 # Revive a dead entity
 func revive(health_amount: int = -1):

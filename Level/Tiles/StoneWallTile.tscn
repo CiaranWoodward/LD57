@@ -17,7 +17,6 @@ texture = ExtResource("2_a62fr")
 self_modulate = Color(0.6, 0.6, 0.6, 1)
 show_behind_parent = true
 position = Vector2(7.5, 183.5)
-scale = Vector2(1, 1)
 texture = ExtResource("2_jt42g")
 
 [node name="Area2D" type="Area2D" parent="."]
