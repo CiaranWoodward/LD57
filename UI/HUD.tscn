@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://ctaeg60vimnlh"]
+[gd_scene load_steps=13 format=3 uid="uid://ctaeg60vimnlh"]
 
 [ext_resource type="Script" uid="uid://bi03uqtchp46e" path="res://UI/hud.gd" id="1_7i7fj"]
 [ext_resource type="Texture2D" uid="uid://bt1u3xtfej64n" path="res://images/image_act.png" id="1_ktti3"]
@@ -9,20 +9,41 @@
 [ext_resource type="Texture2D" uid="uid://blhl16ar0sq21" path="res://images/icon_guard.png" id="3_wm3ai"]
 [ext_resource type="Texture2D" uid="uid://bmtdje21c1ggw" path="res://images/button_endturn.png" id="7_vdcm2"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_md4fy"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7i7fj"]
+bg_color = Color(0.960784, 0.0745098, 0.137255, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2r41h"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rbci0"]
 
 [node name="ui" type="CanvasLayer"]
 script = ExtResource("1_7i7fj")
 
 [node name="MenuMargin" type="MarginContainer" parent="."]
-offset_right = 145.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -307.0
 offset_bottom = 55.0
+grow_horizontal = 0
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="ButtonMenu" type="Button" parent="MenuMargin"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MenuMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ButtonUpgrade" type="Button" parent="MenuMargin/HBoxContainer"]
+custom_minimum_size = Vector2(135, 45)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Upgrades"
+
+[node name="ButtonMenu" type="Button" parent="MenuMargin/HBoxContainer"]
 custom_minimum_size = Vector2(135, 45)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -35,6 +56,7 @@ anchor_bottom = 1.0
 offset_top = -68.0
 offset_right = 64.0
 grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_md4fy")
 
 [node name="InfoMargin" type="MarginContainer" parent="Info"]
 layout_mode = 2
@@ -122,6 +144,13 @@ layout_mode = 2
 texture = ExtResource("3_7dvkv")
 expand_mode = 4
 
+[node name="HealthBar" type="ProgressBar" parent="Info/InfoMargin/InfoVBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_7i7fj")
+value = 100.0
+show_percentage = false
+
 [node name="Action" type="PanelContainer" parent="."]
 anchors_preset = 7
 anchor_left = 0.5
@@ -180,6 +209,7 @@ offset_left = -64.0
 offset_top = -64.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_rbci0")
 
 [node name="EndMargin" type="MarginContainer" parent="End"]
 layout_mode = 2
@@ -212,4 +242,5 @@ text = "DRILLING: 2 turns left"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[connection signal="pressed" from="MenuMargin/ButtonMenu" to="." method="_on_button_menu_pressed"]
+[connection signal="pressed" from="MenuMargin/HBoxContainer/ButtonUpgrade" to="." method="_on_button_upgrade_pressed"]
+[connection signal="pressed" from="MenuMargin/HBoxContainer/ButtonMenu" to="." method="_on_button_menu_pressed"]

@@ -2,6 +2,7 @@ extends CanvasLayer
 class_name HUD
 
 signal PauseMenu
+signal UpgradeMenu
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -16,6 +17,9 @@ func _ready() -> void:
 
 func _on_button_menu_pressed() -> void:
 	PauseMenu.emit()
+	
+func _on_button_upgrade_pressed() -> void:
+	UpgradeMenu.emit()
 
 # Handle clicking on the drill action button
 func _on_action_drill_input(event: InputEvent) -> void:

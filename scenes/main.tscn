@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://crfl4qv4cvgwq"]
+[gd_scene load_steps=10 format=3 uid="uid://crfl4qv4cvgwq"]
 
 [ext_resource type="Script" uid="uid://uktqrdqbw21b" path="res://main.gd" id="1_jyhfs"]
 [ext_resource type="PackedScene" uid="uid://dw4dfv2w8nfqf" path="res://UI/menu_main.tscn" id="3_tefeu"]
 [ext_resource type="PackedScene" uid="uid://ctaeg60vimnlh" path="res://UI/HUD.tscn" id="4_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://8r4xmp8negky" path="res://UI/menu_options.tscn" id="4_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://bmro7tjun8tux" path="res://UI/menu_upgrade.tscn" id="4_tefeu"]
+[ext_resource type="PackedScene" uid="uid://ciipa7f45i015" path="res://UI/xp.tscn" id="6_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://dvnr08tnqqvmu" path="res://UI/menu_debug.tscn" id="6_tefeu"]
 
 [sub_resource type="Gradient" id="Gradient_ltcc5"]
@@ -37,7 +39,13 @@ texture = SubResource("GradientTexture1D_tefeu")
 auto_translate_mode = 2
 visible = false
 
+[node name="MenuUpgrade" parent="." instance=ExtResource("4_tefeu")]
+visible = false
+
 [node name="HUD" parent="." instance=ExtResource("4_o6xl0")]
+visible = false
+
+[node name="XP" parent="." instance=ExtResource("6_o6xl0")]
 visible = false
 
 [node name="MenuDebug" parent="." instance=ExtResource("6_tefeu")]
@@ -54,5 +62,7 @@ volume_db = 0.627
 [connection signal="resume_pressed" from="MenuMain" to="." method="_on_menu_main_resume_pressed"]
 [connection signal="back_pressed" from="MenuOptions" to="." method="_on_menu_options_back_pressed"]
 [connection signal="vol_changed" from="MenuOptions" to="." method="_on_menu_options_vol_changed"]
+[connection signal="upgrade_exit" from="MenuUpgrade" to="." method="_on_menu_upgrade_upgrade_exit"]
 [connection signal="PauseMenu" from="HUD" to="." method="_on_hud_pause_menu"]
+[connection signal="UpgradeMenu" from="HUD" to="." method="_on_hud_upgrade_menu"]
 [connection signal="dbg_music_mode" from="MenuDebug" to="." method="_on_menu_debug_dbg_music_mode"]
