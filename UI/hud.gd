@@ -69,6 +69,24 @@ func update_action_points(current: int, maximum: int) -> void:
 		# Hide the points beyond the maximum
 		action_containers[i].visible = point_index < maximum
 
+# Updates the UI to show the current player's health
+func update_health_bar(current: int, maximum: int) -> void:
+	# Get the health bar
+	var health_bar = $Info/InfoMargin/InfoVBox/HealthBar
+	
+	# Update the value and max value
+	health_bar.max_value = maximum
+	health_bar.value = current
+	
+	# Optionally change the color based on health percentage
+	var health_percent = float(current) / float(maximum)
+	if health_percent < 0.3:
+		health_bar.get("theme_override_styles/fill").bg_color = Color(0.8, 0.0, 0.0, 1.0) # Critical health (red)
+	elif health_percent < 0.6:
+		health_bar.get("theme_override_styles/fill").bg_color = Color(0.8, 0.8, 0.0, 1.0) # Low health (yellow)
+	else:
+		health_bar.get("theme_override_styles/fill").bg_color = Color(0.96, 0.07, 0.14, 1.0) # Normal health (game's default red)
+
 # Updates the UI to show the current player's movement points
 func update_movement_points(current: int, maximum: int) -> void:
 	# Get all movement point indicators
@@ -96,6 +114,8 @@ func set_active_player(player: PlayerEntity) -> void:
 			current_player.disconnect("action_points_changed", Callable(self, "update_action_points"))
 		if current_player.is_connected("movement_points_changed", Callable(self, "update_movement_points")):
 			current_player.disconnect("movement_points_changed", Callable(self, "update_movement_points"))
+		if current_player.is_connected("health_changed", Callable(self, "update_health_bar")):
+			current_player.disconnect("health_changed", Callable(self, "update_health_bar"))
 	
 	# Store reference to the new player
 	current_player = player
@@ -104,10 +124,12 @@ func set_active_player(player: PlayerEntity) -> void:
 		# Connect to the new player's signals
 		current_player.connect("action_points_changed", update_action_points)
 		current_player.connect("movement_points_changed", update_movement_points)
+		current_player.connect("health_changed", update_health_bar)
 		
 		# Update the UI immediately with current values
 		update_action_points(player.action_points, player.max_action_points)
 		update_movement_points(player.movement_points, player.max_movement_points)
+		update_health_bar(player.current_health, player.max_health)
 		
 		# Update character image
 		update_character_image(player)
@@ -125,6 +147,7 @@ func set_active_player(player: PlayerEntity) -> void:
 		# Clear UI if no player is active
 		update_action_points(0, 0)
 		update_movement_points(0, 0)
+		update_health_bar(0, 1) # Set to 0 with a max of 1 (empty bar)
 		
 		# Reset character image
 		var image = $Info/InfoMargin/InfoVBox/CharImage

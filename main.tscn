@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://c14gokk3e3kvt"]
+[gd_scene load_steps=2 format=3 uid="uid://kc4jhrc7s8yd"]
 
 [ext_resource type="PackedScene" uid="uid://511yfws3k7j0" path="res://Level/MultiLevelGame.tscn" id="1_r3xbf"]
 
