@@ -65,33 +65,6 @@ func execute_ability(ability_name: String, target) -> bool:
 			push_error("ScoutPlayer: " + entity_name + " - Unknown ability: " + ability_name)
 			return false
 
-# Scout moves more efficiently - 25% chance to not consume movement points
-func consume_movement_points_for_path(path_length: int) -> bool:
-	if path_length <= 0:
-		return true  # No movement points needed for empty path
-		
-	# Calculate the actual cost with Scout's efficiency bonus
-	var actual_cost = 0
-	for step in range(path_length):
-		if randf() > 0.25:  # 25% chance of free movement
-			actual_cost += 1
-	
-	print("ScoutPlayer: " + entity_name + " efficient movement, cost reduced from " + 
-		str(path_length) + " to " + str(actual_cost))
-		
-	# Check if we have enough movement points
-	if movement_points < actual_cost:
-		print("ScoutPlayer: " + entity_name + " doesn't have enough movement points")
-		return false
-		
-	# Consume the calculated movement points
-	movement_points = max(0, movement_points - actual_cost)
-	print("ScoutPlayer: " + entity_name + " consumed " + str(actual_cost) + " movement points, " + 
-		str(movement_points) + " remaining")
-	emit_signal("movement_points_changed", movement_points, max_movement_points)
-	
-	return true
-
 # Override level up to focus on movement and vision
 func on_level_up():
 	super.on_level_up()

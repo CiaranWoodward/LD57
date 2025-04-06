@@ -3,6 +3,7 @@ extends Node
 # Global game state and utility functions
 var debug_mode: bool = true
 var current_level: int = 1
+var hud : HUD = null
 
 func _ready():
 	print("Global singleton initialized")

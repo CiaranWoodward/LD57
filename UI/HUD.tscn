@@ -183,9 +183,10 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="EndImage" type="TextureRect" parent="End/EndMargin"]
+[node name="EndButton" type="TextureButton" parent="End/EndMargin"]
 custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
-texture = ExtResource("7_vdcm2")
+texture_normal = ExtResource("7_vdcm2")
+stretch_mode = 0
 
 [connection signal="pressed" from="MenuMargin/ButtonMenu" to="." method="_on_button_menu_pressed"]

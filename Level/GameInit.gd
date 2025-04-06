@@ -6,7 +6,7 @@ extends Node2D
 # Reference to key nodes
 @onready var map = $Map
 @onready var game_controller = $GameController
-@onready var end_turn_button = $CanvasLayer/UI/EndTurnButton
+@onready var end_turn_button = Global.hud.get_end_turn_button()
 
 func _ready():
 	print("GameInit: Initializing game")
