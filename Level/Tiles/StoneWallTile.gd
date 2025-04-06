@@ -5,6 +5,8 @@ extends IsometricTile
 var isometric_map: IsometricMap = null
 var needs_transparency_update: bool = true
 var watched_tiles = []
+var current_tween: Tween = null
+var transition_duration: float = 0.3  # Duration of transparency animation in seconds
 
 func _init():
 	type = "stone_wall"
@@ -75,17 +77,37 @@ func update_transparency():
 	if not wall_sprite:
 		return
 	
-	# Check for entity or highlight in any of these 3 adjacent tiles
+	# Calculate the target transparency
+	var target_alpha = 1.0  # Default is fully opaque
 	var modulation = 0.25
+	
 	for adj_tile in watched_tiles:
 		if adj_tile.is_occupied or adj_tile.is_highlighted or adj_tile.is_move_selectable or adj_tile.is_attackable or adj_tile.is_hovered:
-			# Entity or highlight found in a neighboring tile, set to 25% transparency
-			wall_sprite.self_modulate = Color(1, 1, 1, modulation)
-			return
+			# Entity or highlight found in a neighboring tile, set appropriate transparency
+			target_alpha = modulation
+			break
 		modulation = 0.5
 	
-	# No relevant entities or highlights found, restore normal transparency
-	wall_sprite.self_modulate = Color(1, 1, 1, 1.0)
+	# Create a smooth tween animation for the transparency change
+	animate_transparency(wall_sprite, target_alpha)
+
+# Animate the transition to a new transparency value
+func animate_transparency(sprite: Sprite2D, target_alpha: float):
+	# Stop any existing tween to avoid conflicts
+	if current_tween != null and current_tween.is_valid():
+		current_tween.kill()
+	
+	# Create a new tween
+	current_tween = create_tween()
+	current_tween.set_ease(Tween.EASE_OUT)
+	current_tween.set_trans(Tween.TRANS_CUBIC)
+	
+	# Get current color and calculate target color
+	var current_color = sprite.self_modulate
+	var target_color = Color(1, 1, 1, target_alpha)
+	
+	# Animate the color change
+	current_tween.tween_property(sprite, "self_modulate", target_color, transition_duration)
 
 # Connect to signals from nearby tiles that might affect our transparency
 func connect_to_nearby_tiles():
