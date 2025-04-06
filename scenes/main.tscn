@@ -4,8 +4,8 @@
 [ext_resource type="PackedScene" uid="uid://dw4dfv2w8nfqf" path="res://UI/menu_main.tscn" id="3_tefeu"]
 [ext_resource type="PackedScene" uid="uid://ctaeg60vimnlh" path="res://UI/HUD.tscn" id="4_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://8r4xmp8negky" path="res://UI/menu_options.tscn" id="4_tbgi4"]
-[ext_resource type="PackedScene" uid="uid://bmro7tjun8tux" path="res://UI/menu_upgrade.tscn" id="4_tefeu"]
-[ext_resource type="PackedScene" uid="uid://ciipa7f45i015" path="res://UI/xp.tscn" id="6_o6xl0"]
+[ext_resource type="PackedScene" path="res://UI/menu_upgrade.tscn" id="4_tefeu"]
+[ext_resource type="PackedScene" path="res://UI/xp.tscn" id="6_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://dvnr08tnqqvmu" path="res://UI/menu_debug.tscn" id="6_tefeu"]
 
 [sub_resource type="Gradient" id="Gradient_ltcc5"]
