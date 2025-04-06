@@ -45,6 +45,10 @@ func initialize_level(level_index: int) -> IsometricMap:
 	add_child(level_instance)
 	level_instance.z_index = -level_index
 	
+	# Set initial modulation (grey for non-active levels)
+	if level_index > 0:  # Assume first level starts as active
+		level_instance.modulate = Color(0.7, 0.7, 0.7, 1.0)
+	
 	# Track this level
 	level_nodes[level_index] = level_instance
 	active_levels.append(level_instance)

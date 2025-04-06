@@ -592,9 +592,35 @@ func set_active_level(level_index: int, level_map: IsometricMap):
 		isometric_map.tile_selected.disconnect(_on_tile_selected)
 		print("GameController: Disconnected tile_selected signal from previous map")
 	
+	# Restore the previous level's z_index to its default value (negative of level index)
+	if level_manager and level_manager.level_nodes.has(current_active_level):
+		var previous_level_map = level_manager.level_nodes[current_active_level]
+		if previous_level_map:
+			previous_level_map.z_index = -current_active_level
+			# Fade previous active level to grey
+			var tween = create_tween()
+			tween.tween_property(previous_level_map, "modulate", Color(0.7, 0.7, 0.7, 1.0), 0.3)
+			print("GameController: Restored z_index of level " + str(current_active_level) + " to " + str(-current_active_level))
+	
 	# Change active level and map
 	current_active_level = level_index
 	isometric_map = level_map
+	
+	# Set the new active level's z_index to 10 to bring it forward
+	if isometric_map:
+		isometric_map.z_index = 10
+		# Fade active level to full color
+		var tween = create_tween()
+		tween.tween_property(isometric_map, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.3)
+		print("GameController: Set z_index of active level " + str(level_index) + " to 10")
+	
+	# Apply grey modulation to all non-active levels
+	if level_manager:
+		for idx in level_manager.level_nodes:
+			var map = level_manager.level_nodes[idx]
+			if idx != level_index and map:
+				var tween = create_tween()
+				tween.tween_property(map, "modulate", Color(0.7, 0.7, 0.7, 1.0), 0.3)
 	
 	# Connect signal to new map
 	if isometric_map and not isometric_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
