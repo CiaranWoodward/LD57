@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dvnr08tnqqvmu"]
 
-[ext_resource type="Script" uid="uid://dhpxg11gy2hld" path="res://UI/menu_debug.gd" id="1_qmqma"]
+[ext_resource type="Script" uid="uid://b22x3o5qxq7en" path="res://UI/menu_debug.gd" id="1_qmqma"]
 
 [node name="MenuDebug" type="CanvasLayer"]
 script = ExtResource("1_qmqma")
@@ -33,14 +33,21 @@ theme_override_font_sizes/font_size = 32
 text = "Debug"
 horizontal_alignment = 1
 
-[node name="NextLevel" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
+[node name="GameOver" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Next Level"
+text = "Game Over"
 
 [node name="MusicMode" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Music Mode"
 
+[node name="AddXP" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "+100 XP"
+
+[connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/GameOver" to="." method="_on_game_over_pressed"]
 [connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/MusicMode" to="." method="_on_music_mode_pressed"]
+[connection signal="pressed" from="PanelContainer/MarginContainer/VBoxContainer/AddXP" to="." method="_on_add_xp_pressed"]

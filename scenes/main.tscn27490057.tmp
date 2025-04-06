@@ -44,7 +44,6 @@ visible = false
 visible = false
 
 [node name="MenuGameOver" parent="." instance=ExtResource("5_tipki")]
-visible = false
 
 [node name="MenuDebug" parent="." instance=ExtResource("6_tefeu")]
 visible = false
@@ -71,9 +70,5 @@ volume_db = 0.627
 [connection signal="music_vol_changed" from="MenuOptions" to="." method="_on_menu_options_music_vol_changed"]
 [connection signal="sfx_vol_changed" from="MenuOptions" to="." method="_on_menu_options_sfx_vol_changed"]
 [connection signal="upgrade_exit" from="MenuUpgrade" to="." method="_on_menu_upgrade_upgrade_exit"]
-[connection signal="gameover_menu" from="MenuGameOver" to="." method="_on_menu_game_over_gameover_menu"]
-[connection signal="dbg_add_xp" from="MenuDebug" to="." method="_on_menu_debug_dbg_add_xp"]
-[connection signal="dbg_gameover" from="MenuDebug" to="." method="_on_menu_debug_dbg_gameover"]
-[connection signal="dbg_music_mode" from="MenuDebug" to="." method="_on_menu_debug_dbg_music_mode"]
 [connection signal="PauseMenu" from="HUD" to="." method="_on_hud_pause_menu"]
 [connection signal="UpgradeMenu" from="HUD" to="." method="_on_hud_upgrade_menu"]

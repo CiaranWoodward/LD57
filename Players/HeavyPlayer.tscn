@@ -1,10 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://cxqxbsg5imf4d"]
+[gd_scene load_steps=4 format=3 uid="uid://cxqxbsg5imf4d"]
 
 [ext_resource type="Script" uid="uid://cux57ein80ay8" path="res://Players/HeavyPlayer.gd" id="1_y6ulq"]
+[ext_resource type="Texture2D" uid="uid://dbk5jfdkxlnyb" path="res://images/heavy.png" id="2_brafd"]
 [ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_ux8rl"]
 
 [node name="HeavyPlayer" type="Node2D"]
 script = ExtResource("1_y6ulq")
+profile_texture = ExtResource("2_brafd")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.215902, 0.215902, 0.215902, 1)
