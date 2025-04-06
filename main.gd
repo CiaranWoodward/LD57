@@ -1,6 +1,9 @@
 extends Control
 
-@export var debug : bool = true
+@export var debug_en : bool = true
+var debug_mode : bool = false
+
+var paused : bool = true
 
 #All game levels:
 var levels : Array[PackedScene] = [
@@ -26,6 +29,7 @@ var music_player : AudioStreamPlayer
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	music_player = $Music
+	music_player.volume_linear = 0.08
 	music_track(0)
 	music_player.finished.connect(music_loop)
 
@@ -42,21 +46,38 @@ func music_loop() -> void:
 
 
 #Visibility of main menu:
-func show_menu(enable : bool) -> void:
-	$MenuMain.visible = enable	
-	$BG.visible = enable	
-	$HUD.visible = !enable
+func show_menu(enable : bool) -> void:	
+	$MenuMain.visible = enable
 
 
 #Visibility of options menu:
 func show_options(enable : bool) -> void:
-	$MenuMain.visible = !enable	
 	$MenuOptions.visible = enable	
+
+
+#Visibility of ingame HUD:
+func show_hud(enable : bool) -> void :
+	pass#$HUD.visible = enable
+	
+func show_bg(enable : bool) -> void :
+	$BG.visible = enable	
+
+
+func set_paused(en) -> void:
+	paused = en
+	show_bg(en)
+	show_hud(!en)
+	show_menu(en)
+	if (en) :
+		get_tree().root.remove_child(current_level)
+	else :
+		get_tree().root.add_child(current_level)
+		show_options(en)
+
 
 #Resume level:
 func _on_menu_main_resume_pressed() -> void:
-	show_menu(false)
-	get_tree().root.add_child(current_level)
+	set_paused(0)
 
 
 func _on_menu_main_new_game_pressed() -> void:
@@ -66,35 +87,46 @@ func _on_menu_main_new_game_pressed() -> void:
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/NewGame.visible = !game_started
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/Resume.visible = game_started
 	
+	set_paused(0)
+	
 	#Hide menu, enable HUD and show first level:
-	show_menu(false)
 	current_level = levels[0].instantiate()
-	get_tree().root.add_child(current_level)
+	set_paused(0)
 	
 	#Start music for first level:
 	music_track(1)
 
 
 func _on_menu_main_options_pressed() -> void:
+	show_menu(false)
 	show_options(true)
 
 
 func _on_menu_options_back_pressed() -> void:
-	show_options(false)
 	show_menu(true)
+	show_options(false)	
 
 
 func _process(delta: float) -> void:
 	
-	#Toggle debug menu
-	if  (debug == true) and (Input.is_action_just_pressed("debug")) :
-		$MenuDebug.visible = !$MenuDebug.visible
+	#Pause menu:
+	if  (game_started == true) && (Input.is_action_just_pressed("menu")) :
+		set_paused(not paused)
+	
+	#Toggle debug menu:
+	if  (debug_en == true) and (Input.is_action_just_pressed("debug")) :
+		if (debug_mode) :
+			debug_mode = false
+			$MenuDebug.visible = 0
+		else :
+			debug_mode = true
+			$MenuDebug.visible = 1
 
 
 func _on_hud_pause_menu() -> void:
-	show_menu(true)
-	get_tree().root.remove_child(current_level)
+	set_paused(1)
 
 
 func _on_menu_options_vol_changed(volume: Variant) -> void:
-	music_player.volume_linear = volume/100
+	print(volume/100/10)
+	music_player.volume_linear = volume/1000

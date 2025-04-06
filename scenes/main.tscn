@@ -19,26 +19,33 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 script = ExtResource("1_jyhfs")
 
 [node name="BG" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 texture = SubResource("GradientTexture1D_tefeu")
 
 [node name="MenuMain" parent="." instance=ExtResource("3_tefeu")]
 
 [node name="MenuOptions" parent="." instance=ExtResource("4_tbgi4")]
+auto_translate_mode = 2
 visible = false
 
 [node name="HUD" parent="." instance=ExtResource("4_o6xl0")]
 visible = false
 
 [node name="MenuDebug" parent="." instance=ExtResource("6_tefeu")]
+process_mode = 4
 visible = false
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
+volume_db = 0.627
 
 [connection signal="new_game_pressed" from="MenuMain" to="." method="_on_menu_main_new_game_pressed"]
 [connection signal="options_pressed" from="MenuMain" to="." method="_on_menu_main_options_pressed"]
