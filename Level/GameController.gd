@@ -122,6 +122,10 @@ func _on_entity_selected(entity):
 		# Visual feedback for selection would be implemented here
 		emit_signal("player_activated", entity)
 		
+		# Update the HUD with the selected player
+		if Global.hud:
+			Global.hud.set_active_player(entity)
+		
 		# Highlight movement range for the selected entity
 		highlight_movement_range(entity)
 
@@ -230,6 +234,10 @@ func _on_turn_started(character):
 	if character in player_entities:
 		selected_entity = character
 		emit_signal("player_activated", character)
+		
+		# Update the HUD with the current player
+		if Global.hud:
+			Global.hud.set_active_player(character)
 
 # Event handler for when a turn ends for a character
 func _on_turn_ended(character):
@@ -238,6 +246,10 @@ func _on_turn_ended(character):
 	# If this was a player entity, deselect it
 	if character in player_entities and selected_entity == character:
 		selected_entity = null
+		
+		# Clear the active player in the HUD
+		if Global.hud and Global.hud.current_player == character:
+			Global.hud.set_active_player(null)
 
 # Event handler for when a group starts its turns
 func _on_group_turns_started(group_name):
