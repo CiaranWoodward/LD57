@@ -201,6 +201,13 @@ texture_normal = ExtResource("3_wm3ai")
 ignore_texture_size = true
 stretch_mode = 0
 
+[node name="ActionDrillSmash" type="TextureButton" parent="Action/ActionMargin/ActionHBox"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+texture_normal = ExtResource("3_wm3ai")
+ignore_texture_size = true
+stretch_mode = 0
+
 [node name="End" type="PanelContainer" parent="."]
 anchors_preset = 3
 anchor_left = 1.0

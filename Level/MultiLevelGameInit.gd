@@ -102,7 +102,6 @@ func _ready():
 # Set up UI elements
 func setup_ui():
 	if end_turn_button:
-		end_turn_button.pressed.connect(_on_end_turn_button_pressed)
 		# Initially hide the button until player turn
 		end_turn_button.visible = false
 	else:
@@ -132,12 +131,6 @@ func _on_game_state_changed(state: String):
 	if state == "game_over":
 		print("MultiLevelGameInit: Game over detected, showing end screen")
 		# Implementation for game over screen would go here
-
-# Handle end turn button press
-func _on_end_turn_button_pressed():
-	print("MultiLevelGameInit: End Turn button pressed")
-	if game_controller:
-		game_controller.end_current_player_turn()
 
 # Handle player descended event
 func _on_player_descended(player, from_level, to_level):

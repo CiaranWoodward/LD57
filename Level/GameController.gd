@@ -22,6 +22,7 @@ var enemy_entities = []
 # Game state 
 var current_state = GameState.IDLE
 var current_turn_count: int = 0  # Tracks the number of turns that have passed
+var current_ability: String = ""  # Currently selected ability waiting for a target
 
 # Add a property to track the current active level
 var current_active_level: int = 0
@@ -41,6 +42,9 @@ func _ready():
 	
 	# Add self to a group for easier finding by entities
 	add_to_group("game_controller")
+	
+	# Set process input
+	set_process_input(true)
 	
 	# Find the map in the scene
 	isometric_map = get_node_or_null("../Map")
@@ -70,9 +74,7 @@ func _ready():
 		print("GameController: Found LevelManager")
 		
 	# Connect to HUD signals
-	if Global.hud:
-		Global.hud.DrillButtonHovered.connect(_on_drill_button_hovered)
-		Global.hud.DrillButtonUnhovered.connect(_on_drill_button_unhovered)
+	_connect_hud_signals()
 		
 	# Create the drilling line visualization
 	drilling_line_node = Line2D.new()
@@ -121,6 +123,27 @@ func get_state_name(state):
 		GameState.GAME_OVER: return "GAME_OVER"
 		_: return "UNKNOWN"
 
+# Reset the current ability and clear highlights
+func cancel_current_ability():
+	if current_ability != "":
+		print("GameController: Canceling ability " + current_ability)
+		
+		# Reset button appearance in the HUD
+		if Global.hud:
+			match current_ability:
+				"drill_smash":
+					var button = Global.hud.get_node_or_null("Action/ActionMargin/ActionHBox/ActionDrillSmash")
+					if button:
+						button.modulate = Color(1, 1, 1, 1)  # Reset color
+		
+		current_ability = ""
+		clear_all_highlights()
+		
+		# Restore movement highlights if the player still has movement points
+		if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+			if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
+				highlight_movement_range(selected_entity)
+
 # Called when a tile is selected on the map
 func _on_tile_selected(tile):
 	# Find which level map contains this tile
@@ -137,6 +160,60 @@ func _on_tile_selected(tile):
 	
 	# Check if a player entity is selected and it's the player's turn
 	if current_state == GameState.PLAYER_TURN_ACTIVE and selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		# Check if we're waiting for a target for a specific ability
+		if current_ability != "":
+			print("GameController: Processing ability " + current_ability + " targeting tile at " + str(tile.grid_position))
+			
+			# Handle drill_smash ability
+			if current_ability == "drill_smash" and selected_entity.abilities.has("drill_smash"):
+				# Check if the tile is a valid target (should be highlighted)
+				if tile.is_action_target:
+					print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
+					var success = selected_entity.use_ability(current_ability, tile)
+					print("GameController: Ability use " + ("succeeded" if success else "failed"))
+					
+					if success:
+						# Reset current ability only if the ability was actually used
+						current_ability = ""
+						
+						# Clear highlights after using the ability
+						clear_all_highlights()
+						
+						# Highlight movement range if the player still has movement points
+						if selected_entity.movement_points > 0:
+							highlight_movement_range(selected_entity)
+					else:
+						print("GameController: Ability failed to execute, keeping ability mode active")
+				else:
+					print("GameController: Invalid target for " + current_ability + ", canceling ability")
+					cancel_current_ability()
+				
+				return
+			
+			# Add handlers for other targeted abilities here
+		
+		# First check if the tile is highlighted for an ability like drill_smash
+		elif tile.is_action_target:
+			print("GameController: Tile is an action target, checking for abilities")
+			
+			# Check if the player has the drill_smash ability
+			if selected_entity.abilities.has("drill_smash") and selected_entity is HeavyPlayer:
+				# Calculate direction from player to tile to verify it's a valid target
+				var direction = tile.grid_position - selected_entity.grid_position
+				if abs(direction.x) + abs(direction.y) == 1:  # Adjacent in cardinal direction
+					print("GameController: Using drill_smash ability on tile at " + str(tile.grid_position))
+					selected_entity.use_ability("drill_smash", tile)
+					
+					# Clear highlights after using the ability
+					clear_all_highlights()
+					
+					# Highlight movement range if the player still has movement points
+					if selected_entity.movement_points > 0:
+						highlight_movement_range(selected_entity)
+					
+					return
+		
+		# If not an ability target, try to move to the tile
 		# Make sure the tile is on the same level as the player
 		if tile_level == selected_entity.current_level:
 			print("GameController: Attempting to move entity " + selected_entity.entity_name + " to " + str(tile.grid_position) + " on level " + str(selected_entity.current_level))
@@ -776,3 +853,71 @@ func _on_drill_button_unhovered():
 	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
 		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
 			highlight_movement_range(selected_entity)
+
+# Connect signals from the HUD
+func _connect_hud_signals():
+	print("GameController: Connecting HUD signals")
+	
+	if Global.hud:
+		# Connect end turn button
+		var end_turn_button = Global.hud.get_end_turn_button()
+		if end_turn_button:
+			end_turn_button.pressed.connect(_on_end_turn_button_pressed)
+			
+		# Connect drill button hover signals
+		if not Global.hud.is_connected("DrillButtonHovered", Callable(self, "_on_drill_button_hovered")):
+			Global.hud.DrillButtonHovered.connect(_on_drill_button_hovered)
+			
+		if not Global.hud.is_connected("DrillButtonUnhovered", Callable(self, "_on_drill_button_unhovered")):
+			Global.hud.DrillButtonUnhovered.connect(_on_drill_button_unhovered)
+			
+		# Connect drill smash button hover signals
+		if not Global.hud.is_connected("DrillSmashButtonHovered", Callable(self, "_on_drill_smash_button_hovered")):
+			Global.hud.DrillSmashButtonHovered.connect(_on_drill_smash_button_hovered)
+			
+		if not Global.hud.is_connected("DrillSmashButtonUnhovered", Callable(self, "_on_drill_smash_button_unhovered")):
+			Global.hud.DrillSmashButtonUnhovered.connect(_on_drill_smash_button_unhovered)
+	else:
+		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
+
+# Event handler for when the drill smash button is hovered
+func _on_drill_smash_button_hovered(player: PlayerEntity):
+	print("GameController: Drill smash button hovered for player: " + player.entity_name)
+	
+	# Only show if we have a valid player who can use drill smash
+	if not player or not player.abilities.has("drill_smash") or not player is HeavyPlayer:
+		return
+		
+	# HeavyPlayer has its own method to highlight drill smash targets
+	if player.has_method("highlight_drill_smash_targets"):
+		player.highlight_drill_smash_targets()
+
+# Event handler for when the drill smash button is unhovered
+func _on_drill_smash_button_unhovered():
+	print("GameController: Drill smash button unhovered")
+	
+	# If we're in drill_smash ability selection mode, don't clear the highlights
+	if current_ability == "drill_smash":
+		print("GameController: Keeping drill_smash highlights active since ability is selected")
+		return
+	
+	# Clear any highlighted tiles on all maps
+	clear_all_highlights()
+	
+	# If we have a selected entity with movement points, restore their movement highlights
+	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
+			highlight_movement_range(selected_entity)
+
+# Event handler for when the end turn button is pressed
+func _on_end_turn_button_pressed():
+	print("GameController: End turn button pressed")
+	end_current_player_turn()
+
+# Handle input events (keyboard, etc.)
+func _input(event):
+	# Cancel ability selection with Escape key
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if current_ability != "":
+			print("GameController: Escape key pressed, canceling ability")
+			cancel_current_ability()

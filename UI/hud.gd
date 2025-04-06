@@ -5,12 +5,15 @@ signal PauseMenu
 signal UpgradeMenu
 signal DrillButtonHovered(player)
 signal DrillButtonUnhovered
+signal DrillSmashButtonHovered(player)
+signal DrillSmashButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
 
 # Drilling visualization
 var is_hovering_drill_button: bool = false
+var is_hovering_drill_smash_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -22,6 +25,14 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_drill.mouse_entered.connect(_on_action_drill_mouse_entered)
 		action_drill.mouse_exited.connect(_on_action_drill_mouse_exited)
+	
+	# Connect drill smash button
+	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
+	if action_drill_smash:
+		action_drill_smash.gui_input.connect(_on_action_drill_smash_input)
+		# Connect to mouse enter/exit for hover detection
+		action_drill_smash.mouse_entered.connect(_on_action_drill_smash_mouse_entered)
+		action_drill_smash.mouse_exited.connect(_on_action_drill_smash_mouse_exited)
 
 func _on_button_menu_pressed() -> void:
 	PauseMenu.emit()
@@ -46,6 +57,48 @@ func _on_action_drill_mouse_entered() -> void:
 func _on_action_drill_mouse_exited() -> void:
 	is_hovering_drill_button = false
 	DrillButtonUnhovered.emit()
+
+# Handle clicking on the drill smash action button
+func _on_action_drill_smash_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# If we have a current player, check if they have the ability and highlight targets
+		if current_player and current_player.abilities.has("drill_smash"):
+			if current_player is HeavyPlayer:
+				# Tell the GameController we're selecting a target for drill smash
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller:
+					# Toggle the ability if it's already active
+					if game_controller.current_ability == "drill_smash":
+						game_controller.cancel_current_ability()
+						$Action/ActionMargin/ActionHBox/ActionDrillSmash.modulate = Color(1, 1, 1, 1)  # Reset color
+						return
+					
+					game_controller.current_ability = "drill_smash"
+					print("HUD: Set drill_smash as current ability")
+					
+					# Add visual feedback
+					$Action/ActionMargin/ActionHBox/ActionDrillSmash.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button
+				
+				current_player.highlight_drill_smash_targets()
+				# The actual ability use will be handled by the tile selection
+
+# Show drill smash targets when hovering over drill smash button
+func _on_action_drill_smash_mouse_entered() -> void:
+	is_hovering_drill_smash_button = true
+	if current_player and current_player.abilities.has("drill_smash") and current_player is HeavyPlayer:
+		DrillSmashButtonHovered.emit(current_player)
+		current_player.highlight_drill_smash_targets()
+
+# Hide drill smash targets when no longer hovering over drill smash button
+func _on_action_drill_smash_mouse_exited() -> void:
+	is_hovering_drill_smash_button = false
+	
+	# Only emit the unhover signal if we're not in drill_smash ability selection mode
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if game_controller and game_controller.current_ability != "drill_smash":
+		DrillSmashButtonUnhovered.emit()
+	else:
+		print("HUD: Keeping drill_smash highlights active since ability is selected")
 
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
