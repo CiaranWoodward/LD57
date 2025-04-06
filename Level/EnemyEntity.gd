@@ -1,7 +1,7 @@
 class_name EnemyEntity
 extends Entity
 
-enum EnemyType { GRUNT, ELITE, BOSS, MINION }
+enum EnemyType { GRUNT, ELITE, BOSS, MINION, HELLBOMB }
 
 # Enemy-specific properties
 var enemy_type: EnemyType = EnemyType.GRUNT

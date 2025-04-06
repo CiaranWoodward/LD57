@@ -22,9 +22,35 @@ var rezoom = false
 ## Maximum camera position
 @export var MaxPos : Vector2 = Vector2(1000, 1000)
 
+# Screen shake variables
+@export var screen_shake_decay = 0.85  # How quickly the shaking stops [0, 1].
+@export var screen_shake_max_offset = Vector2(20, 20)  # Maximum hor/ver shake in pixels.
+@export var screen_shake_max_roll = 0.03  # Maximum rotation in radians (use sparingly).
+
+@onready var screen_shake_start_position = position
+@onready var screen_shake_noise = FastNoiseLite.new()
+
+@onready var cam_floor_offset := -400
+
+var screen_shake_noise_y = 0
+
+var screen_shake_childhood_trauma = 0.0 # Base level of trauma
+var screen_shake_trauma = 0.0  # Current shake strength.
+var screen_shake_trauma_power = 2  # Trauma exponent. Use [2, 3].
+var screen_shake_offset: Vector2 = Vector2.ZERO
+var screen_shake_rotation_offset: float = 0.0
+
+var unshaken_position: Vector2
+var unshaken_rotation_degrees: float
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass
+	screen_shake_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	screen_shake_noise.seed = randi()
+	screen_shake_noise.frequency = 0.15
+	screen_shake_noise.fractal_octaves = 2
+	unshaken_position = position
+	unshaken_rotation_degrees = rotation_degrees 
 
 func _unhandled_input(event):
 	# Only allow unhandled input for start drag
@@ -51,18 +77,18 @@ func _input(event):
 		if not event.is_pressed():
 			dragging = false
 	if dragging && event is InputEventMouseMotion:
-		position -= event.relative / zoom.x
+		unshaken_position -= event.relative / zoom.x
 		_bound_level()
 
 func _bound_level():
-	if position.x < -MaxPos.x:
-		position.x = -MaxPos.x
-	if position.y < -MaxPos.y:
-		position.y = -MaxPos.y
-	if position.x > MaxPos.x:
-		position.x = MaxPos.x
-	if position.y > MaxPos.y:
-		position.y = MaxPos.y
+	if unshaken_position.x < -MaxPos.x:
+		unshaken_position.x = -MaxPos.x
+	if unshaken_position.y < -MaxPos.y:
+		unshaken_position.y = -MaxPos.y
+	if unshaken_position.x > MaxPos.x:
+		unshaken_position.x = MaxPos.x
+	if unshaken_position.y > MaxPos.y:
+		unshaken_position.y = MaxPos.y
 
 func _physics_process(delta):
 	if rezoom:
@@ -105,5 +131,28 @@ func _physics_process(delta):
 		move_tween.tween_property(self, "speed", 0, STOP_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		moving = false
 	
-	position += dir_vec * speed * delta * zoom.x
+	unshaken_position += dir_vec * speed * delta * zoom.x
 	_bound_level()
+
+	_shake(delta)
+	position = unshaken_position + screen_shake_offset
+	rotation_degrees = unshaken_rotation_degrees + rad_to_deg(screen_shake_rotation_offset)
+
+func screen_shake_add_permanant_trauma(amount: float):
+	screen_shake_childhood_trauma = min(screen_shake_childhood_trauma + amount, 0.6)
+
+func screen_shake_add_trauma(amount : float):
+	screen_shake_trauma = min(screen_shake_trauma + amount, 1.0)
+
+func _shake(delta: float):
+	if !screen_shake_trauma && !screen_shake_childhood_trauma:
+		screen_shake_offset = Vector2.ZERO
+		screen_shake_rotation_offset = 0
+		return
+	screen_shake_trauma = max(screen_shake_trauma - screen_shake_decay * delta, 0)
+	var screen_shake_working_trauma = min(screen_shake_trauma + screen_shake_childhood_trauma, 1.0)
+	var amt = pow(screen_shake_working_trauma, screen_shake_trauma_power)
+	screen_shake_noise_y += 1
+	screen_shake_rotation_offset = screen_shake_max_roll * amt * screen_shake_noise.get_noise_2d(0,screen_shake_noise_y)
+	screen_shake_offset.x = screen_shake_max_offset.x * amt * screen_shake_noise.get_noise_2d(1000,screen_shake_noise_y)
+	screen_shake_offset.y = screen_shake_max_offset.y * amt * screen_shake_noise.get_noise_2d(2000,screen_shake_noise_y)

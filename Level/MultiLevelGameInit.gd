@@ -39,8 +39,9 @@ func _ready():
 		
 		# Spawn some enemies on the first level
 		print("MultiLevelGameInit: Spawning enemies on first level")
-		var grunt = game_controller.spawn_enemy(Vector2i(7, 7), EnemyEntity.EnemyType.GRUNT, 0)
-		var elite = game_controller.spawn_enemy(Vector2i(8, 8), EnemyEntity.EnemyType.ELITE, 0)
+		#var grunt = game_controller.spawn_enemy(Vector2i(7, 7), EnemyEntity.EnemyType.GRUNT, 0)
+		#var elite = game_controller.spawn_enemy(Vector2i(8, 8), EnemyEntity.EnemyType.ELITE, 0)
+		var hellbomb = game_controller.spawn_enemy(Vector2i(6, 6), EnemyEntity.EnemyType.HELLBOMB, 0)
 		
 		# Store reference to level 0 enemies
 		enemy_level_distribution[0] = []
