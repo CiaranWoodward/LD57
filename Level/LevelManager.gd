@@ -4,7 +4,7 @@ extends Node2D
 signal player_descended(player, from_level, to_level)
 
 # Configuration
-@export var level_vertical_offset: float = 300  # Vertical distance between levels
+@export var level_vertical_offset: float = 800  # Vertical distance between levels
 @export var max_active_levels: int = 3  # Maximum number of simultaneously active levels
 
 # Level management
@@ -74,17 +74,30 @@ func has_valid_tile_below(level_index: int, grid_pos: Vector2i) -> bool:
 
 # Handle player descending to the next level
 # This will be called when implementing the drilling mechanic
-func descend_player(player_entity, from_level_index: int, grid_pos: Vector2i) -> bool:
+func descend_player(player_entity : PlayerEntity, from_level_index: int, grid_pos: Vector2i) -> bool:
 	if not has_valid_tile_below(from_level_index, grid_pos):
+		print("LevelManager: No valid tile below for descent")
 		return false
 		
 	var to_level_index = from_level_index + 1
-	var to_level = level_nodes[to_level_index]
+	var to_level : Node2D = level_nodes[to_level_index]
 	
-	# Will need to handle player entity transfer between levels here
-	# For now just emit a signal
+	# Get the target tile on the lower level
+	var target_tile = to_level.get_tile(grid_pos)
+	if not target_tile:
+		print("LevelManager: Cannot find target tile on level " + str(to_level_index))
+		return false
+	
+	# Move player to the lower level
+	player_entity.descend_to_level(to_level_index, target_tile)
+	# Change the parent of the player to the new level
+	player_entity.get_parent().remove_child(player_entity)
+	to_level.add_child(player_entity)
+	
+	# Emit signal to notify other systems
 	emit_signal("player_descended", player_entity, from_level_index, to_level_index)
 	
+	print("LevelManager: Player " + player_entity.entity_name + " moved to level " + str(to_level_index))
 	return true
 
 # Cleanup levels that are too far above the deepest active level

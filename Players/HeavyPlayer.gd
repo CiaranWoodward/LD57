@@ -8,7 +8,7 @@ func configure_player():
 	max_movement_points = 2  # But limited movement
 	movement_points = max_movement_points
 	move_speed = 0.7
-	abilities = ["shield_bash", "taunt"]
+	abilities = ["shield_bash", "taunt", "drill"]
 	max_health = 15
 	current_health = 15
 	profile_tint = Color(0.8, 0.3, 0.3, 1.0)  # Reddish tint for Heavy
@@ -20,6 +20,9 @@ func get_ability_cost(ability_name: String) -> int:
 		_: return super.get_ability_cost(ability_name)
 
 func execute_ability(ability_name: String, target) -> bool:
+	if super.execute_ability(ability_name, target):
+		return true
+		
 	match ability_name:
 		"shield_bash":
 			# Shield bash pushes an enemy back and stuns them

@@ -32,6 +32,12 @@ signal status_effect_applied(effect_name)
 signal status_effect_removed(effect_name)
 signal died()
 
+# Drilling state properties
+var is_drilling: bool = false
+var drilling_turns_left: int = 0
+var drilling_target_level: int = 0
+var drilling_target_position: Vector2i = Vector2i.ZERO
+
 # Update the _ready method to initialize entity
 func _init():
 	entity_id = "entity_" + str(randi())
@@ -58,6 +64,14 @@ func _process(delta):
 func start_turn():
 	super.start_turn()
 	print("Entity: " + entity_name + " starting turn")
+	
+	# If we're drilling, continue the process
+	if is_drilling:
+		continue_drilling()
+		# If we completed drilling this turn, we may need to end turn immediately
+		if not is_drilling:
+			call_deferred("finish_turn")
+			return
 
 # Override the finish_turn function from ActionableCharacter
 func finish_turn():
@@ -196,6 +210,49 @@ func remove_status_effect(effect_name: String):
 	status_effects.erase(effect_name)
 	emit_signal("status_effect_removed", effect_name)
 
+# Start drilling to the level below
+func start_drilling(turns_required: int = 2):
+	print("Entity: " + entity_name + " starting to drill down")
+	is_drilling = true
+	drilling_turns_left = turns_required
+	drilling_target_level = current_level + 1
+	drilling_target_position = grid_position
+	
+	# Apply visual effect or animation if needed
+	modulate = Color(0.7, 0.7, 0.7)  # Dim the entity to show drilling
+	
+	# Can't move while drilling
+	is_moving = false
+	path = []
+
+# Continue drilling progress
+func continue_drilling() -> bool:
+	if not is_drilling:
+		return false
+		
+	drilling_turns_left -= 1
+	print("Entity: " + entity_name + " drilling progress: " + str(drilling_turns_left) + " turns left")
+	
+	# Check if drilling is complete
+	if drilling_turns_left <= 0:
+		complete_drilling()
+		return true
+	
+	return false
+
+# Complete the drilling process and move to the lower level
+func complete_drilling() -> bool:
+	print("Entity: " + entity_name + " completed drilling")
+	is_drilling = false
+	modulate = Color(1, 1, 1)  # Restore normal appearance
+	
+	# Check with game_controller to see if we can move to the target level
+	if game_controller and game_controller.level_manager:
+		# Use the level manager to handle the descent
+		return game_controller.level_manager.descend_player(self, current_level, grid_position)
+	
+	return false
+
 # Take damage
 func take_damage(amount: int):
 	if is_dead:
@@ -216,6 +273,12 @@ func take_damage(amount: int):
 	# Check for death
 	if current_health <= 0:
 		die()
+	
+	# If we were drilling, interrupt it
+	if is_drilling:
+		print("Entity: " + entity_name + " drilling interrupted by damage")
+		is_drilling = false
+		modulate = Color(1, 1, 1)  # Restore normal appearance
 
 # Heal damage
 func heal_damage(amount: int):
@@ -348,4 +411,3 @@ func descend_to_level(next_level_index: int, target_tile: IsometricTile):
 	else:
 		push_error("Entity: " + entity_name + " - Cannot descend to null tile")
 	
-	# This method would be expanded when implementing drilling

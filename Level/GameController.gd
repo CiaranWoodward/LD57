@@ -13,6 +13,7 @@ enum GameState {
 var isometric_map = null
 var selected_entity = null
 var turn_sequencer = null
+var level_manager = null
 
 # Entity management
 var player_entities = []
@@ -57,6 +58,13 @@ func _ready():
 	turn_sequencer.group_turns_completed.connect(_on_group_turns_completed)
 	
 	print("GameController: TurnSequencer created and connected")
+	
+	# Get the reference to the LevelManager
+	level_manager = get_parent().get_node_or_null("LevelManager")
+	if not level_manager:
+		push_error("GameController: LevelManager not found")
+	else:
+		print("GameController: Found LevelManager")
 
 # State machine handling
 func change_state(new_state):
@@ -114,6 +122,11 @@ func _on_entity_selected(entity):
 	
 	# Only allow selection of player entities during their turn
 	if current_state == GameState.PLAYER_TURN_ACTIVE and entity in player_entities and entity.is_turn_active:
+		# Don't allow selection of players who are drilling
+		if entity.is_drilling:
+			print("GameController: Cannot select " + entity.entity_name + " because they are drilling")
+			return
+		
 		if selected_entity:
 			# Deselect previous entity
 			print("GameController: Deselecting previous entity")
@@ -232,29 +245,40 @@ func update_highlights():
 		# First clear all highlights
 		clear_all_highlights()
 		# Then highlight new movement range if the entity still has movement points
-		if selected_entity.movement_points > 0:
+		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
 			highlight_movement_range(selected_entity)
 
 # Event handler for when a turn starts for a character
 func _on_turn_started(character):
 	print("GameController: Character " + character.entity_name + " turn started on level " + str(character.current_level))
 	
-	# Skip if this character is not on the active level
-	if character.current_level != current_active_level:
-		print("GameController: Skipping character on inactive level " + str(character.current_level))
-		# End the turn immediately for characters on other levels
+	# If this is a player entity, activate it in the UI regardless of level
+	if character in player_entities:
+		# Only select the character if they're not drilling
+		if not character.is_drilling:
+			selected_entity = character
+			emit_signal("player_activated", character)
+			
+			# Update the HUD with the current player
+			if Global.hud:
+				Global.hud.set_active_player(character)
+				
+			# If the player is on a different level, switch the active level
+			if character.current_level != current_active_level:
+				if level_manager and level_manager.level_nodes.has(character.current_level):
+					print("GameController: Switching active level to " + str(character.current_level) + " for player " + character.entity_name)
+					set_active_level(character.current_level, level_manager.level_nodes[character.current_level])
+		else:
+			print("GameController: Player " + character.entity_name + " is drilling and can't be controlled")
+			# Players who are drilling can't be selected, but their turns still progress
+			if character.continue_drilling():
+				print("GameController: Player " + character.entity_name + " completed drilling")
+	# For enemy entities, skip if not on active level
+	elif character in enemy_entities and character.current_level != current_active_level:
+		print("GameController: Skipping enemy on inactive level " + str(character.current_level))
+		# End the turn immediately for enemies on other levels
 		if character.has_method("end_turn"):
 			character.end_turn()
-		return
-	
-	# If this is a player entity, activate it in the UI
-	if character in player_entities:
-		selected_entity = character
-		emit_signal("player_activated", character)
-		
-		# Update the HUD with the current player
-		if Global.hud:
-			Global.hud.set_active_player(character)
 
 # Event handler for when a turn ends for a character
 func _on_turn_ended(character):
@@ -323,19 +347,12 @@ func get_player_entities():
 # Spawn an entity helper function
 func _spawn_entity_helper(entity, grid_pos):
 	# We need access to the level manager to get the correct map
-	var level_manager = get_node_or_null("../LevelManager")
-	if not level_manager:
-		push_error("GameController: Cannot find LevelManager, using current active map")
-		# Fallback to current map if level manager not found
-		entity.isometric_map = isometric_map
+	var entity_map = level_manager.level_nodes.get(entity.current_level)
+	if entity_map:
+		entity.isometric_map = entity_map
 	else:
-		# Get the correct map for this entity's level
-		var entity_map = level_manager.level_nodes.get(entity.current_level)
-		if entity_map:
-			entity.isometric_map = entity_map
-		else:
-			push_error("GameController: Cannot find map for level " + str(entity.current_level) + ", using current active map")
-			entity.isometric_map = isometric_map
+		push_error("GameController: Cannot find map for level " + str(entity.current_level) + ", using current active map")
+		entity.isometric_map = isometric_map
 	
 	# Ensure game_controller reference is set
 	entity.game_controller = self

@@ -9,7 +9,7 @@ func configure_player():
 	max_action_points = 3
 	action_points = max_action_points
 	move_speed = 0.9
-	abilities = ["buff_ally", "debuff_enemy"]
+	abilities = ["buff_ally", "debuff_enemy", "drill"]
 	max_health = 10
 	current_health = 10
 	profile_tint = Color(0.3, 0.3, 0.8, 1.0)  # Bluish tint for Support
@@ -21,6 +21,11 @@ func get_ability_cost(ability_name: String) -> int:
 		_: return super.get_ability_cost(ability_name)
 
 func execute_ability(ability_name: String, target) -> bool:
+	# First try the parent implementation (for common abilities like drill)
+	if super.execute_ability(ability_name, target):
+		return true
+		
+	# Then handle Support-specific abilities
 	match ability_name:
 		"buff_ally":
 			# Buff ally increases an ally's effectiveness
@@ -49,7 +54,7 @@ func execute_ability(ability_name: String, target) -> bool:
 			return false
 			
 		_:
-			return false
+			return false  # No ability matched
 
 # Helper method to find allies in range
 func get_allies_in_range(range_tiles: int) -> Array:

@@ -142,8 +142,7 @@ func _on_end_turn_button_pressed():
 func _on_player_descended(player, from_level, to_level):
 	print("MultiLevelGameInit: Player " + str(player.name) + " descended from level " + str(from_level) + " to " + str(to_level))
 	
-	# Update player's current level
-	player.current_level = to_level
+	# The player's current_level is already updated by the LevelManager
 	
 	# Count how many players are on each level
 	var players_per_level = {}

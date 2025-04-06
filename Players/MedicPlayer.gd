@@ -10,7 +10,7 @@ func configure_player():
 	max_action_points = 3
 	action_points = max_action_points
 	move_speed = 1.0
-	abilities = ["heal", "revive"]
+	abilities = ["heal", "revive", "drill"]
 	max_health = 9
 	current_health = 9
 	profile_tint = Color(0.8, 0.8, 0.3, 1.0)  # Yellowish tint for Medic
@@ -22,6 +22,11 @@ func get_ability_cost(ability_name: String) -> int:
 		_: return super.get_ability_cost(ability_name)
 
 func execute_ability(ability_name: String, target) -> bool:
+	# First try the parent implementation (for common abilities like drill)
+	if super.execute_ability(ability_name, target):
+		return true
+		
+	# Then handle Medic-specific abilities
 	match ability_name:
 		"heal":
 			# Heal restores health to an ally
@@ -52,7 +57,7 @@ func execute_ability(ability_name: String, target) -> bool:
 			return false
 			
 		_:
-			return false
+			return false  # No ability matched
 
 # Helper method to find allies in range
 func get_allies_in_range(range_tiles: int) -> Array:

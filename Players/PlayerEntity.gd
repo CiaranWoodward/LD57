@@ -40,7 +40,7 @@ func configure_player():
 	max_movement_points = 3
 	movement_points = max_movement_points
 	move_speed = 1.0
-	abilities = []
+	abilities = ["drill"]
 
 # Override start_turn from Entity
 func start_turn():
@@ -55,6 +55,10 @@ func start_turn():
 	
 	# Process status effects
 	process_status_effects()
+	
+	# Check if we're drilling and continue the process
+	if is_drilling:
+		continue_drilling()
 	
 	# Players wait for user input, so don't finish turn automatically
 	# The turn will be finished when the user clicks the "End Turn" button
@@ -88,13 +92,32 @@ func use_ability(ability_name: String, target) -> bool:
 # Get the action point cost for an ability
 # Override in subclasses with specific costs
 func get_ability_cost(ability_name: String) -> int:
-	return 1  # Default cost of 1 AP
+	match ability_name:
+		"drill": return 2  # Drilling costs 2 action points
+		_: return 1  # Default cost of 1 AP
 
 # Execute an ability - override in subclasses with specific ability implementations
 func execute_ability(ability_name: String, target) -> bool:
-	# Base class implementation should never be called directly
-	push_error("PlayerEntity: " + entity_name + " - Using base class implementation for ability: " + ability_name + ". This should be overridden in subclasses.")
-	return false
+	match ability_name:
+		"drill":
+			# Check if we can drill (if there's a valid level below)
+			if not game_controller or not game_controller.level_manager:
+				print("PlayerEntity: " + entity_name + " - Cannot drill, game_controller or level_manager not set")
+				return false
+				
+			# Check if the tile below is valid for drilling
+			if not game_controller.level_manager.has_valid_tile_below(current_level, grid_position):
+				print("PlayerEntity: " + entity_name + " - Cannot drill, no valid tile below")
+				return false
+				
+			# Start the drilling process
+			start_drilling(2)  # Takes 2 turns to complete
+			return true
+			
+		_:
+			# Base class implementation should never be called directly
+			push_error("PlayerEntity: " + entity_name + " - Using base class implementation for ability: " + ability_name + ". This should be overridden in subclasses.")
+			return false
 
 # Add experience and handle level up if needed
 func add_experience(amount: int):

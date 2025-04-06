@@ -10,7 +10,7 @@ func configure_player():
 	max_movement_points = 5  # Scouts have more movement points
 	movement_points = max_movement_points
 	move_speed = 1.5
-	abilities = ["quick_shot", "recon"]
+	abilities = ["quick_shot", "recon", "drill"]
 	max_health = 8
 	current_health = 8
 	profile_tint = Color(0.3, 0.8, 0.3, 1.0)  # Greenish tint for Scout
@@ -22,6 +22,11 @@ func get_ability_cost(ability_name: String) -> int:
 		_: return super.get_ability_cost(ability_name)
 
 func execute_ability(ability_name: String, target) -> bool:
+	# First try the parent implementation (for common abilities like drill)
+	if super.execute_ability(ability_name, target):
+		return true
+		
+	# Then handle Scout-specific abilities
 	match ability_name:
 		"dash":
 			# Dash allows the scout to move quickly to a target position
@@ -63,8 +68,7 @@ func execute_ability(ability_name: String, target) -> bool:
 			return true
 			
 		_:
-			push_error("ScoutPlayer: " + entity_name + " - Unknown ability: " + ability_name)
-			return false
+			return false  # No ability matched
 
 # Override level up to focus on movement and vision
 func on_level_up():

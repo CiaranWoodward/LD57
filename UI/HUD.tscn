@@ -165,6 +165,11 @@ layout_mode = 2
 texture = ExtResource("3_wm3ai")
 expand_mode = 2
 
+[node name="ActionDrill" type="TextureRect" parent="Action/ActionMargin/ActionHBox"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+texture = ExtResource("3_wm3ai")
+
 [node name="End" type="PanelContainer" parent="."]
 anchors_preset = 3
 anchor_left = 1.0
@@ -188,5 +193,23 @@ custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
 texture_normal = ExtResource("7_vdcm2")
 stretch_mode = 0
+
+[node name="DrillIndicator" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_right = 150.0
+offset_bottom = 60.0
+grow_horizontal = 2
+
+[node name="DrillLabel" type="Label" parent="DrillIndicator"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "DRILLING: 2 turns left"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [connection signal="pressed" from="MenuMargin/ButtonMenu" to="." method="_on_button_menu_pressed"]

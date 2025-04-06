@@ -8,9 +8,21 @@ var current_player: PlayerEntity = null
 
 func _ready() -> void:
 	Global.hud = self
+	
+	# Connect action buttons
+	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
+	if action_drill:
+		action_drill.gui_input.connect(_on_action_drill_input)
 
 func _on_button_menu_pressed() -> void:
 	PauseMenu.emit()
+
+# Handle clicking on the drill action button
+func _on_action_drill_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# If we have a current player, try to use the drill ability
+		if current_player and current_player.abilities.has("drill"):
+			current_player.use_ability("drill", null)  # Drill doesn't need a target
 
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
@@ -76,6 +88,12 @@ func set_active_player(player: PlayerEntity) -> void:
 		
 		# Update character image
 		update_character_image(player)
+		
+		# Display drilling indicator if player is drilling
+		if player.is_drilling:
+			show_drilling_indicator(player.drilling_turns_left)
+		else:
+			hide_drilling_indicator()
 	else:
 		# Clear UI if no player is active
 		update_action_points(0, 0)
@@ -84,6 +102,9 @@ func set_active_player(player: PlayerEntity) -> void:
 		# Reset character image
 		var image = $Info/InfoMargin/InfoVBox/CharImage
 		image.self_modulate = Color(1.0, 1.0, 1.0, 0.5) # Dim the character image
+		
+		# Hide drilling indicator
+		hide_drilling_indicator()
 
 # Updates the character image based on the player type
 func update_character_image(player: PlayerEntity) -> void:
@@ -92,3 +113,19 @@ func update_character_image(player: PlayerEntity) -> void:
 	# Use the player's profile texture and tint directly
 	image.texture = player.profile_texture
 	image.self_modulate = player.profile_tint
+
+# Show a drilling indicator when a player is in the drilling state
+func show_drilling_indicator(turns_left: int) -> void:
+	# Get the drilling label
+	var drill_label = $DrillIndicator/DrillLabel
+	
+	# Update the text to show the turns remaining
+	drill_label.text = "DRILLING: " + str(turns_left) + " turns left"
+	
+	# Show the indicator
+	$DrillIndicator.visible = true
+
+# Hide the drilling indicator
+func hide_drilling_indicator() -> void:
+	# Hide the drilling indicator
+	$DrillIndicator.visible = false
