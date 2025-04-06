@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bop5wmjudg5xh"]
 
-[ext_resource type="Script" uid="uid://lbblr6jk5bhw" path="res://Level/IsometricMap.gd" id="1_4enjn"]
+[ext_resource type="Script" path="res://Level/IsometricMap.gd" id="1_4enjn"]
 [ext_resource type="PackedScene" uid="uid://dhwekn2c03xu3" path="res://Level/IsometricTile.tscn" id="2_tvs4f"]
 
 [node name="Map" type="Node2D"]
