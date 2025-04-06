@@ -11,6 +11,7 @@ func configure_player():
 	abilities = ["shield_bash", "taunt"]
 	max_health = 15
 	current_health = 15
+	profile_tint = Color(0.8, 0.3, 0.3, 1.0)  # Reddish tint for Heavy
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:

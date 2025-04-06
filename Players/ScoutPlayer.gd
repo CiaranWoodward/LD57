@@ -13,6 +13,7 @@ func configure_player():
 	abilities = ["quick_shot", "recon"]
 	max_health = 8
 	current_health = 8
+	profile_tint = Color(0.3, 0.8, 0.3, 1.0)  # Greenish tint for Scout
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:

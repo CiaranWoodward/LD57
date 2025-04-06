@@ -2,13 +2,17 @@ class_name PlayerEntity
 extends Entity
 
 # Player-specific properties
-var action_points: int = 3
-var max_action_points: int = 3
-var movement_points: int = 3
-var max_movement_points: int = 3
-var abilities: Array = []
-var experience: int = 0
-var level: int = 1
+@export var action_points: int = 3
+@export var max_action_points: int = 3
+@export var movement_points: int = 3
+@export var max_movement_points: int = 3
+@export var abilities: Array = []
+@export var experience: int = 0
+@export var level: int = 1
+
+# Visual properties
+@export var profile_texture: Texture2D = preload("res://images/image_face.png")
+@export var profile_tint: Color = Color(1.0, 1.0, 1.0, 1.0)
 
 # Signals
 signal ability_used(ability_name)

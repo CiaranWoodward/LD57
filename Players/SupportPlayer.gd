@@ -12,6 +12,7 @@ func configure_player():
 	abilities = ["buff_ally", "debuff_enemy"]
 	max_health = 10
 	current_health = 10
+	profile_tint = Color(0.3, 0.3, 0.8, 1.0)  # Bluish tint for Support
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:

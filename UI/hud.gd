@@ -89,21 +89,6 @@ func set_active_player(player: PlayerEntity) -> void:
 func update_character_image(player: PlayerEntity) -> void:
 	var image = $Info/InfoMargin/InfoVBox/CharImage
 	
-	# Since we only have one generic face image for now, use it for all players
-	# but tint it based on player type to provide visual distinction
-	if player is HeavyPlayer:
-		image.texture = preload("res://images/image_face.png")
-		image.self_modulate = Color(0.8, 0.3, 0.3, 1.0)  # Reddish tint for Heavy
-	elif player is ScoutPlayer:
-		image.texture = preload("res://images/image_face.png")
-		image.self_modulate = Color(0.3, 0.8, 0.3, 1.0)  # Greenish tint for Scout
-	elif player is SupportPlayer:
-		image.texture = preload("res://images/image_face.png")
-		image.self_modulate = Color(0.3, 0.3, 0.8, 1.0)  # Bluish tint for Support
-	elif player is MedicPlayer:
-		image.texture = preload("res://images/image_face.png")
-		image.self_modulate = Color(0.8, 0.8, 0.3, 1.0)  # Yellowish tint for Medic
-	else:
-		# Default for any other player type
-		image.texture = preload("res://images/image_face.png")
-		image.self_modulate = Color(1.0, 1.0, 1.0, 1.0)  # No tint
+	# Use the player's profile texture and tint directly
+	image.texture = player.profile_texture
+	image.self_modulate = player.profile_tint

@@ -13,6 +13,7 @@ func configure_player():
 	abilities = ["heal", "revive"]
 	max_health = 9
 	current_health = 9
+	profile_tint = Color(0.8, 0.8, 0.3, 1.0)  # Yellowish tint for Medic
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
