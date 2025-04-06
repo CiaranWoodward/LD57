@@ -50,15 +50,18 @@ func highlight(highlight: bool = true):
 	var sprite = get_node_or_null("Sprite2D")
 	assert(sprite != null, "IsometricTile: Cannot highlight - No Sprite2D found for tile at " + str(grid_position))
 	
-	if highlight:
-		update_highlight_color()
-	else:
-		sprite.modulate = Color(1, 1, 1, 1)
-		# Reset highlight flags when unhighlighting
-		is_move_selectable = false
-		is_attackable = false
-		is_action_target = false
+	update_highlight_color()
 	
+	emit_signal("tile_highlight_change", self)
+
+func clear_state():
+	is_highlighted = false
+	is_hovered = false
+	is_move_selectable = false
+	is_attackable = false
+	is_action_target = false
+	update_highlight_color()
+
 	emit_signal("tile_highlight_change", self)
 
 # Set hover state
