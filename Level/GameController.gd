@@ -107,12 +107,26 @@ func get_state_name(state):
 
 # Called when a tile is selected on the map
 func _on_tile_selected(tile):
-	print("GameController: Tile selected at " + str(tile.grid_position) + " in state " + get_state_name(current_state))
+	# Find which level map contains this tile
+	var tile_level = current_active_level
+	
+	if level_manager:
+		for level_idx in level_manager.level_nodes:
+			var level_map = level_manager.level_nodes[level_idx]
+			if level_map.tiles.has(tile.grid_position) and level_map.tiles[tile.grid_position] == tile:
+				tile_level = level_idx
+				break
+	
+	print("GameController: Tile selected at " + str(tile.grid_position) + " on level " + str(tile_level) + " in state " + get_state_name(current_state))
 	
 	# Check if a player entity is selected and it's the player's turn
 	if current_state == GameState.PLAYER_TURN_ACTIVE and selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		print("GameController: Attempting to move entity " + selected_entity.entity_name + " to " + str(tile.grid_position))
-		move_entity_to_tile(selected_entity, tile.grid_position)
+		# Make sure the tile is on the same level as the player
+		if tile_level == selected_entity.current_level:
+			print("GameController: Attempting to move entity " + selected_entity.entity_name + " to " + str(tile.grid_position) + " on level " + str(selected_entity.current_level))
+			move_entity_to_tile(selected_entity, tile.grid_position)
+		else:
+			print("GameController: Cannot move - tile is on level " + str(tile_level) + " but player is on level " + str(selected_entity.current_level))
 	else:
 		print("GameController: Cannot move - no selected entity or not player turn")
 
@@ -510,21 +524,35 @@ func _on_entity_died(entity):
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
 
-# Clear all tile highlights on the map
+# Clear all tile highlights on all maps
 func clear_all_highlights():
-	if not isometric_map:
-		return
-		
-	for tile in isometric_map.tiles.values():
-		if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable:
-			tile.highlight(false)
+	# Clear highlights on all level maps if we have a level manager
+	if level_manager:
+		for level_index in level_manager.level_nodes:
+			var map = level_manager.level_nodes[level_index]
+			for tile in map.tiles.values():
+				if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable:
+					tile.highlight(false)
+		print("GameController: Cleared highlights on all maps")
+	# Fallback to just clearing the active map if no level manager
+	elif isometric_map:
+		for tile in isometric_map.tiles.values():
+			if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable:
+				tile.highlight(false)
+		print("GameController: Cleared highlights on active map only")
 
 # Highlight tiles within movement range of the entity
 func highlight_movement_range(entity):
 	if not entity:
 		return
+	
+	# Get the correct map for the entity's current level
+	var entity_map
+	if level_manager and level_manager.level_nodes.has(entity.current_level):
+		entity_map = level_manager.level_nodes[entity.current_level]
+	else:
+		entity_map = entity.isometric_map
 		
-	var entity_map = entity.isometric_map
 	if not entity_map:
 		push_error("GameController: Cannot highlight movement range - entity's map is null")
 		return
@@ -538,6 +566,9 @@ func highlight_movement_range(entity):
 		print("GameController: Entity has no movement points, not highlighting movement range")
 		return
 	
+	# First make sure we clear any existing highlights on ALL maps
+	clear_all_highlights()
+	
 	# Use the method to find all reachable tiles within movement points range
 	var movable_tiles = entity_map.find_reachable_tiles(start_pos, max_mp)
 	
@@ -545,11 +576,16 @@ func highlight_movement_range(entity):
 	for tile in movable_tiles:
 		tile.set_move_selectable(true)
 		
-	print("GameController: Highlighted " + str(movable_tiles.size()) + " movable tiles")
+	print("GameController: Highlighted " + str(movable_tiles.size()) + " movable tiles on level " + str(entity.current_level))
 
 # Set the current active level and change the isometric_map reference
 func set_active_level(level_index: int, level_map: IsometricMap):
 	print("GameController: Setting active level to " + str(level_index))
+	
+	# Don't change if it's already the active level
+	if current_active_level == level_index and isometric_map == level_map:
+		print("GameController: Level " + str(level_index) + " is already active")
+		return
 	
 	# Disconnect signal from old map if it exists
 	if isometric_map and isometric_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
@@ -564,6 +600,14 @@ func set_active_level(level_index: int, level_map: IsometricMap):
 	if isometric_map and not isometric_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
 		isometric_map.tile_selected.connect(_on_tile_selected)
 		print("GameController: Connected tile_selected signal to new map at level " + str(level_index))
+	
+	# Make sure all level maps have the tile_selected signal connected
+	if level_manager:
+		for idx in level_manager.level_nodes:
+			var map = level_manager.level_nodes[idx]
+			if map and not map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
+				map.tile_selected.connect(_on_tile_selected)
+				print("GameController: Connected tile_selected signal to map at level " + str(idx))
 
 # Get all active entities for a specific level
 func get_entities_at_level(level_index: int, entity_type: String = "all") -> Array:
