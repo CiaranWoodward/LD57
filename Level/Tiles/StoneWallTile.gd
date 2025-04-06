@@ -82,7 +82,7 @@ func update_transparency():
 	var modulation = 0.25
 	
 	for adj_tile in watched_tiles:
-		if adj_tile.is_occupied or adj_tile.is_highlighted or adj_tile.is_move_selectable or adj_tile.is_attackable or adj_tile.is_hovered:
+		if adj_tile.is_occupied or adj_tile.is_highlighted or adj_tile.is_move_selectable or adj_tile.is_attackable or adj_tile.is_hovered or adj_tile.is_action_target:
 			# Entity or highlight found in a neighboring tile, set appropriate transparency
 			target_alpha = modulation
 			break
@@ -134,7 +134,7 @@ func connect_to_nearby_tiles():
 			if adj_tile:
 				watched_tiles.append(adj_tile)
 				adj_tile.connect("tile_clicked", Callable(self, "_on_nearby_tile_clicked"))
-				adj_tile.connect("tile_hover_change", Callable(self, "_on_nearby_tile_clicked"))
+				adj_tile.connect("tile_highlight_change", Callable(self, "_on_nearby_tile_clicked"))
 
 # When a nearby tile is clicked
 func _on_nearby_tile_clicked(_tile):

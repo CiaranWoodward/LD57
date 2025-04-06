@@ -3,9 +3,14 @@ class_name HUD
 
 signal PauseMenu
 signal UpgradeMenu
+signal DrillButtonHovered(player)
+signal DrillButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
+
+# Drilling visualization
+var is_hovering_drill_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -14,6 +19,9 @@ func _ready() -> void:
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	if action_drill:
 		action_drill.gui_input.connect(_on_action_drill_input)
+		# Connect to mouse enter/exit for hover detection
+		action_drill.mouse_entered.connect(_on_action_drill_mouse_entered)
+		action_drill.mouse_exited.connect(_on_action_drill_mouse_exited)
 
 func _on_button_menu_pressed() -> void:
 	PauseMenu.emit()
@@ -27,6 +35,17 @@ func _on_action_drill_input(event: InputEvent) -> void:
 		# If we have a current player, try to use the drill ability
 		if current_player and current_player.abilities.has("drill"):
 			current_player.use_ability("drill", null)  # Drill doesn't need a target
+
+# Show drill path when hovering over drill button
+func _on_action_drill_mouse_entered() -> void:
+	is_hovering_drill_button = true
+	if current_player and current_player.abilities.has("drill"):
+		DrillButtonHovered.emit(current_player)
+
+# Hide drill path when no longer hovering over drill button
+func _on_action_drill_mouse_exited() -> void:
+	is_hovering_drill_button = false
+	DrillButtonUnhovered.emit()
 
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
@@ -98,6 +117,10 @@ func set_active_player(player: PlayerEntity) -> void:
 			show_drilling_indicator(player.drilling_turns_left)
 		else:
 			hide_drilling_indicator()
+		
+		# Update drill visualization if we're hovering the button
+		if is_hovering_drill_button:
+			DrillButtonHovered.emit(current_player)
 	else:
 		# Clear UI if no player is active
 		update_action_points(0, 0)
@@ -109,6 +132,9 @@ func set_active_player(player: PlayerEntity) -> void:
 		
 		# Hide drilling indicator
 		hide_drilling_indicator()
+		
+		# Clear any drill visualization
+		DrillButtonUnhovered.emit()
 
 # Updates the character image based on the player type
 func update_character_image(player: PlayerEntity) -> void:

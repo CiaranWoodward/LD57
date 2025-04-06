@@ -8,7 +8,7 @@
 [node name="MultiLevelGame" type="Node2D"]
 script = ExtResource("2_wuxbk")
 
-[node name="GameController" type="Node" parent="."]
+[node name="GameController" type="Node2D" parent="."]
 script = ExtResource("1_m2ops")
 
 [node name="LevelManager" type="Node2D" parent="."]

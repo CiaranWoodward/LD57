@@ -1,5 +1,5 @@
 class_name GameController
-extends Node
+extends Node2D
 
 # State machine states
 enum GameState {
@@ -25,6 +25,9 @@ var current_turn_count: int = 0  # Tracks the number of turns that have passed
 
 # Add a property to track the current active level
 var current_active_level: int = 0
+
+# Drilling visualization
+var drilling_line_node: Line2D = null
 
 # Signals
 signal turn_changed(turn)
@@ -65,6 +68,19 @@ func _ready():
 		push_error("GameController: LevelManager not found")
 	else:
 		print("GameController: Found LevelManager")
+		
+	# Connect to HUD signals
+	if Global.hud:
+		Global.hud.DrillButtonHovered.connect(_on_drill_button_hovered)
+		Global.hud.DrillButtonUnhovered.connect(_on_drill_button_unhovered)
+		
+	# Create the drilling line visualization
+	drilling_line_node = Line2D.new()
+	drilling_line_node.width = 5.0
+	drilling_line_node.default_color = Color(1.0, 0.5, 0.0, 0.8)  # Orange-ish, semi-transparent
+	drilling_line_node.z_index = 100  # Display above other elements
+	drilling_line_node.visible = false
+	add_child(drilling_line_node)
 
 # State machine handling
 func change_state(new_state):
@@ -672,3 +688,85 @@ func get_entities_at_level(level_index: int, entity_type: String = "all") -> Arr
 					result.append(entity)
 	
 	return result
+
+# Event handler for when the drill button is hovered
+func _on_drill_button_hovered(player: PlayerEntity):
+	print("GameController: Drill button hovered for player: " + player.entity_name)
+	
+	# Only show if we have a valid player who can drill
+	if not player or not player.abilities.has("drill"):
+		return
+		
+	# Don't show if player is already drilling
+	if player.is_drilling:
+		return
+		
+	# Check if we can drill
+	if not level_manager:
+		return
+		
+	# Make sure there's a valid tile below
+	if not level_manager.has_valid_tile_below(player.current_level, player.grid_position):
+		return
+		
+	# Get the player's current position in world space
+	var start_pos = player.global_position
+	
+	# Get the target level and tile
+	var target_level_index = player.current_level + 1
+	var target_map = level_manager.level_nodes.get(target_level_index)
+	
+	if not target_map:
+		return
+		
+	# Get target tile at the same grid position on the level below
+	var target_tile = target_map.get_tile(player.grid_position)
+	if not target_tile:
+		return
+		
+	# If the target tile is occupied, find the first unoccupied neighbor
+	if target_tile.is_occupied:
+		var found_alternative = false
+		var neighbors = target_map.get_neighbors(player.grid_position)
+		
+		for neighbor_tile in neighbors:
+			if neighbor_tile.is_walkable and not neighbor_tile.is_occupied:
+				target_tile = neighbor_tile
+				found_alternative = true
+				break
+				
+		if not found_alternative:
+			return  # No valid destination found
+	
+	# Get the target position in world space
+	var end_pos = target_tile.global_position
+	
+	# Clear any existing points
+	drilling_line_node.clear_points()
+	
+	# Add the start and end points
+	drilling_line_node.add_point(start_pos)
+	drilling_line_node.add_point(end_pos)
+	
+	# Make sure the line is visible
+	drilling_line_node.visible = true
+	
+	# Highlight the target tile using the built-in tile highlighting system
+	# Using the new action_target property will make it orange and work with wall transparency
+	target_tile.set_action_target(true)
+
+# Event handler for when the drill button is unhovered
+func _on_drill_button_unhovered():
+	print("GameController: Drill button unhovered")
+	
+	# Hide the drilling line
+	drilling_line_node.visible = false
+	drilling_line_node.clear_points()
+	
+	# Clear any highlighted tiles on all maps
+	clear_all_highlights()
+	
+	# If we have a selected entity with movement points, restore their movement highlights
+	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
+			highlight_movement_range(selected_entity)
