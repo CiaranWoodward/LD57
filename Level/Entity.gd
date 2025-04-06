@@ -68,10 +68,9 @@ func start_turn():
 	# If we're drilling, continue the process
 	if is_drilling:
 		continue_drilling()
-		# If we completed drilling this turn, we may need to end turn immediately
-		if not is_drilling:
-			call_deferred("finish_turn")
-			return
+		# If we are drilling, then we need to end the turn immediately
+		call_deferred("finish_turn")
+		return
 
 # Override the finish_turn function from ActionableCharacter
 func finish_turn():

@@ -315,9 +315,12 @@ func _on_turn_started(character):
 					set_active_level(character.current_level, level_manager.level_nodes[character.current_level])
 		else:
 			print("GameController: Player " + character.entity_name + " is drilling and can't be controlled")
-			# Players who are drilling can't be selected, but their turns still progress
-			if character.continue_drilling():
-				print("GameController: Player " + character.entity_name + " completed drilling")
+			# For drilling players, we don't need to do anything here as the drilling progress is handled 
+			# in the character's start_turn method which automatically ends their turn while drilling
+			
+			# Update the HUD with the drilling player
+			if Global.hud:
+				Global.hud.set_active_player(character)
 	# For enemy entities, skip if not on active level
 	elif character in enemy_entities and character.current_level != current_active_level:
 		print("GameController: Skipping enemy on inactive level " + str(character.current_level))

@@ -56,9 +56,9 @@ func start_turn():
 	# Process status effects
 	process_status_effects()
 	
-	# Check if we're drilling and continue the process
+	# Check if we're drilling and maybe show some animation. The super class will handle ending the turn
 	if is_drilling:
-		continue_drilling()
+		pass
 	
 	# Players wait for user input, so don't finish turn automatically
 	# The turn will be finished when the user clicks the "End Turn" button
@@ -111,7 +111,10 @@ func execute_ability(ability_name: String, target) -> bool:
 				return false
 				
 			# Start the drilling process
-			start_drilling(2)  # Takes 2 turns to complete
+			start_drilling(3)  # Takes 3 turns to complete
+			
+			# End the turn immediately after starting to drill
+			call_deferred("finish_turn")
 			return true
 			
 		_:
