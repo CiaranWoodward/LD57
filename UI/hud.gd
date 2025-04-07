@@ -7,6 +7,8 @@ signal DrillButtonHovered(player)
 signal DrillButtonUnhovered
 signal DrillSmashButtonHovered(player)
 signal DrillSmashButtonUnhovered
+signal LineShotButtonHovered(player)
+signal LineShotButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -14,6 +16,7 @@ var current_player: PlayerEntity = null
 # Drilling visualization
 var is_hovering_drill_button: bool = false
 var is_hovering_drill_smash_button: bool = false
+var is_hovering_line_shot_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -33,6 +36,14 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_drill_smash.mouse_entered.connect(_on_action_drill_smash_mouse_entered)
 		action_drill_smash.mouse_exited.connect(_on_action_drill_smash_mouse_exited)
+	
+	# Connect line shot button
+	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
+	if action_line_shot:
+		action_line_shot.gui_input.connect(_on_action_line_shot_input)
+		# Connect to mouse enter/exit for hover detection
+		action_line_shot.mouse_entered.connect(_on_action_line_shot_mouse_entered)
+		action_line_shot.mouse_exited.connect(_on_action_line_shot_mouse_exited)
 
 func _on_button_menu_pressed() -> void:
 	PauseMenu.emit()
@@ -99,6 +110,48 @@ func _on_action_drill_smash_mouse_exited() -> void:
 		DrillSmashButtonUnhovered.emit()
 	else:
 		print("HUD: Keeping drill_smash highlights active since ability is selected")
+
+# Handle clicking on the line shot action button
+func _on_action_line_shot_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# If we have a current player, check if they have the ability and highlight targets
+		if current_player and current_player.abilities.has("line_shot"):
+			if current_player is ScoutPlayer:
+				# Tell the GameController we're selecting a target for line shot
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller:
+					# Toggle the ability if it's already active
+					if game_controller.current_ability == "line_shot":
+						game_controller.cancel_current_ability()
+						$Action/ActionMargin/ActionHBox/ActionLineShot.modulate = Color(1, 1, 1, 1)  # Reset color
+						return
+					
+					game_controller.current_ability = "line_shot"
+					print("HUD: Set line_shot as current ability")
+					
+					# Add visual feedback
+					$Action/ActionMargin/ActionHBox/ActionLineShot.modulate = Color(0.7, 1.3, 0.7, 1)  # Highlight button
+				
+				current_player.highlight_line_shot_targets()
+				# The actual ability use will be handled by the tile selection
+
+# Show line shot targets when hovering over line shot button
+func _on_action_line_shot_mouse_entered() -> void:
+	is_hovering_line_shot_button = true
+	if current_player and current_player.abilities.has("line_shot") and current_player is ScoutPlayer:
+		LineShotButtonHovered.emit(current_player)
+		current_player.highlight_line_shot_targets()
+
+# Hide line shot targets when no longer hovering over line shot button
+func _on_action_line_shot_mouse_exited() -> void:
+	is_hovering_line_shot_button = false
+	
+	# Only emit the unhover signal if we're not in line_shot ability selection mode
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if game_controller and game_controller.current_ability != "line_shot":
+		LineShotButtonUnhovered.emit()
+	else:
+		print("HUD: Keeping line_shot highlights active since ability is selected")
 
 func get_end_turn_button():
 	return $End/EndMargin/EndButton

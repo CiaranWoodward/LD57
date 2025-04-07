@@ -135,6 +135,10 @@ func cancel_current_ability():
 					var button = Global.hud.get_node_or_null("Action/ActionMargin/ActionHBox/ActionDrillSmash")
 					if button:
 						button.modulate = Color(1, 1, 1, 1)  # Reset color
+				"line_shot":
+					var button = Global.hud.get_node_or_null("Action/ActionMargin/ActionHBox/ActionLineShot")
+					if button:
+						button.modulate = Color(1, 1, 1, 1)  # Reset color
 		
 		current_ability = ""
 		clear_all_highlights()
@@ -166,6 +170,32 @@ func _on_tile_selected(tile):
 			
 			# Handle drill_smash ability
 			if current_ability == "drill_smash" and selected_entity.abilities.has("drill_smash"):
+				# Check if the tile is a valid target (should be highlighted)
+				if tile.is_action_target:
+					print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
+					var success = selected_entity.use_ability(current_ability, tile)
+					print("GameController: Ability use " + ("succeeded" if success else "failed"))
+					
+					if success:
+						# Reset current ability only if the ability was actually used
+						current_ability = ""
+						
+						# Clear highlights after using the ability
+						clear_all_highlights()
+						
+						# Highlight movement range if the player still has movement points
+						if selected_entity.movement_points > 0:
+							highlight_movement_range(selected_entity)
+					else:
+						print("GameController: Ability failed to execute, keeping ability mode active")
+				else:
+					print("GameController: Invalid target for " + current_ability + ", canceling ability")
+					cancel_current_ability()
+				
+				return
+			
+			# Handle line_shot ability
+			elif current_ability == "line_shot" and selected_entity.abilities.has("line_shot"):
 				# Check if the tile is a valid target (should be highlighted)
 				if tile.is_action_target:
 					print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
@@ -877,6 +907,13 @@ func _connect_hud_signals():
 			
 		if not Global.hud.is_connected("DrillSmashButtonUnhovered", Callable(self, "_on_drill_smash_button_unhovered")):
 			Global.hud.DrillSmashButtonUnhovered.connect(_on_drill_smash_button_unhovered)
+			
+		# Connect line shot button hover signals
+		if not Global.hud.is_connected("LineShotButtonHovered", Callable(self, "_on_line_shot_button_hovered")):
+			Global.hud.LineShotButtonHovered.connect(_on_line_shot_button_hovered)
+			
+		if not Global.hud.is_connected("LineShotButtonUnhovered", Callable(self, "_on_line_shot_button_unhovered")):
+			Global.hud.LineShotButtonUnhovered.connect(_on_line_shot_button_unhovered)
 	else:
 		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
 
@@ -921,3 +958,33 @@ func _input(event):
 		if current_ability != "":
 			print("GameController: Escape key pressed, canceling ability")
 			cancel_current_ability()
+
+# Add event handlers for line shot button hover/unhover
+# Event handler for when the line shot button is hovered
+func _on_line_shot_button_hovered(player: PlayerEntity):
+	print("GameController: Line shot button hovered for player: " + player.entity_name)
+	
+	# Only show if we have a valid player who can use line shot
+	if not player or not player.abilities.has("line_shot") or not player is ScoutPlayer:
+		return
+		
+	# ScoutPlayer has its own method to highlight line shot targets
+	if player.has_method("highlight_line_shot_targets"):
+		player.highlight_line_shot_targets()
+
+# Event handler for when the line shot button is unhovered
+func _on_line_shot_button_unhovered():
+	print("GameController: Line shot button unhovered")
+	
+	# If we're in line_shot ability selection mode, don't clear the highlights
+	if current_ability == "line_shot":
+		print("GameController: Keeping line_shot highlights active since ability is selected")
+		return
+	
+	# Clear any highlighted tiles on all maps
+	clear_all_highlights()
+	
+	# If we have a selected entity with movement points, restore their movement highlights
+	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
+			highlight_movement_range(selected_entity)
