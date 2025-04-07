@@ -432,7 +432,7 @@ func hide_drilling_indicator() -> void:
 	update_action_buttons()
 
 # Updates the action buttons visibility and modulation based on the current player
-func update_action_buttons() -> void:
+func update_action_buttons(_cur=0, _max=0) -> void:
 	# Get all action buttons
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash

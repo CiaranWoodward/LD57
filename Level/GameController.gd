@@ -548,14 +548,11 @@ func spawn_player(grid_pos, player_type: String, level_index: int = 0):
 		"heavy":
 			entity = load("res://Players/HeavyPlayer.tscn").instantiate()
 		
-		"support":
-			entity = load("res://Players/SupportPlayer.tscn").instantiate()
-		
 		"scout":
 			entity = load("res://Players/ScoutPlayer.tscn").instantiate()
 		
-		"medic":
-			entity = load("res://Players/MedicPlayer.tscn").instantiate()
+		"wizard":
+			entity = load("res://Players/WizardPlayer.tscn").instantiate()
 		
 		_:
 			# Fallback to generic player if type not recognized

@@ -119,8 +119,6 @@ func execute_ability(ability_name: String, target) -> bool:
 			return true
 			
 		_:
-			# Base class implementation should never be called directly
-			push_error("PlayerEntity: " + entity_name + " - Using base class implementation for ability: " + ability_name + ". This should be overridden in subclasses.")
 			return false
 
 # Add experience and handle level up if needed
