@@ -11,6 +11,8 @@ signal LineShotButtonHovered(player)
 signal LineShotButtonUnhovered
 signal FireballButtonHovered(player)
 signal FireballButtonUnhovered
+signal BigDrillButtonHovered(player)
+signal BigDrillButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -54,6 +56,14 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_fireball.mouse_entered.connect(_on_action_fireball_mouse_entered)
 		action_fireball.mouse_exited.connect(_on_action_fireball_mouse_exited)
+		
+	# Connect big drill button
+	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
+	if action_big_drill:
+		action_big_drill.gui_input.connect(_on_action_big_drill_input)
+		# Connect to mouse enter/exit for hover detection
+		action_big_drill.mouse_entered.connect(_on_big_drill_button_hovered)
+		action_big_drill.mouse_exited.connect(_on_big_drill_button_unhovered)
 	
 	# Connect to the game controller for better synchronization
 	# We'll do this with a timer to ensure the game controller is fully initialized
@@ -505,6 +515,7 @@ func hide_drilling_indicator() -> void:
 func update_action_buttons(_cur=0, _max=0) -> void:
 	# Get all action buttons
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
+	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
@@ -521,6 +532,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			
 		# Force immediate visibility before checking conditions
 		action_drill.visible = true
+		action_big_drill.visible = true
 		action_drill_smash.visible = true
 		action_line_shot.visible = true
 		action_fireball.visible = true
@@ -540,6 +552,27 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_drill.visible = false
 			action_drill.disabled = true
 			print("HUD: Hiding drill button - ability not available")
+			
+		# Big Drill ability - only for HeavyPlayer
+		if current_player.abilities.has("big_drill") and current_player is HeavyPlayer and not current_player.is_drilling:
+			action_big_drill.visible = true
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "big_drill":
+				action_big_drill.modulate = Color(0.7, 0.7, 1.3, 1)  # Highlighted with bluish tint
+				action_big_drill.disabled = false
+				print("HUD: Highlighting big drill button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("big_drill"):
+				action_big_drill.modulate = Color(1, 1, 1, 1)  # Fully visible
+				action_big_drill.disabled = false
+			else:
+				action_big_drill.modulate = Color(0.5, 0.5, 0.5, 1)  # Greyed out
+				action_big_drill.disabled = true  # Disable the button
+				print("HUD: Disabling big drill button - not enough AP")
+		else:
+			action_big_drill.visible = false
+			action_big_drill.disabled = true
+			print("HUD: Hiding big drill button - ability not available")
 		
 		# Drill Smash ability - only for HeavyPlayer
 		if current_player.abilities.has("drill_smash") and current_player is HeavyPlayer and not current_player.is_drilling:
@@ -607,6 +640,8 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# No active player, hide all buttons
 		action_drill.visible = false
 		action_drill.disabled = true
+		action_big_drill.visible = false
+		action_big_drill.disabled = true
 		action_drill_smash.visible = false
 		action_drill_smash.disabled = true
 		action_line_shot.visible = false
@@ -614,3 +649,46 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_fireball.visible = false
 		action_fireball.disabled = true
 		print("HUD: Hiding all ability buttons - no active player")
+
+# Event handler for when the big drill button is clicked
+func _on_action_big_drill_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
+		# If button is disabled, don't process the click
+		if action_big_drill.disabled:
+			return
+			
+		# If we have a current player, try to use the big drill ability
+		if current_player and current_player.abilities.has("big_drill") and current_player is HeavyPlayer:
+			var success = current_player.use_ability("big_drill", null)  # Big drill doesn't need a target
+			print("HUD: Big drill ability use " + ("succeeded" if success else "failed"))
+			
+			# If successful, make sure the button is reset
+			if success:
+				action_big_drill.modulate = Color(1, 1, 1, 1)  # Reset color
+				
+				# Get the GameController to make sure current_ability is cleared
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller and game_controller.current_ability == "big_drill":
+					game_controller.current_ability = ""
+				
+				# Force update of all buttons to reflect current state
+				update_action_buttons()
+			else:
+				# If not successful, still update buttons to reflect current state
+				update_action_buttons()
+
+# Show big drill targets when hovering over big drill button
+func _on_big_drill_button_hovered() -> void:
+	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
+	# Only show hover effect if button is not disabled
+	if action_big_drill and not action_big_drill.disabled and current_player and current_player is HeavyPlayer and current_player.abilities.has("big_drill"):
+		print("HUD: Showing big drill hover effect")
+		BigDrillButtonHovered.emit(current_player)
+		current_player.highlight_big_drill_targets()
+
+# Clear highlights when unhovered
+func _on_big_drill_button_unhovered() -> void:
+	# Emit signal for unhover
+	emit_signal("BigDrillButtonUnhovered")
+	print("HUD: Big drill button unhovered")

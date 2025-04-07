@@ -68,25 +68,29 @@ func start_turn():
 
 # Use an ability (returns true if successfully used)
 func use_ability(ability_name: String, target) -> bool:
-	if not abilities.has(ability_name) or action_points <= 0:
+	print("PlayerEntity: " + entity_name + " attempting to use ability " + ability_name)
+	
+	# Check if we have enough action points for this ability
+	var ability_cost = get_ability_cost(ability_name)
+	if action_points < ability_cost:
+		print("PlayerEntity: " + entity_name + " doesn't have enough action points for " + ability_name + 
+			" (cost: " + str(ability_cost) + ", has: " + str(action_points) + ")")
 		return false
 	
-	# Get action point cost for this ability
-	var ap_cost = get_ability_cost(ability_name)
-	
-	# Check if we have enough action points
-	if action_points < ap_cost:
-		return false
-	
-	# Execute the ability
+	# Try to execute the ability
 	var success = execute_ability(ability_name, target)
 	
 	if success:
-		# Consume action points
-		action_points -= ap_cost
+		# Deduct action points only if ability was successfully executed
+		action_points -= ability_cost
+		print("PlayerEntity: " + entity_name + " used " + str(ability_cost) + " action points for " + ability_name + 
+			", " + str(action_points) + "/" + str(max_action_points) + " remaining")
 		emit_signal("action_points_changed", action_points, max_action_points)
-		emit_signal("ability_used", ability_name)
+		
+		# Also emit action selection changed to update UI
 		emit_signal("action_selection_changed")
+	else:
+		print("PlayerEntity: " + entity_name + " failed to execute ability " + ability_name)
 	
 	return success
 
