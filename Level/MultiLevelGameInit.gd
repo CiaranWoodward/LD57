@@ -40,9 +40,9 @@ func _ready():
 		
 		# Spawn some enemies on the first level
 		print("MultiLevelGameInit: Spawning enemies on first level")
-		var hellbomb = game_controller.spawn_enemy(Vector2i(6, 6), EnemyEntity.EnemyType.HELLBOMB, 0)
-		var hellbomb_chaser = game_controller.spawn_enemy(Vector2i(6, 7), EnemyEntity.EnemyType.HELLBOMB_CHASER, 0)
-		var minion = game_controller.spawn_enemy(Vector2i(6, 8), EnemyEntity.EnemyType.MINION, 0)
+		var hellbomb = game_controller.spawn_enemy(Vector2i(6, 6), EnemyEntity.EnemyType.BOSS, 0)
+		#var hellbomb_chaser = game_controller.spawn_enemy(Vector2i(6, 7), EnemyEntity.EnemyType.HELLBOMB_CHASER, 0)
+		#var minion = game_controller.spawn_enemy(Vector2i(6, 8), EnemyEntity.EnemyType.MINION, 0)
 		
 		# Store reference to level 0 enemies
 		enemy_level_distribution[0] = []
@@ -55,14 +55,14 @@ func _ready():
 		# Initialize the second level
 		var enemies_level_1 = [
 			[Vector2i(4, 4), EnemyEntity.EnemyType.ELITE, [Vector2i(4, 4), Vector2i(4, 6), Vector2i(6, 6), Vector2i(6, 4)]],
-			[Vector2i(9, 9), EnemyEntity.EnemyType.GRUNT, [Vector2i(9, 9), Vector2i(1, 4), Vector2i(3, 2), Vector2i(12, 14)]]
+		#	[Vector2i(9, 9), EnemyEntity.EnemyType.GRUNT, [Vector2i(9, 9), Vector2i(1, 4), Vector2i(3, 2), Vector2i(12, 14)]]
 		]
 		initialise_additional_levels(1, enemies_level_1)
 		
 		var enemies_level_2 = [
 			[Vector2i(7, 3), EnemyEntity.EnemyType.ELITE, [Vector2i(7, 3), Vector2i(14, 1), Vector2i(1, 3), Vector2i(6, 4)]],
-			[Vector2i(2, 5), EnemyEntity.EnemyType.GRUNT, [Vector2i(2, 5), Vector2i(1, 4), Vector2i(3, 2), Vector2i(12, 14)]],
-			[Vector2i(12, 11), EnemyEntity.EnemyType.GRUNT, [Vector2i(12, 11), Vector2i(10, 8), Vector2i(9, 5), Vector2i(14, 8)]]
+		#	[Vector2i(2, 5), EnemyEntity.EnemyType.GRUNT, [Vector2i(2, 5), Vector2i(1, 4), Vector2i(3, 2), Vector2i(12, 14)]],
+		#	[Vector2i(12, 11), EnemyEntity.EnemyType.GRUNT, [Vector2i(12, 11), Vector2i(10, 8), Vector2i(9, 5), Vector2i(14, 8)]]
 		]
 		initialise_additional_levels(2, enemies_level_2)
 		
