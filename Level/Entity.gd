@@ -24,6 +24,8 @@ var max_health: int = 10
 var current_health: int = 10
 var is_dead: bool = false
 var status_effects: Dictionary = {}
+var health_bar: ProgressBar = null
+var show_health_bar: bool = false
 
 # Signals
 signal entity_selected(entity)
@@ -46,19 +48,36 @@ func _init():
 func _ready():
 	print("Entity: Initializing " + entity_name + " [" + entity_id + "]")
 	
+	# Create health bar
+	_create_health_bar()
+	
 	# Connect Area2D input events if available
 	var area = get_node_or_null("Area2D")
 	if area:
 		print("Entity: " + entity_name + " connecting input events")
 		if not area.is_connected("input_event", Callable(self, "_input_event")):
 			area.connect("input_event", Callable(self, "_input_event"))
+		
+		# Connect mouse hover signals
+		if not area.is_connected("mouse_entered", Callable(self, "_on_mouse_entered")):
+			area.connect("mouse_entered", Callable(self, "_on_mouse_entered"))
+		if not area.is_connected("mouse_exited", Callable(self, "_on_mouse_exited")):
+			area.connect("mouse_exited", Callable(self, "_on_mouse_exited"))
 	else:
 		push_error("Entity: " + entity_name + " has no Area2D node")
+	
+	# Connect to our own health changed signal
+	if not is_connected("health_changed", Callable(self, "_on_health_changed")):
+		connect("health_changed", Callable(self, "_on_health_changed"))
 
 func _process(delta):
 	# Handle entity movement if we have a path
 	if is_moving and path.size() > 0:
 		move_along_path(delta)
+	
+	# Update health bar position if visible
+	if show_health_bar and health_bar:
+		_update_health_bar_position()
 
 # Override the start_turn function from ActionableCharacter
 func start_turn():
@@ -592,3 +611,87 @@ func find_nearby_unoccupied_tile(center_tile: IsometricTile) -> IsometricTile:
 	
 	# No suitable tile found
 	return null
+
+# Create health bar
+func _create_health_bar():
+	# Create a ProgressBar for the health
+	health_bar = ProgressBar.new()
+	health_bar.min_value = 0
+	health_bar.max_value = max_health
+	health_bar.value = current_health
+	health_bar.show_percentage = false
+	health_bar.size = Vector2(60, 10)
+	health_bar.position = Vector2(-30, -50)  # Default position above the entity
+	health_bar.visible = false
+	
+	# Style the health bar
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.1, 0.6)  # Background color
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0, 0, 0)
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_left = 2
+	style.corner_radius_bottom_right = 2
+	health_bar.add_theme_stylebox_override("background", style)
+	
+	# Style for the filled part
+	var fill_style = StyleBoxFlat.new()
+	fill_style.bg_color = Color(0.2, 0.9, 0.2)  # Green color for health
+	fill_style.corner_radius_top_left = 2
+	fill_style.corner_radius_top_right = 2
+	fill_style.corner_radius_bottom_left = 2
+	fill_style.corner_radius_bottom_right = 2
+	health_bar.add_theme_stylebox_override("fill", fill_style)
+	
+	# Add the health bar as a child
+	add_child(health_bar)
+	
+	# Position it initially
+	_update_health_bar_position()
+
+# Update health bar position to follow entity
+func _update_health_bar_position():
+	# Check if there's a HealthBarPos node
+	var health_bar_pos = get_node_or_null("HealthBarPos")
+	
+	if health_bar_pos:
+		# Use the HealthBarPos node's position
+		health_bar.global_position = health_bar_pos.global_position
+		# Center the health bar on the position node
+		health_bar.position = Vector2(health_bar.position.x - (health_bar.size.x / 2), health_bar.position.y)
+	else:
+		# Use default position above the entity
+		health_bar.position = Vector2(-30, -50)
+
+# Mouse entered entity area
+func _on_mouse_entered():
+	if not is_dead and health_bar:
+		show_health_bar = true
+		health_bar.visible = true
+
+# Mouse exited entity area
+func _on_mouse_exited():
+	if health_bar:
+		show_health_bar = false
+		health_bar.visible = false
+
+# Update health bar when health changes
+func _on_health_changed(current, maximum):
+	if health_bar:
+		health_bar.max_value = maximum
+		health_bar.value = current
+		
+		# Update health bar color based on health percentage
+		var health_percent = float(current) / float(maximum)
+		var fill_style = health_bar.get_theme_stylebox("fill")
+		
+		if health_percent > 0.6:
+			fill_style.bg_color = Color(0.2, 0.9, 0.2)  # Green for high health
+		elif health_percent > 0.3:
+			fill_style.bg_color = Color(0.9, 0.9, 0.2)  # Yellow for medium health
+		else:
+			fill_style.bg_color = Color(0.9, 0.2, 0.2)  # Red for low health
