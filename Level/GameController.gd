@@ -128,19 +128,14 @@ func cancel_current_ability():
 	if current_ability != "":
 		print("GameController: Canceling ability " + current_ability)
 		
-		# Reset button appearance in the HUD
-		if Global.hud:
-			match current_ability:
-				"drill_smash":
-					var button = Global.hud.get_node_or_null("Action/ActionMargin/ActionHBox/ActionDrillSmash")
-					if button:
-						button.modulate = Color(1, 1, 1, 1)  # Reset color
-				"line_shot":
-					var button = Global.hud.get_node_or_null("Action/ActionMargin/ActionHBox/ActionLineShot")
-					if button:
-						button.modulate = Color(1, 1, 1, 1)  # Reset color
-		
+		# Save the current ability before resetting it
+		var prev_ability = current_ability
 		current_ability = ""
+		
+		# Use the HUD's update method to properly reset button states
+		if Global.hud:
+			Global.hud.update_action_buttons()
+		
 		clear_all_highlights()
 		
 		# Restore movement highlights if the player still has movement points
@@ -183,6 +178,10 @@ func _on_tile_selected(tile):
 						# Clear highlights after using the ability
 						clear_all_highlights()
 						
+						# Update HUD buttons to ensure they're properly deselected
+						if Global.hud:
+							Global.hud.update_action_buttons()
+						
 						# Highlight movement range if the player still has movement points
 						if selected_entity.movement_points > 0:
 							highlight_movement_range(selected_entity)
@@ -208,6 +207,10 @@ func _on_tile_selected(tile):
 						
 						# Clear highlights after using the ability
 						clear_all_highlights()
+						
+						# Update HUD buttons to ensure they're properly deselected
+						if Global.hud:
+							Global.hud.update_action_buttons()
 						
 						# Highlight movement range if the player still has movement points
 						if selected_entity.movement_points > 0:
@@ -814,6 +817,11 @@ func _on_drill_button_hovered(player: PlayerEntity):
 	if player.is_drilling:
 		return
 		
+	# Don't show hover effects if an ability is already selected
+	if current_ability != "":
+		print("GameController: Not showing drill hover effect because ability " + current_ability + " is already selected")
+		return
+		
 	# Check if we can drill
 	if not level_manager:
 		return
@@ -876,6 +884,11 @@ func _on_drill_button_unhovered():
 	drilling_line_node.visible = false
 	drilling_line_node.clear_points()
 	
+	# If we're in any ability selection mode, don't clear the highlights
+	if current_ability != "":
+		print("GameController: Keeping highlights active since ability is selected")
+		return
+	
 	# Clear any highlighted tiles on all maps
 	clear_all_highlights()
 	
@@ -925,6 +938,11 @@ func _on_drill_smash_button_hovered(player: PlayerEntity):
 	if not player or not player.abilities.has("drill_smash") or not player is HeavyPlayer:
 		return
 		
+	# Don't show hover effects if an ability is already selected
+	if current_ability != "":
+		print("GameController: Not showing drill_smash hover effect because ability " + current_ability + " is already selected")
+		return
+		
 	# HeavyPlayer has its own method to highlight drill smash targets
 	if player.has_method("highlight_drill_smash_targets"):
 		player.highlight_drill_smash_targets()
@@ -966,6 +984,11 @@ func _on_line_shot_button_hovered(player: PlayerEntity):
 	
 	# Only show if we have a valid player who can use line shot
 	if not player or not player.abilities.has("line_shot") or not player is ScoutPlayer:
+		return
+		
+	# Don't show hover effects if an ability is already selected
+	if current_ability != "":
+		print("GameController: Not showing line_shot hover effect because ability " + current_ability + " is already selected")
 		return
 		
 	# ScoutPlayer has its own method to highlight line shot targets
