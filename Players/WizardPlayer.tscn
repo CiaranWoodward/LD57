@@ -1,12 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://dd0074w7xtehw"]
+[gd_scene load_steps=5 format=3 uid="uid://dd0074w7xtehw"]
 
 [ext_resource type="Script" uid="uid://cux57ein80ay8" path="res://Players/HeavyPlayer.gd" id="1_en0cl"]
 [ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_a8rdk"]
 [ext_resource type="Texture2D" uid="uid://df60u1a7y7m8y" path="res://images/wizard.png" id="2_kryuh"]
+[ext_resource type="Texture2D" uid="uid://cl13o6fap38nb" path="res://images/wizard_bloody.png" id="3_kryuh"]
 
 [node name="WizardPlayer" type="Node2D"]
 script = ExtResource("1_en0cl")
 profile_texture = ExtResource("2_kryuh")
+damaged_profile_texture = ExtResource("3_kryuh")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.215902, 0.215902, 0.215902, 1)

@@ -402,8 +402,11 @@ func set_active_player(player: PlayerEntity) -> void:
 func update_character_image(player: PlayerEntity) -> void:
 	var image = $Info/InfoMargin/InfoVBox/CharImage
 	
-	# Use the player's profile texture and tint directly
-	image.texture = player.profile_texture
+	# Use the player's profile texture and tint directly. If the player is damaged more than 50% use the damaged texture
+	if player.current_health < player.max_health * 0.5:
+		image.texture = player.damaged_profile_texture
+	else:
+		image.texture = player.profile_texture
 	image.self_modulate = player.profile_tint
 
 # Show a drilling indicator when a player is in the drilling state

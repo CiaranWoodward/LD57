@@ -1,12 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://cbkvvc0s2okhl"]
+[gd_scene load_steps=5 format=3 uid="uid://cbkvvc0s2okhl"]
 
 [ext_resource type="Script" uid="uid://drkvdj5dsvaic" path="res://Players/ScoutPlayer.gd" id="1_1vdjo"]
 [ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_4eih1"]
 [ext_resource type="Texture2D" uid="uid://ygc46253hamc" path="res://images/scout.png" id="2_v774x"]
+[ext_resource type="Texture2D" uid="uid://xhcta6f1bs45" path="res://images/scout_bloody.png" id="3_1r1ae"]
 
 [node name="ScoutPlayer" type="Node2D"]
 script = ExtResource("1_1vdjo")
 profile_texture = ExtResource("2_v774x")
+damaged_profile_texture = ExtResource("3_1r1ae")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.149808, 0.49662, 0.796823, 1)

@@ -12,6 +12,7 @@ extends Entity
 
 # Visual properties
 @export var profile_texture: Texture2D = preload("res://images/image_face.png")
+@export var damaged_profile_texture: Texture2D = preload("res://images/image_face.png")
 @export var profile_tint: Color = Color(1.0, 1.0, 1.0, 1.0)
 
 # Signals
