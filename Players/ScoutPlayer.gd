@@ -11,14 +11,12 @@ func configure_player():
 	max_movement_points = 5  # Scouts have more movement points
 	movement_points = max_movement_points
 	move_speed = 1.5
-	abilities = ["quick_shot", "recon", "drill", "line_shot"]
+	abilities = ["drill", "line_shot"]
 	max_health = 8
 	current_health = 8
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
-		"quick_shot": return 1
-		"recon": return 2
 		"line_shot": return 2
 		_: return super.get_ability_cost(ability_name)
 
@@ -28,46 +26,7 @@ func execute_ability(ability_name: String, target) -> bool:
 		return true
 		
 	# Then handle Scout-specific abilities
-	match ability_name:
-		"dash":
-			# Dash allows the scout to move quickly to a target position
-			# This would normally calculate a path and move there
-			print("Scout: Using dash ability")
-			
-			if target is IsometricTile:
-				# In a real implementation, this would dash to the target tile
-				print("Scout: Dashing to " + str(target.grid_position))
-				
-				# Simulate the dash by just teleporting there
-				if current_tile:
-					current_tile.remove_entity()
-				current_tile = target
-				grid_position = target.grid_position
-				position = target.get_entity_position()
-				target.place_entity(self)
-				
-				return true
-			return false
-			
-		"recon":
-			# Recon reveals a large area and any hidden enemies
-			assert(game_controller != null, "ScoutPlayer: " + entity_name + " - GameController reference not set")
-			assert(game_controller is GameController, "ScoutPlayer: " + entity_name + " - game_controller is not a GameController instance")
-			
-			# In a real implementation, this would update fog of war or similar
-			# For now, we'll just print a message about enemies in range
-			var enemies_in_range = []
-			
-			for enemy in game_controller.enemy_entities:
-				if grid_position.distance_to(enemy.grid_position) <= vision_range:
-					enemies_in_range.append(enemy)
-			
-			print("Recon revealed " + str(enemies_in_range.size()) + " enemies")
-			# Additional scout-specific effects could be added here
-			
-			# Could also mark tiles as "scouted" for a few turns
-			return true
-			
+	match ability_name:		
 		"line_shot":
 			# Line shot is a ranged attack that fires in a straight line until it hits something
 			if target is IsometricTile:
