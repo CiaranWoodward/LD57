@@ -41,6 +41,7 @@ func _ready():
 		# Spawn some enemies on the first level
 		print("MultiLevelGameInit: Spawning enemies on first level")
 		var hellbomb = game_controller.spawn_enemy(Vector2i(6, 6), EnemyEntity.EnemyType.HELLBOMB, 0)
+		var hellbomb_chaser = game_controller.spawn_enemy(Vector2i(6, 7), EnemyEntity.EnemyType.HELLBOMB_CHASER, 0)
 		
 		# Store reference to level 0 enemies
 		enemy_level_distribution[0] = []

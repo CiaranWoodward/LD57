@@ -571,6 +571,9 @@ func spawn_enemy(grid_pos, enemy_type_id, level_index: int = 0):
 		EnemyEntity.EnemyType.HELLBOMB:
 			entity = load("res://Enemies/HellBombEnemy.tscn").instantiate()
 		
+		EnemyEntity.EnemyType.HELLBOMB_CHASER:
+			entity = load("res://Enemies/HellBombChaserEnemy.tscn").instantiate()
+		
 		_:
 			# Fallback to generic enemy if type not recognized
 			push_error("GameController: Unknown enemy type: " + str(enemy_type_id))
