@@ -3,6 +3,9 @@ extends PlayerEntity
 
 var vision_range: int = 6 # Scouts have better vision than other classes
 var line_shot_range: int = 5 # Maximum range for line shot ability
+var is_cloaked: bool = false
+var cloak_turns_remaining: int = 0
+@onready var sprite_node = $Sprite2D # Reference to the player's sprite node
 
 func configure_player():
 	entity_name = "Scout"
@@ -11,18 +14,22 @@ func configure_player():
 	max_movement_points = 5  # Scouts have more movement points
 	movement_points = max_movement_points
 	move_speed = 1.5
-	abilities = ["drill", "line_shot"]
+	abilities = ["drill", "line_shot", "cloak"]
 	max_health = 8
 	current_health = 8
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
 		"line_shot": return 2
+		"cloak": return 2
 		_: return super.get_ability_cost(ability_name)
 
 func execute_ability(ability_name: String, target) -> bool:
 	# First try the parent implementation (for common abilities like drill)
 	if super.execute_ability(ability_name, target):
+		# If any ability is used, cancel cloak (except movement which is handled separately)
+		if is_cloaked and ability_name != "move":
+			cancel_cloak()
 		return true
 		
 	# Then handle Scout-specific abilities
@@ -81,10 +88,33 @@ func execute_ability(ability_name: String, target) -> bool:
 						has_hit = true
 						break
 				
+				# Cancel cloak if we used line shot
+				if is_cloaked:
+					cancel_cloak()
+					
 				return true  # Return true even if we didn't hit anything, as the ability was still used
 			
 			print("ScoutPlayer: " + entity_name + " line_shot failed - invalid target")
 			return false
+		
+		"cloak":
+			# Check if player has enough action points
+			var cost = get_ability_cost("cloak")
+			if action_points < cost:
+				print("ScoutPlayer: " + entity_name + " - Not enough action points for cloak")
+				return false
+				
+			# Apply cloak effect
+			is_cloaked = true
+			cloak_turns_remaining = 2
+			action_points -= cost
+			print("ScoutPlayer: " + entity_name + " activates cloak for 2 turns")
+			
+			# Visual effect (would need to be implemented in the entity's sprite)
+			if sprite_node:
+				sprite_node.modulate.a = 0.5 # Make sprite semi-transparent
+			
+			return true
 			
 		_:
 			return false  # No ability matched
@@ -99,6 +129,31 @@ func on_level_up():
 	# Increase line shot range on every 2nd level
 	if level % 2 == 0:
 		line_shot_range += 1
+
+
+# Process end of turn to update cloak duration
+func on_turn_end():
+	if is_cloaked:
+		cloak_turns_remaining -= 1
+		print("ScoutPlayer: " + entity_name + " - Cloak turns remaining: " + str(cloak_turns_remaining))
+		
+		if cloak_turns_remaining <= 0:
+			cancel_cloak()
+
+# Cancel cloak effect
+func cancel_cloak():
+	if is_cloaked:
+		is_cloaked = false
+		cloak_turns_remaining = 0
+		print("ScoutPlayer: " + entity_name + " - Cloak cancelled")
+		
+		# Reset visual effect
+		if sprite_node:
+			sprite_node.modulate.a = 1.0
+			
+# Check if player is visible to enemies (for AI targeting)
+func is_visible_to_enemies() -> bool:
+	return !is_cloaked
 
 # Highlight tiles that can be targeted with line shot
 func highlight_line_shot_targets():

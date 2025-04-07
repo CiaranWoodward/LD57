@@ -13,6 +13,8 @@ signal FireballButtonHovered(player)
 signal FireballButtonUnhovered
 signal BigDrillButtonHovered(player)
 signal BigDrillButtonUnhovered
+signal CloakButtonHovered(player)
+signal CloakButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -21,6 +23,7 @@ var current_player: PlayerEntity = null
 var is_hovering_drill_button: bool = false
 var is_hovering_drill_smash_button: bool = false
 var is_hovering_line_shot_button: bool = false
+var is_hovering_cloak_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -56,6 +59,14 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_fireball.mouse_entered.connect(_on_action_fireball_mouse_entered)
 		action_fireball.mouse_exited.connect(_on_action_fireball_mouse_exited)
+		
+	# Connect cloak button
+	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
+	if action_cloak:
+		action_cloak.gui_input.connect(_on_action_cloak_input)
+		# Connect to mouse enter/exit for hover detection
+		action_cloak.mouse_entered.connect(_on_action_cloak_mouse_entered)
+		action_cloak.mouse_exited.connect(_on_action_cloak_mouse_exited)
 		
 	# Connect big drill button
 	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
@@ -319,6 +330,48 @@ func _on_action_fireball_mouse_exited() -> void:
 	else:
 		print("HUD: Keeping fireball highlights active since ability is selected")
 
+# Handle clicking on the cloak action button
+func _on_action_cloak_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
+		# If button is disabled, don't process the click
+		if action_cloak.disabled:
+			return
+			
+		# If we have a current player, try to use the cloak ability
+		if current_player and current_player.abilities.has("cloak") and current_player is ScoutPlayer:
+			var success = current_player.execute_ability("cloak", null)  # Cloak doesn't need a target
+			print("HUD: Cloak ability use " + ("succeeded" if success else "failed"))
+			
+			# If successful, make sure the button is reset
+			if success:
+				action_cloak.modulate = Color(0.7, 0.7, 1.3, 1)  # Highlight with blue tint since it's active
+				
+				# Get the GameController to make sure current_ability is cleared
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller:
+					game_controller.current_ability = ""
+				
+				# Force update of all buttons to reflect current state
+				update_action_buttons()
+			else:
+				# If not successful, still update buttons to reflect current state
+				update_action_buttons()
+
+# Show visual feedback when hovering over cloak button
+func _on_action_cloak_mouse_entered() -> void:
+	is_hovering_cloak_button = true
+	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
+	# Only show hover effect if button is not disabled
+	if action_cloak and not action_cloak.disabled and current_player and current_player.abilities.has("cloak") and current_player is ScoutPlayer:
+		print("HUD: Showing cloak hover effect")
+		CloakButtonHovered.emit(current_player)
+
+# Hide visual feedback when no longer hovering over cloak button
+func _on_action_cloak_mouse_exited() -> void:
+	is_hovering_cloak_button = false
+	CloakButtonUnhovered.emit()
+
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
 
@@ -393,6 +446,7 @@ func _on_player_ability_used(ability_name: String) -> void:
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
+	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	
 	# Reset specific button based on which ability was used
 	match ability_name:
@@ -404,6 +458,8 @@ func _on_player_ability_used(ability_name: String) -> void:
 			action_line_shot.modulate = Color(1, 1, 1, 1)
 		"fireball":
 			action_fireball.modulate = Color(1, 1, 1, 1)
+		"cloak":
+			action_cloak.modulate = Color(1, 1, 1, 1)
 	
 	# Update all buttons
 	update_action_buttons()
@@ -422,8 +478,6 @@ func set_active_player(player: PlayerEntity) -> void:
 			current_player.disconnect("action_points_changed", Callable(self, "update_action_buttons"))
 		if current_player.is_connected("ability_used", Callable(self, "update_action_buttons")):
 			current_player.disconnect("ability_used", Callable(self, "update_action_buttons"))
-		if current_player.is_connected("ability_used", Callable(self, "_on_player_ability_used")):
-			current_player.disconnect("ability_used", Callable(self, "_on_player_ability_used"))
 		if current_player.is_connected("action_selection_changed", Callable(self, "update_action_buttons")):
 			current_player.disconnect("action_selection_changed", Callable(self, "update_action_buttons"))
 	
@@ -519,6 +573,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
+	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	
 	# Get current selected ability if any
 	var game_controller = get_node("/root").find_child("GameController", true, false)
@@ -536,6 +591,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_drill_smash.visible = true
 		action_line_shot.visible = true
 		action_fireball.visible = true
+		action_cloak.visible = true
 	
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
@@ -616,6 +672,27 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_line_shot.disabled = true
 			print("HUD: Hiding line_shot button - ability not available")
 			
+		# Cloak ability - only for ScoutPlayer
+		if current_player.abilities.has("cloak") and current_player is ScoutPlayer and not current_player.is_drilling:
+			action_cloak.visible = true
+			# If cloak is already active, keep it highlighted
+			if current_player.is_cloaked:
+				action_cloak.modulate = Color(0.7, 0.7, 1.3, 1) # Highlighted with blue tint
+				action_cloak.disabled = true  # Can't activate it again while it's active
+				print("HUD: Highlighting cloak button - cloak is active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("cloak"):
+				action_cloak.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_cloak.disabled = false
+			else:
+				action_cloak.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_cloak.disabled = true # Disable the button
+				print("HUD: Disabling cloak button - not enough AP")
+		else:
+			action_cloak.visible = false
+			action_cloak.disabled = true
+			print("HUD: Hiding cloak button - ability not available")
+			
 		# Fireball ability - only for WizardPlayer
 		if current_player.abilities.has("fireball") and current_player is WizardPlayer and not current_player.is_drilling:
 			action_fireball.visible = true
@@ -648,6 +725,8 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_line_shot.disabled = true
 		action_fireball.visible = false
 		action_fireball.disabled = true
+		action_cloak.visible = false
+		action_cloak.disabled = true
 		print("HUD: Hiding all ability buttons - no active player")
 
 # Event handler for when the big drill button is clicked

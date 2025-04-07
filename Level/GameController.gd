@@ -431,6 +431,9 @@ func _on_turn_ended(character):
 	if character in player_entities and selected_entity == character:
 		selected_entity = null
 		
+		if character.has_method("on_turn_end"):
+			character.on_turn_end()
+		
 		# Clear the active player in the HUD
 		if Global.hud and Global.hud.current_player == character:
 			Global.hud.set_active_player(null)
