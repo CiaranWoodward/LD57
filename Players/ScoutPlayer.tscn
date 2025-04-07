@@ -1,8 +1,293 @@
-[gd_scene load_steps=4 format=3 uid="uid://cbkvvc0s2okhl"]
+[gd_scene load_steps=27 format=3 uid="uid://cbkvvc0s2okhl"]
 
 [ext_resource type="Script" uid="uid://drkvdj5dsvaic" path="res://Players/ScoutPlayer.gd" id="1_1vdjo"]
-[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_4eih1"]
 [ext_resource type="Texture2D" uid="uid://ygc46253hamc" path="res://images/scout.png" id="2_v774x"]
+[ext_resource type="Texture2D" uid="uid://63wgcdls8sqd" path="res://Graphics/Players/Scout/ScoutIdle0000.png" id="3_arian"]
+[ext_resource type="Texture2D" uid="uid://c6m631g845is5" path="res://Graphics/Players/Scout/ScoutShoot0000.png" id="4_gdd2h"]
+[ext_resource type="Texture2D" uid="uid://83geac367hqp" path="res://Graphics/Players/Scout/ScoutHide0000.png" id="5_4elv6"]
+[ext_resource type="Texture2D" uid="uid://dt4mjjvbpnlog" path="res://Graphics/Particles/Fire0000.png" id="6_gdd2h"]
+
+[sub_resource type="Gradient" id="Gradient_gdd2h"]
+offsets = PackedFloat32Array(0, 0.0733333, 0.28, 0.613333)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.564706, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_4elv6"]
+colors = PackedColorArray(0.464844, 0.464844, 0.464844, 1, 0.75, 0.75, 0.75, 1)
+
+[sub_resource type="Animation" id="Animation_4elv6"]
+resource_name = "Idle"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Shoot:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Hide:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_gir51"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Shoot:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Hide:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Hide/Poof:emitting")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_xp48l"]
+resource_name = "Shoot"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Shoot:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Hide:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_3xyqf"]
+resource_name = "Poof"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Shoot:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Hide:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Hide/Poof:emitting")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_k67gq"]
+resource_name = "Hide"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Shoot:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Hide:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_k67gq"]
+_data = {
+&"Hide": SubResource("Animation_k67gq"),
+&"Idle": SubResource("Animation_4elv6"),
+&"Poof": SubResource("Animation_3xyqf"),
+&"RESET": SubResource("Animation_gir51"),
+&"Shoot": SubResource("Animation_xp48l")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_0apt4"]
+animation = &"Hide"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_u4m6p"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_bdgv7"]
+animation = &"Poof"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_fh4uq"]
+animation = &"Shoot"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_oeamf"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_jp7p6"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_58pyn"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hi4mr"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_jbr8h"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_c6pwj"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_8lis8"]
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_0apt4"]
+states/End/position = Vector2(487, 106)
+states/Hide/node = SubResource("AnimationNodeAnimation_0apt4")
+states/Hide/position = Vector2(385, 192)
+states/Idle/node = SubResource("AnimationNodeAnimation_u4m6p")
+states/Idle/position = Vector2(327, 100)
+states/Poof/node = SubResource("AnimationNodeAnimation_bdgv7")
+states/Poof/position = Vector2(289, 192)
+states/Shoot/node = SubResource("AnimationNodeAnimation_fh4uq")
+states/Shoot/position = Vector2(327, 5)
+states/Start/position = Vector2(205, 100)
+transitions = ["Idle", "Shoot", SubResource("AnimationNodeStateMachineTransition_oeamf"), "Shoot", "Idle", SubResource("AnimationNodeStateMachineTransition_jp7p6"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_58pyn"), "Idle", "End", SubResource("AnimationNodeStateMachineTransition_hi4mr"), "Idle", "Poof", SubResource("AnimationNodeStateMachineTransition_jbr8h"), "Poof", "Hide", SubResource("AnimationNodeStateMachineTransition_c6pwj"), "Hide", "Idle", SubResource("AnimationNodeStateMachineTransition_8lis8")]
 
 [node name="ScoutPlayer" type="Node2D"]
 script = ExtResource("1_1vdjo")
@@ -11,4 +296,43 @@ profile_texture = ExtResource("2_v774x")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.149808, 0.49662, 0.796823, 1)
 position = Vector2(0, -65)
-texture = ExtResource("2_4eih1")
+scale = Vector2(0.25, 0.25)
+
+[node name="Idle" type="Sprite2D" parent="Sprite2D"]
+texture = ExtResource("3_arian")
+
+[node name="Shoot" type="Sprite2D" parent="Sprite2D"]
+visible = false
+texture = ExtResource("4_gdd2h")
+
+[node name="Hide" type="Sprite2D" parent="Sprite2D"]
+visible = false
+self_modulate = Color(0.503906, 0.503906, 0.503906, 0.741176)
+texture = ExtResource("5_4elv6")
+
+[node name="Poof" type="CPUParticles2D" parent="Sprite2D/Hide"]
+position = Vector2(0, 120)
+emitting = false
+amount = 20
+texture = ExtResource("6_gdd2h")
+lifetime = 1.2
+one_shot = true
+explosiveness = 0.8
+emission_shape = 3
+emission_rect_extents = Vector2(80, 160)
+gravity = Vector2(0, 0)
+angle_min = -720.0
+angle_max = 720.0
+scale_amount_min = 2.5
+scale_amount_max = 3.5
+color_ramp = SubResource("Gradient_gdd2h")
+color_initial_ramp = SubResource("Gradient_4elv6")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
+libraries = {
+&"": SubResource("AnimationLibrary_k67gq")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="Sprite2D"]
+tree_root = SubResource("AnimationNodeStateMachine_0apt4")
+anim_player = NodePath("../AnimationPlayer")
