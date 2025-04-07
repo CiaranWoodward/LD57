@@ -149,7 +149,4 @@ func _on_area_mouse_exited():
 
 # Get the world position for an entity to be placed on this tile
 func get_entity_position() -> Vector2:
-	# Return the center of the tile with a positive Y offset
-	# This makes the entity appear at the bottom of the tile,
-	# which looks correct in isometric view
-	return position + Vector2(0, 32)
+	return position
