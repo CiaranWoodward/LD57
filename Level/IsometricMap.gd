@@ -8,6 +8,8 @@ extends Node2D
 @export var tile_height: int = 64  # Height of tile in pixels
 @export var tile_scene: PackedScene  # Reference to the tile scene to instantiate
 
+var map : Array = [[]]
+
 var level_index = 0
 
 # References
@@ -22,8 +24,14 @@ func _ready():
 	
 	generate_map()
 
+func set_map_array(new_map):
+	map = new_map
+
 # Generates the isometric map
 func generate_map():
+	var map_height = map.size()
+	var map_width = map[0].size()
+	
 	print("IsometricMap: Generating map " + str(map_width) + "x" + str(map_height))
 	# Clear existing tiles if any
 	for child in get_children():
@@ -52,7 +60,7 @@ func generate_map():
 				tile_type = "stone_wall"
 			
 			# Create some additional wall structures for demonstration
-			if (x == 3 and y >= 3 and y <= 6) or (y == 3 and x >= 3 and x <= 6):
+			if (map[y][x] == "s"):
 				tile_type = "stone_wall"
 				
 			var tile = create_tile(grid_pos, tile_type)

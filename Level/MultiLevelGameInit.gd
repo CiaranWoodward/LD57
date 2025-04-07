@@ -53,34 +53,23 @@ func _ready():
 		print("MultiLevelGameInit: Spawned " + str(enemy_level_distribution[0].size()) + " enemies on first level")
 		
 		# Initialize the second level
-		var second_level = level_manager.initialize_level(1)
+		var enemies_level_1 = [
+			[Vector2i(4, 4), EnemyEntity.EnemyType.ELITE, [Vector2i(4, 4), Vector2i(4, 6), Vector2i(6, 6), Vector2i(6, 4)]],
+			[Vector2i(9, 9), EnemyEntity.EnemyType.GRUNT, [Vector2i(9, 9), Vector2i(1, 4), Vector2i(3, 2), Vector2i(12, 14)]]
+		]
+		initialise_additional_levels(1, enemies_level_1)
 		
-		# Temporarily switch game controller to second level for initialization
-		var previous_level = game_controller.current_active_level
-		var previous_map = game_controller.isometric_map
-		game_controller.set_active_level(1, second_level)
+		var enemies_level_2 = [
+			[Vector2i(7, 3), EnemyEntity.EnemyType.ELITE, [Vector2i(7, 3), Vector2i(14, 1), Vector2i(1, 3), Vector2i(6, 4)]],
+			[Vector2i(2, 5), EnemyEntity.EnemyType.GRUNT, [Vector2i(2, 5), Vector2i(1, 4), Vector2i(3, 2), Vector2i(12, 14)]],
+			[Vector2i(12, 11), EnemyEntity.EnemyType.GRUNT, [Vector2i(12, 11), Vector2i(10, 8), Vector2i(9, 5), Vector2i(14, 8)]]
+		]
+		initialise_additional_levels(2, enemies_level_2)
 		
-		# Spawn enemies on the second level
-		print("MultiLevelGameInit: Spawning enemies on second level")
-		# Instead of clearing, we keep all existing enemies and add new ones
-		var brute = game_controller.spawn_enemy(Vector2i(4, 4), EnemyEntity.EnemyType.ELITE, 1)
-		var grunt2 = game_controller.spawn_enemy(Vector2i(9, 9), EnemyEntity.EnemyType.GRUNT, 1)
-		
-		# Store reference to level 1 enemies
-		enemy_level_distribution[1] = []
-		for enemy in game_controller.enemy_entities:
-			if enemy.current_level != 0:  # Only process new enemies from level 1
-				enemy.current_level = 1
-				enemy_level_distribution[1].append(enemy)
-				
-		print("MultiLevelGameInit: Spawned " + str(enemy_level_distribution[1].size()) + " enemies on second level")
-		
-		# Set up patrol paths for second level enemies
-		var patrol_path = [Vector2i(4, 4), Vector2i(4, 6), Vector2i(6, 6), Vector2i(6, 4)]
-		enemy_level_distribution[1][0].set_patrol_path(patrol_path)
-		
-		# Restore game controller to first level for now
-		game_controller.set_active_level(previous_level, previous_map)
+		var enemies_level_3 = [
+			[Vector2i(7, 7), EnemyEntity.EnemyType.BOSS, [Vector2i(2, 7), Vector2i(7, 13), Vector2i(14, 7), Vector2i(7, 2)]]
+		]
+		initialise_additional_levels(3, enemies_level_3)
 		
 		# Connect to game events
 		print("MultiLevelGameInit: Connecting to game events")
@@ -99,6 +88,45 @@ func _ready():
 			push_error("MultiLevelGameInit: LevelManager node not found")
 		if not game_controller:
 			push_error("MultiLevelGameInit: GameController node not found")
+
+func initialise_additional_levels(level_index, enemies):
+	var new_level = level_manager.initialize_level(level_index)
+		
+	# Temporarily switch game controller to second level for initialization
+	var previous_level = game_controller.current_active_level
+	var previous_map = game_controller.isometric_map
+	game_controller.set_active_level(level_index, new_level)
+		
+	# Spawn enemies on the second level
+	print("MultiLevelGameInit: Spawning enemies on level " + str(level_index))
+	# Instead of clearing, we keep all existing enemies and add new ones
+	
+	for enemy in game_controller.enemy_entities:
+		if enemy.current_level == 0:  # This may cause problems, previous version assumed only one previous level existed
+			enemy.current_level = -1
+	
+	for enemy in enemies:
+		game_controller.spawn_enemy(enemy[0], enemy[1])
+	
+	# Store reference to level 1 enemies
+	enemy_level_distribution[level_index] = []
+	for enemy in game_controller.enemy_entities:
+		if enemy.current_level == 0:
+			enemy.current_level = level_index
+			enemy_level_distribution[level_index].append(enemy)
+	
+	for enemy in game_controller.enemy_entities:
+		if enemy.current_level == -1:  # This may cause problems, previous version assumed only one previous level existed
+			enemy.current_level = 0
+	
+	print("MultiLevelGameInit: Spawned " + str(enemy_level_distribution[1].size()) + " enemies on level" + str(level_index))
+	
+	# Set up patrol paths for second level enemies
+	for i in range(enemies.size()):
+		enemy_level_distribution[level_index][i].set_patrol_path(enemies[i][2]) 
+	
+	# Restore game controller to first level for now
+	game_controller.set_active_level(previous_level, previous_map)
 
 # Set up UI elements
 func setup_ui():
