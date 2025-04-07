@@ -39,6 +39,7 @@ GameController="*res://Level/GameController.gd"
 
 [gui]
 
+timers/tooltip_delay_sec=0.1
 theme/custom_font="uid://c1l8tfjsccx1h"
 
 [input]

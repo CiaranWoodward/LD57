@@ -22,6 +22,19 @@ func get_ability_cost(ability_name: String) -> int:
 		"defend": return 1
 		_: return super.get_ability_cost(ability_name)
 
+# Override to provide specific descriptions for Heavy abilities
+func get_ability_description(ability_name: String) -> String:
+	var cost = get_ability_cost(ability_name)
+	match ability_name:
+		"drill_smash": 
+			return "Drill Smash: AOE damage nearby (Cost: " + str(cost) + " AP)"
+		"big_drill": 
+			return "Big Drill: Takes 4 turns, brings adjacent allies down too (Cost: " + str(cost) + " AP)"
+		"defend": 
+			return "Defend: Increase defense until next turn (Cost: " + str(cost) + " AP)"
+		_: 
+			return super.get_ability_description(ability_name)
+
 func execute_ability(ability_name: String, target) -> bool:
 	if super.execute_ability(ability_name, target):
 		return true

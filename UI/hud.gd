@@ -37,6 +37,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_drill.mouse_entered.connect(_on_action_drill_mouse_entered)
 		action_drill.mouse_exited.connect(_on_action_drill_mouse_exited)
+		# Set default tooltip
+		action_drill.tooltip_text = "Drill"
 	
 	# Connect drill smash button
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
@@ -45,6 +47,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_drill_smash.mouse_entered.connect(_on_action_drill_smash_mouse_entered)
 		action_drill_smash.mouse_exited.connect(_on_action_drill_smash_mouse_exited)
+		# Set default tooltip
+		action_drill_smash.tooltip_text = "Drill Smash"
 	
 	# Connect line shot button
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
@@ -53,6 +57,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_line_shot.mouse_entered.connect(_on_action_line_shot_mouse_entered)
 		action_line_shot.mouse_exited.connect(_on_action_line_shot_mouse_exited)
+		# Set default tooltip
+		action_line_shot.tooltip_text = "Line Shot"
 	
 	# Connect fireball button
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
@@ -61,6 +67,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_fireball.mouse_entered.connect(_on_action_fireball_mouse_entered)
 		action_fireball.mouse_exited.connect(_on_action_fireball_mouse_exited)
+		# Set default tooltip
+		action_fireball.tooltip_text = "Fireball"
 		
 	# Connect cloak button
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
@@ -69,6 +77,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_cloak.mouse_entered.connect(_on_action_cloak_mouse_entered)
 		action_cloak.mouse_exited.connect(_on_action_cloak_mouse_exited)
+		# Set default tooltip
+		action_cloak.tooltip_text = "Cloak"
 		
 	# Connect big drill button
 	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
@@ -77,6 +87,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_big_drill.mouse_entered.connect(_on_big_drill_button_hovered)
 		action_big_drill.mouse_exited.connect(_on_big_drill_button_unhovered)
+		# Set default tooltip
+		action_big_drill.tooltip_text = "Big Drill"
 	
 	# Connect defend button
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
@@ -85,6 +97,8 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_defend.mouse_entered.connect(_on_defend_button_mouse_entered)
 		action_defend.mouse_exited.connect(_on_defend_button_mouse_exited)
+		# Set default tooltip
+		action_defend.tooltip_text = "Defend"
 	
 	# Connect to the game controller for better synchronization
 	# We'll do this with a timer to ensure the game controller is fully initialized
@@ -635,6 +649,15 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	if game_controller:
 		current_ability = game_controller.current_ability
 	
+	# Reset all tooltips to default before updating
+	action_drill.tooltip_text = "Drill"
+	action_big_drill.tooltip_text = "Big Drill"
+	action_drill_smash.tooltip_text = "Drill Smash"
+	action_line_shot.tooltip_text = "Line Shot"
+	action_fireball.tooltip_text = "Fireball"
+	action_cloak.tooltip_text = "Cloak"
+	action_defend.tooltip_text = "Defend"
+	
 	if current_player:
 		print("HUD: Updating action buttons for player " + current_player.entity_name + 
 			", AP: " + str(current_player.action_points) + "/" + str(current_player.max_action_points))
@@ -651,6 +674,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
 			action_drill.visible = true
+			action_drill.tooltip_text = current_player.get_ability_description("drill")
 			# Check if player has enough action points
 			if current_player.action_points >= current_player.get_ability_cost("drill"):
 				action_drill.modulate = Color(1, 1, 1, 1) # Fully visible
@@ -667,6 +691,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Big Drill ability - only for HeavyPlayer
 		if current_player.abilities.has("big_drill") and current_player is HeavyPlayer and not current_player.is_drilling:
 			action_big_drill.visible = true
+			action_big_drill.tooltip_text = current_player.get_ability_description("big_drill")
 			# If it's the current selected ability, keep it highlighted
 			if current_ability == "big_drill":
 				action_big_drill.modulate = Color(0.7, 0.7, 1.3, 1)  # Highlighted with bluish tint
@@ -688,6 +713,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Drill Smash ability - only for HeavyPlayer
 		if current_player.abilities.has("drill_smash") and current_player is HeavyPlayer and not current_player.is_drilling:
 			action_drill_smash.visible = true
+			action_drill_smash.tooltip_text = current_player.get_ability_description("drill_smash")
 			# If it's the current selected ability, keep it highlighted
 			if current_ability == "drill_smash":
 				action_drill_smash.modulate = Color(1.3, 0.7, 0.7, 1) # Highlighted
@@ -709,6 +735,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Line Shot ability - only for ScoutPlayer
 		if current_player.abilities.has("line_shot") and current_player is ScoutPlayer and not current_player.is_drilling:
 			action_line_shot.visible = true
+			action_line_shot.tooltip_text = current_player.get_ability_description("line_shot")
 			# If it's the current selected ability, keep it highlighted
 			if current_ability == "line_shot":
 				action_line_shot.modulate = Color(0.7, 1.3, 0.7, 1) # Highlighted
@@ -730,6 +757,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Cloak ability - only for ScoutPlayer
 		if current_player.abilities.has("cloak") and current_player is ScoutPlayer and not current_player.is_drilling:
 			action_cloak.visible = true
+			action_cloak.tooltip_text = current_player.get_ability_description("cloak")
 			# If cloak is already active, keep it highlighted
 			if current_player.is_cloaked:
 				action_cloak.modulate = Color(0.7, 0.7, 1.3, 1) # Highlighted with blue tint
@@ -751,6 +779,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Fireball ability - only for WizardPlayer
 		if current_player.abilities.has("fireball") and current_player is WizardPlayer and not current_player.is_drilling:
 			action_fireball.visible = true
+			action_fireball.tooltip_text = current_player.get_ability_description("fireball")
 			# If it's the current selected ability, keep it highlighted
 			if current_ability == "fireball":
 				action_fireball.modulate = Color(1.3, 0.7, 0.7, 1) # Highlighted with reddish tint
@@ -772,6 +801,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		# Defend ability - only for HeavyPlayer
 		if current_player.abilities.has("defend") and current_player is HeavyPlayer and not current_player.is_drilling:
 			action_defend.visible = true
+			action_defend.tooltip_text = current_player.get_ability_description("defend")
 			# If defend is already active, keep it highlighted
 			if current_player.defend_active:
 				action_defend.modulate = Color(0.7, 0.7, 1.2, 1) # Highlighted with blue tint

@@ -24,6 +24,17 @@ func get_ability_cost(ability_name: String) -> int:
 		"cloak": return 2
 		_: return super.get_ability_cost(ability_name)
 
+# Override to provide specific descriptions for Scout abilities
+func get_ability_description(ability_name: String) -> String:
+	var cost = get_ability_cost(ability_name)
+	match ability_name:
+		"line_shot": 
+			return "Line Shot: Ranged attack, up to " + str(line_shot_range) + " tiles (Cost: " + str(cost) + " AP)"
+		"cloak": 
+			return "Cloak: Invisible for 2 turns (Cost: " + str(cost) + " AP)"
+		_: 
+			return super.get_ability_description(ability_name)
+
 func execute_ability(ability_name: String, target) -> bool:
 	# First try the parent implementation (for common abilities like drill)
 	if super.execute_ability(ability_name, target):

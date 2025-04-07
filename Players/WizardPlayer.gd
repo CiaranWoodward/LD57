@@ -21,6 +21,15 @@ func get_ability_cost(ability_name: String) -> int:
 		"fireball": return 3  # Fireball costs more than most abilities
 		_: return super.get_ability_cost(ability_name)
 
+# Override to provide specific descriptions for Wizard abilities
+func get_ability_description(ability_name: String) -> String:
+	var cost = get_ability_cost(ability_name)
+	match ability_name:
+		"fireball": 
+			return "Fireball: Ranged AOE, up to " + str(fireball_range) + " tiles (Cost: " + str(cost) + " AP)"
+		_: 
+			return super.get_ability_description(ability_name)
+
 func execute_ability(ability_name: String, target) -> bool:
 	if super.execute_ability(ability_name, target):
 		return true

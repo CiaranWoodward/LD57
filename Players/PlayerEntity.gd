@@ -101,6 +101,16 @@ func get_ability_cost(ability_name: String) -> int:
 		"drill": return 2  # Drilling costs 2 action points
 		_: return 1  # Default cost of 1 AP
 
+# Get a short description of an ability, including its cost
+# Override in subclasses for specific ability descriptions
+func get_ability_description(ability_name: String) -> String:
+	var cost = get_ability_cost(ability_name)
+	match ability_name:
+		"drill": 
+			return "Drill down: Takes 3 turns (Cost: " + str(cost) + " AP)"
+		_: 
+			return ability_name.capitalize() + " (Cost: " + str(cost) + " AP)"
+
 # Execute an ability - override in subclasses with specific ability implementations
 func execute_ability(ability_name: String, target) -> bool:
 	match ability_name:
