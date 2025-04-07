@@ -13,11 +13,81 @@ var level_scenes: Array[PackedScene] = []
 var level_nodes: Dictionary = {}  # Level index -> IsometricMap node
 var current_deepest_level: int = 0
 
+var level_maps : Array = [
+	[
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "s", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+	],
+	[
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["o", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+	],
+	[
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+	],
+	[
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "s", "o", "o", "s", "s", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o"],
+		["o", "o", "s", "s", "s", "o", "o", "o", "o", "s", "s", "s", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
+		["o", "o", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "s", "s", "o", "o", "s", "s", "s", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+	]
+]
+
 func _ready():
 	# Register initial level scenes
 	level_scenes = [
 		load("res://Level/map.tscn"),  # Level 1
-		load("res://Level/map.tscn")   # Level 2 (for now using the same scene)
+		load("res://Level/map.tscn"),   # Level 2 (for now using the same scene)
+		load("res://Level/map.tscn"),   # Level 3 (for now using the same scene)
+		load("res://Level/map.tscn")   # Level 4 (for now using the same scene)
 	]
 	
 	# Initialize the first level
@@ -26,7 +96,11 @@ func _ready():
 # Initialize a level at the specified index
 func initialize_level(level_index: int) -> IsometricMap:
 	if level_index >= level_scenes.size():
-		push_error("Level index out of bounds: " + str(level_index))
+		push_error("Level index out of bounds: " + str(level_index) + " There are no available scenes")
+		return null
+	
+	if level_index >= level_maps.size():
+		push_error("Level index out of bounds: " + str(level_index) + " There are no available maps")
 		return null
 		
 	if level_nodes.has(level_index):
@@ -36,6 +110,7 @@ func initialize_level(level_index: int) -> IsometricMap:
 	
 	# Instance the level
 	var level_instance = level_scenes[level_index].instantiate() as IsometricMap
+	level_instance.set_map_array(level_maps[level_index])
 	
 	# Position the level based on its depth
 	level_instance.position.y = level_index * level_vertical_offset
