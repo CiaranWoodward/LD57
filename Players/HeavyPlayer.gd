@@ -2,6 +2,7 @@ class_name HeavyPlayer
 extends PlayerEntity
 
 var hover_target: IsometricTile = null  # Track currently hovered target for AOE preview
+var defend_active: bool = false  # Track if defend ability is active
 
 func configure_player():
 	entity_name = "Heavy"
@@ -10,7 +11,7 @@ func configure_player():
 	max_movement_points = 2  # But limited movement
 	movement_points = max_movement_points
 	move_speed = 0.7
-	abilities = ["drill", "drill_smash", "big_drill"]
+	abilities = ["drill", "drill_smash", "big_drill", "defend"]
 	max_health = 15
 	current_health = 15
 
@@ -18,6 +19,7 @@ func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
 		"drill_smash": return 2
 		"big_drill": return 3
+		"defend": return 1
 		_: return super.get_ability_cost(ability_name)
 
 func execute_ability(ability_name: String, target) -> bool:
@@ -25,6 +27,16 @@ func execute_ability(ability_name: String, target) -> bool:
 		return true
 		
 	match ability_name:
+		"defend":
+			# Activate the defend ability, which halves damage until next turn
+			print("HeavyPlayer: " + entity_name + " activates defend")
+			defend_active = true
+			
+			# Apply a visual effect to show the defend status
+			modulate = Color(0.7, 0.7, 1.2)  # Bluish tint to indicate defense mode
+			
+			return true
+			
 		"drill_smash":
 			# Drill smash damages and pushes enemies in the target area
 			if target is IsometricTile:
@@ -434,6 +446,12 @@ func complete_big_drilling() -> bool:
 func take_damage(amount: int):
 	var was_big_drilling = is_drilling and modulate.is_equal_approx(Color(0.5, 0.5, 0.8))
 	
+	# If defend is active, halve the damage
+	if defend_active:
+		var original_amount = amount
+		amount = max(1, amount / 2)  # At least 1 damage
+		print("HeavyPlayer: " + entity_name + " defend ability reduced damage from " + str(original_amount) + " to " + str(amount))
+	
 	# Call the parent take_damage method
 	super.take_damage(amount)
 	
@@ -502,3 +520,14 @@ func highlight_big_drill_targets():
 				if ally_target_tile:
 					ally_target_tile.set_action_target(true)
 					print("HeavyPlayer: Highlighting ally target tile for big drill at level " + str(target_level) + ", position " + str(ally.grid_position)) 
+
+# Override start_turn to handle defend ability reset
+func start_turn():
+	# Reset defend status at the start of turn
+	if defend_active:
+		print("HeavyPlayer: " + entity_name + " defend ability expired")
+		defend_active = false
+		modulate = Color(1, 1, 1, 1)  # Reset visual effect
+	
+	# Call parent implementation
+	super.start_turn()

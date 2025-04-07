@@ -15,6 +15,8 @@ signal BigDrillButtonHovered(player)
 signal BigDrillButtonUnhovered
 signal CloakButtonHovered(player)
 signal CloakButtonUnhovered
+signal DefendButtonHovered(player)
+signal DefendButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -75,6 +77,14 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_big_drill.mouse_entered.connect(_on_big_drill_button_hovered)
 		action_big_drill.mouse_exited.connect(_on_big_drill_button_unhovered)
+	
+	# Connect defend button
+	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
+	if action_defend:
+		action_defend.gui_input.connect(_on_action_defend_input)
+		# Connect to mouse enter/exit for hover detection
+		action_defend.mouse_entered.connect(_on_defend_button_mouse_entered)
+		action_defend.mouse_exited.connect(_on_defend_button_mouse_exited)
 	
 	# Connect to the game controller for better synchronization
 	# We'll do this with a timer to ensure the game controller is fully initialized
@@ -372,6 +382,46 @@ func _on_action_cloak_mouse_exited() -> void:
 	is_hovering_cloak_button = false
 	CloakButtonUnhovered.emit()
 
+# Handle clicking on the defend action button
+func _on_action_defend_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
+		# If button is disabled, don't process the click
+		if action_defend.disabled:
+			return
+			
+		# If we have a current player, try to use the defend ability
+		if current_player and current_player.abilities.has("defend") and current_player is HeavyPlayer:
+			var success = current_player.use_ability("defend", null)  # Defend doesn't need a target
+			print("HUD: Defend ability use " + ("succeeded" if success else "failed"))
+			
+			# If successful, make sure the button is reset
+			if success:
+				action_defend.modulate = Color(0.7, 0.7, 1.2, 1)  # Highlight with blue tint since it's active
+				
+				# Get the GameController to make sure current_ability is cleared
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller:
+					game_controller.current_ability = ""
+				
+				# Force update of all buttons to reflect current state
+				update_action_buttons()
+			else:
+				# If not successful, still update buttons to reflect current state
+				update_action_buttons()
+
+# Show visual feedback when hovering over defend button
+func _on_defend_button_mouse_entered() -> void:
+	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
+	# Only show hover effect if button is not disabled
+	if action_defend and not action_defend.disabled and current_player and current_player.abilities.has("defend") and current_player is HeavyPlayer:
+		print("HUD: Showing defend hover effect")
+		DefendButtonHovered.emit(current_player)
+
+# Hide visual feedback when no longer hovering over defend button
+func _on_defend_button_mouse_exited() -> void:
+	DefendButtonUnhovered.emit()
+
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
 
@@ -447,6 +497,7 @@ func _on_player_ability_used(ability_name: String) -> void:
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
+	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	
 	# Reset specific button based on which ability was used
 	match ability_name:
@@ -460,6 +511,8 @@ func _on_player_ability_used(ability_name: String) -> void:
 			action_fireball.modulate = Color(1, 1, 1, 1)
 		"cloak":
 			action_cloak.modulate = Color(1, 1, 1, 1)
+		"defend":
+			action_defend.modulate = Color(1, 1, 1, 1)
 	
 	# Update all buttons
 	update_action_buttons()
@@ -574,6 +627,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
+	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	
 	# Get current selected ability if any
 	var game_controller = get_node("/root").find_child("GameController", true, false)
@@ -592,6 +646,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_line_shot.visible = true
 		action_fireball.visible = true
 		action_cloak.visible = true
+		action_defend.visible = true
 	
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
@@ -713,6 +768,27 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_fireball.visible = false
 			action_fireball.disabled = true
 			print("HUD: Hiding fireball button - ability not available")
+			
+		# Defend ability - only for HeavyPlayer
+		if current_player.abilities.has("defend") and current_player is HeavyPlayer and not current_player.is_drilling:
+			action_defend.visible = true
+			# If defend is already active, keep it highlighted
+			if current_player.defend_active:
+				action_defend.modulate = Color(0.7, 0.7, 1.2, 1) # Highlighted with blue tint
+				action_defend.disabled = true  # Can't activate it again while it's active
+				print("HUD: Highlighting defend button - defend is active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("defend"):
+				action_defend.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_defend.disabled = false
+			else:
+				action_defend.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_defend.disabled = true # Disable the button
+				print("HUD: Disabling defend button - not enough AP")
+		else:
+			action_defend.visible = false
+			action_defend.disabled = true
+			print("HUD: Hiding defend button - ability not available")
 	else:
 		# No active player, hide all buttons
 		action_drill.visible = false
@@ -727,6 +803,8 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_fireball.disabled = true
 		action_cloak.visible = false
 		action_cloak.disabled = true
+		action_defend.visible = false
+		action_defend.disabled = true
 		print("HUD: Hiding all ability buttons - no active player")
 
 # Event handler for when the big drill button is clicked
