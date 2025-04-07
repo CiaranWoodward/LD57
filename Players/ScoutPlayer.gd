@@ -6,6 +6,8 @@ var line_shot_range: int = 5 # Maximum range for line shot ability
 var is_cloaked: bool = false
 var cloak_turns_remaining: int = 0
 @onready var sprite_node = $Sprite2D # Reference to the player's sprite node
+@onready var animation_tree = $Sprite2D/AnimationTree
+@onready var animation_state_machine = animation_tree.get("parameters/playback")
 
 func configure_player():
 	entity_name = "Scout"
@@ -17,6 +19,10 @@ func configure_player():
 	abilities = ["drill", "line_shot", "cloak"]
 	max_health = 8
 	current_health = 8
+	
+	# Activate animation tree
+	if animation_tree:
+		animation_tree.active = true
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
@@ -70,6 +76,10 @@ func execute_ability(ability_name: String, target) -> bool:
 				
 				print("ScoutPlayer: " + entity_name + " firing line_shot in direction " + str(direction))
 				
+				# Play shoot animation
+				if animation_state_machine:
+					animation_state_machine.travel("Shoot")
+				
 				# Calculate the line of tiles in the direction, up to max range or until we hit a wall
 				var current_pos = grid_position
 				var has_hit = false
@@ -103,6 +113,7 @@ func execute_ability(ability_name: String, target) -> bool:
 				if is_cloaked:
 					cancel_cloak()
 					
+				action_points -= cost
 				return true  # Return true even if we didn't hit anything, as the ability was still used
 			
 			print("ScoutPlayer: " + entity_name + " line_shot failed - invalid target")
@@ -120,6 +131,10 @@ func execute_ability(ability_name: String, target) -> bool:
 			cloak_turns_remaining = 2
 			action_points -= cost
 			print("ScoutPlayer: " + entity_name + " activates cloak for 2 turns")
+			
+			# Play poof and hide animation
+			if animation_state_machine:
+				animation_state_machine.travel("Poof")
 			
 			# Visual effect (would need to be implemented in the entity's sprite)
 			if sprite_node:
@@ -158,9 +173,13 @@ func cancel_cloak():
 		cloak_turns_remaining = 0
 		print("ScoutPlayer: " + entity_name + " - Cloak cancelled")
 		
-		# Reset visual effect
+		# Reset visual effect and animation
 		if sprite_node:
 			sprite_node.modulate.a = 1.0
+		
+		# Return to idle animation
+		if animation_state_machine:
+			animation_state_machine.travel("Idle")
 			
 # Check if player is visible to enemies (for AI targeting)
 func is_visible_to_enemies() -> bool:

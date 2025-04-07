@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://cr6l38m8dnrxe"]
+[gd_scene load_steps=3 format=3 uid="uid://cxuw80dk3311"]
 
-[ext_resource type="PackedScene" uid="uid://di2fkq7a5jvby" path="res://Enemies/BaseBombEnemy.tscn" id="1_anbid"]
-[ext_resource type="Script" path="res://Enemies/HellBombChaserEnemy.gd" id="2_e4ypt"]
+[ext_resource type="PackedScene" path="res://Enemies/BaseBombEnemy.tscn" id="1_anbid"]
+[ext_resource type="Script" uid="uid://bbwiwy121lk6x" path="res://Enemies/HellBombChaserEnemy.gd" id="2_e4ypt"]
 
 [node name="HellBombChaserEnemy" instance=ExtResource("1_anbid")]
 script = ExtResource("2_e4ypt")
@@ -26,4 +26,4 @@ initial_velocity_min = 10.0
 initial_velocity_max = 20.0
 scale_amount_min = 2.0
 scale_amount_max = 4.0
-color = Color(1, 0, 0.4, 0.4) 
+color = Color(1, 0, 0.4, 0.4)
