@@ -136,12 +136,8 @@ func cancel_current_ability():
 		if Global.hud:
 			Global.hud.update_action_buttons()
 		
-		clear_all_highlights()
-		
-		# Restore movement highlights if the player still has movement points
-		if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-			if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
-				highlight_movement_range(selected_entity)
+		# Reset highlights and restore movement range if applicable
+		update_highlights()
 
 # Called when a tile is selected on the map
 func _on_tile_selected(tile):
@@ -168,26 +164,10 @@ func _on_tile_selected(tile):
 			
 			return
 		
-		# First check if the tile is highlighted for an ability like drill_smash
+		# First check if the tile is highlighted for an action
 		elif tile.is_action_target:
-			print("GameController: Tile is an action target, checking for abilities")
-			
-			# Check if the player has the drill_smash ability
-			if selected_entity.abilities.has("drill_smash") and selected_entity is HeavyPlayer:
-				# Calculate direction from player to tile to verify it's a valid target
-				var direction = tile.grid_position - selected_entity.grid_position
-				if abs(direction.x) + abs(direction.y) == 1:  # Adjacent in cardinal direction
-					print("GameController: Using drill_smash ability on tile at " + str(tile.grid_position))
-					selected_entity.use_ability("drill_smash", tile)
-					
-					# Clear highlights after using the ability
-					clear_all_highlights()
-					
-					# Highlight movement range if the player still has movement points
-					if selected_entity.movement_points > 0:
-						highlight_movement_range(selected_entity)
-					
-					return
+			_handle_action_target_tile(tile, selected_entity)
+			return
 		
 		# If not an ability target, try to move to the tile
 		# Make sure the tile is on the same level as the player
@@ -199,12 +179,33 @@ func _on_tile_selected(tile):
 	else:
 		print("GameController: Cannot move - no selected entity or not player turn")
 
+# Handle tiles marked as action targets
+func _handle_action_target_tile(tile: IsometricTile, entity: PlayerEntity):
+	print("GameController: Tile is an action target, checking for abilities")
+			
+	# Check if the player has the drill_smash ability
+	if entity.abilities.has("drill_smash") and entity is HeavyPlayer:
+		# Calculate direction from player to tile to verify it's a valid target
+		var direction = tile.grid_position - entity.grid_position
+		if abs(direction.x) + abs(direction.y) == 1:  # Adjacent in cardinal direction
+			print("GameController: Using drill_smash ability on tile at " + str(tile.grid_position))
+			entity.use_ability("drill_smash", tile)
+			
+			# Clear highlights after using the ability
+			clear_all_highlights()
+			
+			# Highlight movement range if the player still has movement points
+			if entity.movement_points > 0:
+				highlight_movement_range(entity)
+			
+			return
+
 # Handle tile selection for abilities
 func _handle_tile_selection_for_abilities(tile: IsometricTile, selected_entity: PlayerEntity):
 	print("GameController: Processing ability " + current_ability + " targeting tile at " + str(tile.grid_position))
 	
-	# Handle big_drill ability
-	if current_ability == "big_drill" and selected_entity.abilities.has("big_drill"):
+	# Check if the ability exists for the entity
+	if selected_entity.abilities.has(current_ability):
 		# Check if the tile is a valid target (should be highlighted)
 		if tile.is_action_target:
 			print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
@@ -230,100 +231,9 @@ func _handle_tile_selection_for_abilities(tile: IsometricTile, selected_entity: 
 		else:
 			print("GameController: Invalid target for " + current_ability + ", canceling ability")
 			cancel_current_ability()
-		
-		return
-		
-	# Handle drill_smash ability
-	if current_ability == "drill_smash" and selected_entity.abilities.has("drill_smash"):
-		# Check if the tile is a valid target (should be highlighted)
-		if tile.is_action_target:
-			print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
-			var success = selected_entity.use_ability(current_ability, tile)
-			print("GameController: Ability use " + ("succeeded" if success else "failed"))
-			
-			if success:
-				# Reset current ability only if the ability was actually used
-				current_ability = ""
-				
-				# Clear highlights after using the ability
-				clear_all_highlights()
-				
-				# Update HUD buttons to ensure they're properly deselected
-				if Global.hud:
-					Global.hud.update_action_buttons()
-				
-				# Highlight movement range if the player still has movement points
-				if selected_entity.movement_points > 0:
-					highlight_movement_range(selected_entity)
-			else:
-				print("GameController: Ability failed to execute, keeping ability mode active")
-		else:
-			print("GameController: Invalid target for " + current_ability + ", canceling ability")
-			cancel_current_ability()
-		
-		return
-	
-	# Handle line_shot ability
-	elif current_ability == "line_shot" and selected_entity.abilities.has("line_shot"):
-		# Check if the tile is a valid target (should be highlighted)
-		if tile.is_action_target:
-			print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
-			var success = selected_entity.use_ability(current_ability, tile)
-			print("GameController: Ability use " + ("succeeded" if success else "failed"))
-			
-			if success:
-				# Reset current ability only if the ability was actually used
-				current_ability = ""
-				
-				# Clear highlights after using the ability
-				clear_all_highlights()
-				
-				# Update HUD buttons to ensure they're properly deselected
-				if Global.hud:
-					Global.hud.update_action_buttons()
-				
-				# Highlight movement range if the player still has movement points
-				if selected_entity.movement_points > 0:
-					highlight_movement_range(selected_entity)
-			else:
-				print("GameController: Ability failed to execute, keeping ability mode active")
-		else:
-			print("GameController: Invalid target for " + current_ability + ", canceling ability")
-			cancel_current_ability()
-		
-		return
-	
-	# Handle fireball ability
-	if current_ability == "fireball" and selected_entity.abilities.has("fireball"):
-		# Check if the tile is a valid target (should be highlighted)
-		if tile.is_action_target:
-			print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
-			var success = selected_entity.use_ability(current_ability, tile)
-			print("GameController: Ability use " + ("succeeded" if success else "failed"))
-			
-			if success:
-				# Reset current ability only if the ability was actually used
-				current_ability = ""
-				
-				# Clear highlights after using the ability
-				clear_all_highlights()
-				
-				# Update HUD buttons to ensure they're properly deselected
-				if Global.hud:
-					Global.hud.update_action_buttons()
-				
-				# Highlight movement range if the player still has movement points
-				if selected_entity.movement_points > 0:
-					highlight_movement_range(selected_entity)
-			else:
-				print("GameController: Ability failed to execute, keeping ability mode active")
-		else:
-			print("GameController: Invalid target for " + current_ability + ", canceling ability")
-			cancel_current_ability()
-		
-		return
-	
-	# Add handlers for other targeted abilities here
+	else:
+		print("GameController: Entity doesn't have the ability " + current_ability)
+		cancel_current_ability()
 
 # Called when an entity is selected
 func _on_entity_selected(entity):
@@ -463,14 +373,20 @@ func _on_player_action_points_changed(_current, _maximum):
 func _on_player_action_selection_changed():
 	update_highlights()
 	
-# Update highlight display based on movement points
+# Update highlight display based on current state
 func update_highlights():
+	# First clear all existing highlights
+	clear_all_highlights()
+	
+	# Then apply appropriate highlights based on context
 	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		# First clear all highlights
-		clear_all_highlights()
-		# Then highlight new movement range if the entity still has movement points
+		# Show movement range if the entity has movement points
 		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
 			highlight_movement_range(selected_entity)
+			
+		# If an ability is selected, show its targets
+		if current_ability != "":
+			_highlight_ability_targets(current_ability, selected_entity)
 
 # Event handler for when a turn starts for a character
 func _on_turn_started(character):
@@ -628,31 +544,8 @@ func spawn_player(grid_pos, player_type: String, level_index: int = 0):
 			push_error("GameController: Unknown player type: " + player_type)
 			return null
 	
-	# Explicitly set the game_controller reference
-	entity.game_controller = self
-	entity.current_level = level_index
-	print("GameController: Set self as game_controller for " + entity.entity_name)
-	
-	# Place the entity on the map
-	if not _spawn_entity_helper(entity, grid_pos):
-		return null
-	
-	# Connect signals
-	entity.entity_selected.connect(_on_entity_selected)
-	entity.died.connect(_on_entity_died)
-	
-	# Add to player entities array
-	player_entities.append(entity)
-	print("GameController: Player " + entity.entity_name + " added to player entities")
-	
-	# Connect to relevant signals
-	entity.connect("action_selection_changed", _on_player_action_selection_changed)
-	entity.connect("movement_points_changed", _on_player_movement_points_changed)
-	entity.connect("action_points_changed", _on_player_action_points_changed)
-	
-	# Add to turn sequencer's player group
-	turn_sequencer.add_character_to_group(entity, "player")
-	print("GameController: Player " + entity.entity_name + " added to turn sequencer player group")
+	# Setup common player entity properties
+	_setup_entity(entity, grid_pos, level_index, "player")
 	
 	return entity
 
@@ -683,6 +576,13 @@ func spawn_enemy(grid_pos, enemy_type_id, level_index: int = 0):
 			push_error("GameController: Unknown enemy type: " + str(enemy_type_id))
 			return null
 	
+	# Setup common enemy entity properties
+	_setup_entity(entity, grid_pos, level_index, "enemy")
+	
+	return entity
+
+# Common setup logic for all entities
+func _setup_entity(entity, grid_pos, level_index: int, entity_type: String):
 	# Explicitly set the game_controller reference
 	entity.game_controller = self
 	entity.current_level = level_index
@@ -692,17 +592,31 @@ func spawn_enemy(grid_pos, enemy_type_id, level_index: int = 0):
 	if not _spawn_entity_helper(entity, grid_pos):
 		return null
 	
-	# Connect signals
+	# Connect common signals
 	entity.died.connect(_on_entity_died)
 	
-	# Add to enemy entities array
-	enemy_entities.append(entity)
-	print("GameController: Enemy " + entity.entity_name + " added to enemy entities")
-	
-	# Add to turn sequencer's enemy group
-	turn_sequencer.add_character_to_group(entity, "enemy")
-	print("GameController: Enemy " + entity.entity_name + " added to turn sequencer enemy group")
-	
+	# Handle type-specific setup
+	if entity_type == "player":
+		# Connect player-specific signals
+		entity.entity_selected.connect(_on_entity_selected)
+		entity.connect("action_selection_changed", _on_player_action_selection_changed)
+		entity.connect("movement_points_changed", _on_player_movement_points_changed)
+		entity.connect("action_points_changed", _on_player_action_points_changed)
+		
+		# Add to player entities array
+		player_entities.append(entity)
+		print("GameController: Player " + entity.entity_name + " added to player entities")
+		
+		# Add to turn sequencer's player group
+		turn_sequencer.add_character_to_group(entity, "player")
+	else: # enemy
+		# Add to enemy entities array
+		enemy_entities.append(entity)
+		print("GameController: Enemy " + entity.entity_name + " added to enemy entities")
+		
+		# Add to turn sequencer's enemy group
+		turn_sequencer.add_character_to_group(entity, "enemy")
+		
 	return entity
 
 # Called when an entity dies
@@ -871,21 +785,143 @@ func get_entities_at_level(level_index: int, entity_type: String = "all") -> Arr
 	
 	return result
 
-# Event handler for when the drill button is hovered
-func _on_drill_button_hovered(player: PlayerEntity):
-	print("GameController: Drill button hovered for player: " + player.entity_name)
+# Connect signals from the HUD
+func _connect_hud_signals():
+	print("GameController: Connecting HUD signals")
 	
-	# Only show if we have a valid player who can drill
-	if not player or not player.abilities.has("drill"):
-		return
-		
-	# Don't show if player is already drilling
-	if player.is_drilling:
+	if Global.hud:
+		# Connect end turn button
+		var end_turn_button = Global.hud.get_end_turn_button()
+		if end_turn_button:
+			end_turn_button.pressed.connect(_on_end_turn_button_pressed)
+			
+		# Connect drill button hover signals
+		if not Global.hud.is_connected("DrillButtonHovered", Callable(self, "_on_drill_button_hovered")):
+			Global.hud.DrillButtonHovered.connect(_on_drill_button_hovered)
+			
+		if not Global.hud.is_connected("DrillButtonUnhovered", Callable(self, "_on_drill_button_unhovered")):
+			Global.hud.DrillButtonUnhovered.connect(_on_drill_button_unhovered)
+			
+		# Connect drill smash button hover signals
+		if not Global.hud.is_connected("DrillSmashButtonHovered", Callable(self, "_on_drill_smash_button_hovered")):
+			Global.hud.DrillSmashButtonHovered.connect(_on_drill_smash_button_hovered)
+			
+		if not Global.hud.is_connected("DrillSmashButtonUnhovered", Callable(self, "_on_drill_smash_button_unhovered")):
+			Global.hud.DrillSmashButtonUnhovered.connect(_on_drill_smash_button_unhovered)
+			
+		# Connect line shot button hover signals
+		if not Global.hud.is_connected("LineShotButtonHovered", Callable(self, "_on_line_shot_button_hovered")):
+			Global.hud.LineShotButtonHovered.connect(_on_line_shot_button_hovered)
+			
+		if not Global.hud.is_connected("LineShotButtonUnhovered", Callable(self, "_on_line_shot_button_unhovered")):
+			Global.hud.LineShotButtonUnhovered.connect(_on_line_shot_button_unhovered)
+			
+		# Connect fireball button hover signals
+		if not Global.hud.is_connected("FireballButtonHovered", Callable(self, "_on_fireball_button_hovered")):
+			Global.hud.FireballButtonHovered.connect(_on_fireball_button_hovered)
+			
+		if not Global.hud.is_connected("FireballButtonUnhovered", Callable(self, "_on_fireball_button_unhovered")):
+			Global.hud.FireballButtonUnhovered.connect(_on_fireball_button_unhovered)
+			
+		# Connect big drill button hover signals
+		if not Global.hud.is_connected("BigDrillButtonHovered", Callable(self, "_on_big_drill_button_hovered")):
+			Global.hud.BigDrillButtonHovered.connect(_on_big_drill_button_hovered)
+			
+		if not Global.hud.is_connected("BigDrillButtonUnhovered", Callable(self, "_on_big_drill_button_unhovered")):
+			Global.hud.BigDrillButtonUnhovered.connect(_on_big_drill_button_unhovered)
+	else:
+		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
+
+# Individual button handlers that forward to the generic handlers
+func _on_drill_button_hovered(player):
+	_on_ability_button_hovered(player, "drill")
+
+func _on_drill_button_unhovered():
+	_on_ability_button_unhovered("drill")
+
+func _on_drill_smash_button_hovered(player):
+	_on_ability_button_hovered(player, "drill_smash")
+
+func _on_drill_smash_button_unhovered():
+	_on_ability_button_unhovered("drill_smash")
+
+func _on_line_shot_button_hovered(player):
+	_on_ability_button_hovered(player, "line_shot")
+
+func _on_line_shot_button_unhovered():
+	_on_ability_button_unhovered("line_shot")
+
+func _on_fireball_button_hovered(player):
+	_on_ability_button_hovered(player, "fireball")
+
+func _on_fireball_button_unhovered():
+	_on_ability_button_unhovered("fireball")
+
+func _on_big_drill_button_hovered(player):
+	_on_ability_button_hovered(player, "big_drill")
+
+func _on_big_drill_button_unhovered():
+	_on_ability_button_unhovered("big_drill")
+
+# Generic handler for ability button hover
+func _on_ability_button_hovered(player: PlayerEntity, ability_name: String):
+	print("GameController: " + ability_name + " button hovered for player: " + player.entity_name)
+	
+	# Only show if we have a valid player who can use this ability
+	if not player or not player.abilities.has(ability_name):
 		return
 		
 	# Don't show hover effects if an ability is already selected
 	if current_ability != "":
-		print("GameController: Not showing drill hover effect because ability " + current_ability + " is already selected")
+		print("GameController: Not showing " + ability_name + " hover effect because ability " + current_ability + " is already selected")
+		return
+	
+	# Clear any existing highlights
+	clear_all_highlights()
+	
+	# Handle special cases for each ability type
+	match ability_name:
+		"drill":
+			_handle_drill_hover(player)
+		"drill_smash":
+			if player.has_method("highlight_drill_smash_targets"):
+				player.highlight_drill_smash_targets()
+		"line_shot":
+			if player.has_method("highlight_line_shot_targets"):
+				player.highlight_line_shot_targets()
+		"fireball":
+			if player.has_method("highlight_fireball_targets"):
+				player.highlight_fireball_targets()
+		"big_drill":
+			if player.has_method("highlight_big_drill_targets"):
+				player.highlight_big_drill_targets()
+				_handle_big_drill_hover(player)
+
+# Generic handler for ability button unhover
+func _on_ability_button_unhovered(ability_name: String):
+	print("GameController: " + ability_name + " button unhovered")
+	
+	# If we're in ability selection mode for this ability, don't clear the highlights
+	if current_ability == ability_name:
+		print("GameController: Keeping " + ability_name + " highlights active since ability is selected")
+		return
+	
+	# Clear any highlighted tiles on all maps
+	clear_all_highlights()
+	
+	# Hide the drill visualization for abilities that use it
+	if ability_name == "drill" or ability_name == "big_drill":
+		hide_drill_visualization()
+	
+	# If we have a selected entity with movement points, restore their movement highlights
+	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
+			highlight_movement_range(selected_entity)
+
+# Handle drill ability hover visualization
+func _handle_drill_hover(player: PlayerEntity):
+	# Don't show if player is already drilling
+	if player.is_drilling:
 		return
 		
 	# Check if we can drill
@@ -939,213 +975,10 @@ func _on_drill_button_hovered(player: PlayerEntity):
 	drilling_line_node.visible = true
 	
 	# Highlight the target tile using the built-in tile highlighting system
-	# Using the new action_target property will make it orange and work with wall transparency
 	target_tile.set_action_target(true)
 
-# Event handler for when the drill button is unhovered
-func _on_drill_button_unhovered():
-	print("GameController: Drill button unhovered")
-	
-	# Hide the drilling line
-	drilling_line_node.visible = false
-	drilling_line_node.clear_points()
-	
-	# If we're in any ability selection mode, don't clear the highlights
-	if current_ability != "":
-		print("GameController: Keeping highlights active since ability is selected")
-		return
-	
-	# Clear any highlighted tiles on all maps
-	clear_all_highlights()
-	
-	# If we have a selected entity with movement points, restore their movement highlights
-	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
-			highlight_movement_range(selected_entity)
-
-# Connect signals from the HUD
-func _connect_hud_signals():
-	print("GameController: Connecting HUD signals")
-	
-	if Global.hud:
-		# Connect end turn button
-		var end_turn_button = Global.hud.get_end_turn_button()
-		if end_turn_button:
-			end_turn_button.pressed.connect(_on_end_turn_button_pressed)
-			
-		# Connect drill button hover signals
-		if not Global.hud.is_connected("DrillButtonHovered", Callable(self, "_on_drill_button_hovered")):
-			Global.hud.DrillButtonHovered.connect(_on_drill_button_hovered)
-			
-		if not Global.hud.is_connected("DrillButtonUnhovered", Callable(self, "_on_drill_button_unhovered")):
-			Global.hud.DrillButtonUnhovered.connect(_on_drill_button_unhovered)
-			
-		# Connect drill smash button hover signals
-		if not Global.hud.is_connected("DrillSmashButtonHovered", Callable(self, "_on_drill_smash_button_hovered")):
-			Global.hud.DrillSmashButtonHovered.connect(_on_drill_smash_button_hovered)
-			
-		if not Global.hud.is_connected("DrillSmashButtonUnhovered", Callable(self, "_on_drill_smash_button_unhovered")):
-			Global.hud.DrillSmashButtonUnhovered.connect(_on_drill_smash_button_unhovered)
-			
-		# Connect line shot button hover signals
-		if not Global.hud.is_connected("LineShotButtonHovered", Callable(self, "_on_line_shot_button_hovered")):
-			Global.hud.LineShotButtonHovered.connect(_on_line_shot_button_hovered)
-			
-		if not Global.hud.is_connected("LineShotButtonUnhovered", Callable(self, "_on_line_shot_button_unhovered")):
-			Global.hud.LineShotButtonUnhovered.connect(_on_line_shot_button_unhovered)
-			
-		# Connect fireball button hover signals
-		if not Global.hud.is_connected("FireballButtonHovered", Callable(self, "_on_fireball_button_hovered")):
-			Global.hud.FireballButtonHovered.connect(_on_fireball_button_hovered)
-			
-		if not Global.hud.is_connected("FireballButtonUnhovered", Callable(self, "_on_fireball_button_unhovered")):
-			Global.hud.FireballButtonUnhovered.connect(_on_fireball_button_unhovered)
-			
-		# Connect big drill button hover signals
-		if not Global.hud.is_connected("BigDrillButtonHovered", Callable(self, "_on_big_drill_button_hovered")):
-			Global.hud.BigDrillButtonHovered.connect(_on_big_drill_button_hovered)
-			
-		if not Global.hud.is_connected("BigDrillButtonUnhovered", Callable(self, "_on_big_drill_button_unhovered")):
-			Global.hud.BigDrillButtonUnhovered.connect(_on_big_drill_button_unhovered)
-	else:
-		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
-
-# Event handler for when the drill smash button is hovered
-func _on_drill_smash_button_hovered(player: PlayerEntity):
-	print("GameController: Drill smash button hovered for player: " + player.entity_name)
-	
-	# Only show if we have a valid player who can use drill smash
-	if not player or not player.abilities.has("drill_smash") or not player is HeavyPlayer:
-		return
-		
-	# Don't show hover effects if an ability is already selected
-	if current_ability != "":
-		print("GameController: Not showing drill_smash hover effect because ability " + current_ability + " is already selected")
-		return
-		
-	# HeavyPlayer has its own method to highlight drill smash targets
-	if player.has_method("highlight_drill_smash_targets"):
-		player.highlight_drill_smash_targets()
-
-# Event handler for when the drill smash button is unhovered
-func _on_drill_smash_button_unhovered():
-	print("GameController: Drill smash button unhovered")
-	
-	# If we're in drill_smash ability selection mode, don't clear the highlights
-	if current_ability == "drill_smash":
-		print("GameController: Keeping drill_smash highlights active since ability is selected")
-		return
-	
-	# Clear any highlighted tiles on all maps
-	clear_all_highlights()
-	
-	# If we have a selected entity with movement points, restore their movement highlights
-	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
-			highlight_movement_range(selected_entity)
-
-# Event handler for when the end turn button is pressed
-func _on_end_turn_button_pressed():
-	print("GameController: End turn button pressed")
-	end_current_player_turn()
-
-# Handle input events (keyboard, etc.)
-func _input(event):
-	# Cancel ability selection with Escape key
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if current_ability != "":
-			print("GameController: Escape key pressed, canceling ability")
-			cancel_current_ability()
-
-# Add event handlers for line shot button hover/unhover
-# Event handler for when the line shot button is hovered
-func _on_line_shot_button_hovered(player: PlayerEntity):
-	print("GameController: Line shot button hovered for player: " + player.entity_name)
-	
-	# Only show if we have a valid player who can use line shot
-	if not player or not player.abilities.has("line_shot") or not player is ScoutPlayer:
-		return
-		
-	# Don't show hover effects if an ability is already selected
-	if current_ability != "":
-		print("GameController: Not showing line_shot hover effect because ability " + current_ability + " is already selected")
-		return
-		
-	# ScoutPlayer has its own method to highlight line shot targets
-	if player.has_method("highlight_line_shot_targets"):
-		player.highlight_line_shot_targets()
-
-# Event handler for when the line shot button is unhovered
-func _on_line_shot_button_unhovered():
-	print("GameController: Line shot button unhovered")
-	
-	# If we're in line_shot ability selection mode, don't clear the highlights
-	if current_ability == "line_shot":
-		print("GameController: Keeping line_shot highlights active since ability is selected")
-		return
-	
-	# Clear any highlighted tiles on all maps
-	clear_all_highlights()
-	
-	# If we have a selected entity with movement points, restore their movement highlights
-	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
-			highlight_movement_range(selected_entity)
-
-# Event handler for when the fireball button is hovered
-func _on_fireball_button_hovered(player: PlayerEntity):
-	print("GameController: Fireball button hovered for player: " + player.entity_name)
-	
-	# Only show if we have a valid player who can use fireball
-	if not player or not player.abilities.has("fireball") or not player is WizardPlayer:
-		return
-		
-	# Don't show hover effects if an ability is already selected
-	if current_ability != "":
-		print("GameController: Not showing fireball hover effect because ability " + current_ability + " is already selected")
-		return
-		
-	# WizardPlayer has its own method to highlight fireball targets
-	if player.has_method("highlight_fireball_targets"):
-		player.highlight_fireball_targets()
-
-# Event handler for when the fireball button is unhovered
-func _on_fireball_button_unhovered():
-	print("GameController: Fireball button unhovered")
-	
-	# If we're in fireball ability selection mode, don't clear the highlights
-	if current_ability == "fireball":
-		print("GameController: Keeping fireball highlights active since ability is selected")
-		return
-	
-	# Clear any highlighted tiles on all maps
-	clear_all_highlights()
-	
-	# If we have a selected entity with movement points, restore their movement highlights
-	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
-			highlight_movement_range(selected_entity)
-
-# Event handler for when the big drill button is hovered
-func _on_big_drill_button_hovered(player: PlayerEntity):
-	print("GameController: Big drill button hovered for player: " + player.entity_name)
-	
-	# Only show if we have a valid player who can use big drill
-	if not player or not player.abilities.has("big_drill") or not player is HeavyPlayer:
-		return
-		
-	# Don't show hover effects if an ability is already selected
-	if current_ability != "":
-		print("GameController: Not showing big_drill hover effect because ability " + current_ability + " is already selected")
-		return
-	
-	# Clear any existing highlights
-	clear_all_highlights()
-		
-	# HeavyPlayer has its own method to highlight big drill targets
-	if player.has_method("highlight_big_drill_targets"):
-		player.highlight_big_drill_targets()
-	
+# Handle big drill hover visualization
+func _handle_big_drill_hover(player: PlayerEntity):
 	# Show drilling visualization from current position to the level below
 	if level_manager:
 		# Get the current level and position
@@ -1162,25 +995,18 @@ func _on_big_drill_button_hovered(player: PlayerEntity):
 			for ally in adjacent_allies:
 				show_drill_visualization(ally.current_level, ally.grid_position, ally.current_level + 1, ally.grid_position)
 
-# Event handler for when the big drill button is unhovered
-func _on_big_drill_button_unhovered():
-	print("GameController: Big drill button unhovered")
-	
-	# If we're in big_drill ability selection mode, don't clear the highlights
-	if current_ability == "big_drill":
-		print("GameController: Keeping big_drill highlights active since ability is selected")
-		return
-	
-	# Clear any highlighted tiles on all maps
-	clear_all_highlights()
-	
-	# Hide the drill visualization
-	hide_drill_visualization()
-	
-	# If we have a selected entity with movement points, restore their movement highlights
-	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
-		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
-			highlight_movement_range(selected_entity)
+# Event handler for when the end turn button is pressed
+func _on_end_turn_button_pressed():
+	print("GameController: End turn button pressed")
+	end_current_player_turn()
+
+# Handle input events (keyboard, etc.)
+func _input(event):
+	# Cancel ability selection with Escape key
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if current_ability != "":
+			print("GameController: Escape key pressed, canceling ability")
+			cancel_current_ability()
 
 # Shows a drilling visualization line from source level/position to target level/position
 func show_drill_visualization(source_level: int, source_pos: Vector2i, target_level: int, target_pos: Vector2i):
@@ -1223,3 +1049,37 @@ func hide_drill_visualization():
 	# Clear the points and hide the line
 	drilling_line_node.clear_points()
 	drilling_line_node.visible = false
+
+# Highlight targets for a specific ability
+func _highlight_ability_targets(ability_name: String, entity: PlayerEntity):
+	if not entity or not entity.abilities.has(ability_name):
+		return
+		
+	match ability_name:
+		"drill_smash":
+			if entity.has_method("highlight_drill_smash_targets"):
+				entity.highlight_drill_smash_targets()
+		"line_shot":
+			if entity.has_method("highlight_line_shot_targets"):
+				entity.highlight_line_shot_targets()
+		"fireball":
+			if entity.has_method("highlight_fireball_targets"):
+				entity.highlight_fireball_targets()
+		"big_drill":
+			if entity.has_method("highlight_big_drill_targets"):
+				entity.highlight_big_drill_targets()
+				
+				# Show drill visualization for big drill
+				if level_manager:
+					var current_level = entity.current_level
+					var current_pos = entity.grid_position
+					
+					if level_manager.has_valid_tile_below(current_level, current_pos):
+						show_drill_visualization(current_level, current_pos, current_level + 1, current_pos)
+						
+						var adjacent_allies = entity.get_adjacent_players()
+						for ally in adjacent_allies:
+							show_drill_visualization(ally.current_level, ally.grid_position, ally.current_level + 1, ally.grid_position)
+		"drill":
+			# Handle drill specifically since it needs level-based visualization
+			_handle_drill_hover(entity)
