@@ -1,6 +1,8 @@
 class_name HeavyPlayer
 extends PlayerEntity
 
+var hover_target: IsometricTile = null  # Track currently hovered target for AOE preview
+
 func configure_player():
 	entity_name = "Heavy"
 	max_action_points = 4  # Heavy has more action points for abilities
@@ -176,8 +178,96 @@ func highlight_drill_smash_targets():
 			# Always highlight the cardinal direction tiles, even if they don't contain enemies
 			# This allows the player to use the ability in any direction
 			target_tile.set_action_target(true)
+			
+			# Connect highlight change signal for AOE preview
+			if not target_tile.is_connected("tile_highlight_change", Callable(self, "_on_tile_highlight_change")):
+				target_tile.connect("tile_highlight_change", Callable(self, "_on_tile_highlight_change"))
+				
 			highlighted_count += 1
 			print("HeavyPlayer: Highlighted target at " + str(target_pos) + 
 				" with entity nearby: " + str(has_entity))
 	
 	print("HeavyPlayer: Highlighted " + str(highlighted_count) + " drill smash targets") 
+
+# Handle tile highlight changes to show AOE preview
+func _on_tile_highlight_change(tile: IsometricTile):
+	# If hovering on a target tile, show AOE preview
+	if tile.is_action_target and tile.is_hovered:
+		# If we're already hovering a tile, clear its AOE preview first
+		if hover_target != null and hover_target != tile:
+			# Clear the AOE preview of the previous hovered tile
+			var direction = hover_target.grid_position - grid_position
+			clear_drill_smash_aoe(direction)
+		
+		# Set new hover target and show its AOE
+		hover_target = tile
+		highlight_drill_smash_aoe(tile.grid_position - grid_position)
+	
+	# When no longer hovering a target tile, clear AOE preview
+	elif hover_target == tile and not tile.is_hovered:
+		# Calculate affected tiles based on direction
+		var direction = tile.grid_position - grid_position
+		clear_drill_smash_aoe(direction)
+		
+		hover_target = null
+
+# Clear the AOE highlighting for drill_smash in the given direction
+func clear_drill_smash_aoe(direction: Vector2i):
+	if not isometric_map:
+		return
+		
+	print("HeavyPlayer: Clearing drill_smash AOE preview in direction " + str(direction))
+	
+	# Get affected tiles based on direction
+	var affected_tiles = _get_affected_tiles_for_direction(direction)
+	
+	# Clear highlighting on all tiles in the affected area
+	for aoe_tile in affected_tiles:
+		# Don't modify the target tile itself, only the side tiles
+		if aoe_tile != hover_target and not aoe_tile.is_action_target:
+			aoe_tile.set_attackable(false)
+
+# Highlight the AOE area for drill_smash in the given direction
+func highlight_drill_smash_aoe(direction: Vector2i):
+	if not isometric_map:
+		return
+		
+	print("HeavyPlayer: Showing drill_smash AOE preview in direction " + str(direction))
+	
+	# Get affected tiles based on direction
+	var affected_tiles = _get_affected_tiles_for_direction(direction)
+	
+	# Highlight all tiles in the affected area
+	for tile in affected_tiles:
+		# Don't modify the target tile itself, only the side tiles
+		if tile != hover_target and not tile.is_action_target:
+			tile.set_attackable(true)
+
+# Helper function to get affected tiles for a direction
+func _get_affected_tiles_for_direction(direction: Vector2i) -> Array:
+	var affected_tiles = []
+	
+	# Target position is player position + direction
+	var target_pos = grid_position + direction
+	var target_tile = isometric_map.get_tile(target_pos)
+	
+	if target_tile:
+		affected_tiles.append(target_tile)
+		
+		# Find tiles to the "sides" of the target depending on direction
+		if direction.x != 0:  # Horizontal direction
+			var left_pos = target_pos + Vector2i(0, -1)
+			var right_pos = target_pos + Vector2i(0, 1)
+			var left_tile = isometric_map.get_tile(left_pos)
+			var right_tile = isometric_map.get_tile(right_pos)
+			if left_tile: affected_tiles.append(left_tile)
+			if right_tile: affected_tiles.append(right_tile)
+		else:  # Vertical direction
+			var left_pos = target_pos + Vector2i(-1, 0)
+			var right_pos = target_pos + Vector2i(1, 0)
+			var left_tile = isometric_map.get_tile(left_pos)
+			var right_tile = isometric_map.get_tile(right_pos)
+			if left_tile: affected_tiles.append(left_tile)
+			if right_tile: affected_tiles.append(right_tile)
+	
+	return affected_tiles 

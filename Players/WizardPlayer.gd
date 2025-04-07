@@ -3,6 +3,7 @@ extends PlayerEntity
 
 var fireball_range: int = 5  # Maximum range for fireball ability
 var aoe_radius: int = 1      # Radius for area of effect (1 = 3x3 grid)
+var hover_target: IsometricTile = null  # Track currently hovered target for AOE preview
 
 func configure_player():
 	entity_name = "Wizard"
@@ -130,16 +131,12 @@ func highlight_fireball_targets():
 	if game_controller:
 		game_controller.clear_all_highlights()
 	
-	# Get the directions (cardinal and diagonal)
+	# Get the directions (cardinal)
 	var directions = [
 		Vector2(1, 0),   # Right
 		Vector2(-1, 0),  # Left
 		Vector2(0, 1),   # Down
 		Vector2(0, -1),  # Up
-		Vector2(1, 1),   # Down-Right
-		Vector2(-1, 1),  # Down-Left
-		Vector2(1, -1),  # Up-Right
-		Vector2(-1, -1)  # Up-Left
 	]
 	
 	var highlighted_count = 0
@@ -167,11 +164,76 @@ func highlight_fireball_targets():
 			# Add this tile to the path
 			path_tiles.append(current_tile)
 			
+			# Set up hover signal connection for AOE preview
+			if not current_tile.is_connected("tile_highlight_change", Callable(self, "_on_tile_highlight_change")):
+				current_tile.connect("tile_highlight_change", Callable(self, "_on_tile_highlight_change"))
+			
 			# Mark this tile as a target
 			current_tile.set_action_target(true)
 			highlighted_count += 1
 		
 	print("WizardPlayer: Highlighted " + str(highlighted_count) + " fireball targets") 
+
+# Handle tile highlight changes to show AOE preview
+func _on_tile_highlight_change(tile: IsometricTile):
+	# If hovering on a target tile, show AOE preview
+	if tile.is_action_target and tile.is_hovered:
+		# If we're already hovering a tile, clear its AOE preview first
+		if hover_target != null and hover_target != tile:
+			# Only clear if it's still action_target but not highlighted as AOE
+			for x in range(-aoe_radius, aoe_radius + 1):
+				for y in range(-aoe_radius, aoe_radius + 1):
+					var prev_aoe_pos = hover_target.grid_position + Vector2i(x, y)
+					var prev_aoe_tile = isometric_map.get_tile(prev_aoe_pos)
+					
+					# Don't modify the actual target tiles, only the AOE previews
+					if prev_aoe_tile and prev_aoe_tile != hover_target and not prev_aoe_tile.is_action_target:
+						prev_aoe_tile.set_attackable(false)
+		
+		# Set new hover target and show its AOE
+		hover_target = tile
+		highlight_fireball_aoe(tile.grid_position)
+	
+	# When no longer hovering a target tile, clear AOE preview
+	elif hover_target == tile and not tile.is_hovered:
+		# Clear AOE highlighting but leave target highlighting
+		clear_fireball_aoe(tile.grid_position)
+		
+		hover_target = null
+
+# Clear the AOE area highlighting around the targeted position
+func clear_fireball_aoe(target_pos: Vector2i):
+	if not isometric_map:
+		return
+		
+	print("WizardPlayer: Clearing fireball AOE preview at " + str(target_pos))
+	
+	# Clear all tiles in AOE radius
+	for x in range(-aoe_radius, aoe_radius + 1):
+		for y in range(-aoe_radius, aoe_radius + 1):
+			var aoe_pos = target_pos + Vector2i(x, y)
+			var aoe_tile = isometric_map.get_tile(aoe_pos)
+			
+			# Only clear attackable on non-target tiles
+			if aoe_tile and aoe_tile != hover_target and not aoe_tile.is_action_target:
+				aoe_tile.set_attackable(false)
+
+# Highlight the AOE area around the targeted position
+func highlight_fireball_aoe(target_pos: Vector2i):
+	if not isometric_map:
+		return
+		
+	print("WizardPlayer: Showing fireball AOE preview at " + str(target_pos))
+	
+	# Highlight all tiles in AOE radius (including walls to show full blast area)
+	for x in range(-aoe_radius, aoe_radius + 1):
+		for y in range(-aoe_radius, aoe_radius + 1):
+			var aoe_pos = target_pos + Vector2i(x, y)
+			var aoe_tile = isometric_map.get_tile(aoe_pos)
+			
+			# Mark all tiles in the AOE range as attackable, except the target itself
+			if aoe_tile and not aoe_tile.is_action_target:
+				aoe_tile.set_attackable(true)
 
 # Wizard gets more action points and occasionally increases fireball effects
 func on_level_up():

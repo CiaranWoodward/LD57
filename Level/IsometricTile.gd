@@ -67,42 +67,25 @@ func clear_state():
 # Set hover state
 func set_hovered(hovered: bool):
 	is_hovered = hovered
-	if is_highlighted or is_hovered:
-		update_highlight_color()
-	else:
-		var sprite = get_node_or_null("Sprite2D")
-		if sprite:
-			sprite.modulate = Color(1, 1, 1, 1)
+	update_highlight_color()
 	emit_signal("tile_highlight_change", self)
 
 # Set movement selectable state
 func set_move_selectable(selectable: bool):
 	is_move_selectable = selectable
-	if selectable:
-		is_highlighted = true
-		update_highlight_color()
-	elif is_highlighted:
-		update_highlight_color()
+	update_highlight_color()
 	emit_signal("tile_highlight_change", self)
 
 # Set attackable state
 func set_attackable(attackable: bool):
 	is_attackable = attackable
-	if attackable:
-		is_highlighted = true
-		update_highlight_color()
-	elif is_highlighted:
-		update_highlight_color()
+	update_highlight_color()
 	emit_signal("tile_highlight_change", self)
 
 # Set action target state (for abilities like drilling)
 func set_action_target(target: bool):
 	is_action_target = target
-	if target:
-		is_highlighted = true
-		update_highlight_color()
-	elif is_highlighted:
-		update_highlight_color()
+	update_highlight_color()
 	emit_signal("tile_highlight_change", self)
 
 # Update the highlight color based on the current state
@@ -111,7 +94,7 @@ func update_highlight_color():
 	if not sprite:
 		return
 	
-	# Priority: hovered > action_target > attackable > move_selectable
+	# Priority: hovered > action_target > attackable > move_selectable > highlighted
 	if is_hovered:
 		sprite.modulate = hover_color
 	elif is_action_target:

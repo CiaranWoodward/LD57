@@ -705,13 +705,13 @@ func clear_all_highlights():
 		for level_index in level_manager.level_nodes:
 			var map = level_manager.level_nodes[level_index]
 			for tile in map.tiles.values():
-				if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable:
+				if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable or tile.is_action_target:
 					tile.clear_state()
 		print("GameController: Cleared highlights on all maps")
 	# Fallback to just clearing the active map if no level manager
 	elif isometric_map:
 		for tile in isometric_map.tiles.values():
-			if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable:
+			if tile.is_highlighted or tile.is_move_selectable or tile.is_attackable or tile.is_action_target:
 				tile.clear_state()
 		print("GameController: Cleared highlights on active map only")
 
