@@ -1,7 +1,205 @@
-[gd_scene load_steps=3 format=3 uid="uid://dd0074w7xtehw"]
+[gd_scene load_steps=27 format=3 uid="uid://dd0074w7xtehw"]
 
 [ext_resource type="Script" uid="uid://drnsw0dsha5tv" path="res://Players/WizardPlayer.gd" id="1_en0cl"]
-[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_a8rdk"]
+[ext_resource type="Texture2D" uid="uid://dyv8e5pdfkuqu" path="res://Graphics/Players/Wizard/Idle0000.png" id="3_cn5pn"]
+[ext_resource type="Texture2D" uid="uid://dvtyuqie4js07" path="res://Graphics/Players/Wizard/StaffBlue0000.png" id="4_jf143"]
+[ext_resource type="Texture2D" uid="uid://1bittoatmyq4" path="res://Graphics/Players/Wizard/Cast0000.png" id="5_648k6"]
+[ext_resource type="Texture2D" uid="uid://boeubfmnnsiat" path="res://Graphics/Players/Wizard/StaffRed0000.png" id="6_oegdn"]
+[ext_resource type="Texture2D" uid="uid://dt4mjjvbpnlog" path="res://Graphics/Particles/Fire0000.png" id="7_jf143"]
+
+[sub_resource type="Curve" id="Curve_648k6"]
+_data = [Vector2(0, 0), 0.0, 2.02052, 0, 0, Vector2(0.6875, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -7.91011, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_oegdn"]
+offsets = PackedFloat32Array(0, 0.146667, 0.733333, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_qy6c4"]
+colors = PackedColorArray(0.980469, 0.712372, 0, 1, 1, 0.300171, 0.0859375, 1)
+
+[sub_resource type="Curve" id="Curve_jf143"]
+_data = [Vector2(0, 0.280899), 0.0, 2.27416, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_648k6"]
+offsets = PackedFloat32Array(0, 0.426667, 0.693333, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_egid6"]
+offsets = PackedFloat32Array(0.08, 1)
+colors = PackedColorArray(0.832031, 0.11185, 0.0162506, 1, 1, 0.300171, 0.0859375, 1)
+
+[sub_resource type="Curve" id="Curve_oegdn"]
+_data = [Vector2(0, 0.314607), 0.0, 2.45214, 0, 0, Vector2(0.75, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.41573), -5.23464, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_kmk42"]
+offsets = PackedFloat32Array(0, 0.146667, 0.733333, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Animation" id="Animation_a5gbd"]
+resource_name = "Idle"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Cast:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, false]
+}
+
+[sub_resource type="Animation" id="Animation_xehjt"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Cast:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Cast/StaffRed/Fire:emitting")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Cast/StaffRed/Sparks:emitting")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_c67pf"]
+resource_name = "Cast"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Cast:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Idle:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Cast/StaffRed/Fire:emitting")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Cast/StaffRed/Sparks:emitting")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_pti8b"]
+_data = {
+&"Cast": SubResource("Animation_c67pf"),
+&"Idle": SubResource("Animation_a5gbd"),
+&"RESET": SubResource("Animation_xehjt")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_av37e"]
+animation = &"Cast"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_vx4ks"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bwgaw"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_mn3k3"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_cmqei"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_526q2"]
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_c0jj1"]
+states/Cast/node = SubResource("AnimationNodeAnimation_av37e")
+states/Cast/position = Vector2(443, -19)
+states/End/position = Vector2(595, 100)
+states/Idle/node = SubResource("AnimationNodeAnimation_vx4ks")
+states/Idle/position = Vector2(443, 100)
+states/Start/position = Vector2(300, 100)
+transitions = ["Idle", "Cast", SubResource("AnimationNodeStateMachineTransition_bwgaw"), "Cast", "Idle", SubResource("AnimationNodeStateMachineTransition_mn3k3"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_cmqei"), "Idle", "End", SubResource("AnimationNodeStateMachineTransition_526q2")]
+graph_offset = Vector2(-8, -66)
 
 [node name="WizardPlayer" type="Node2D"]
 script = ExtResource("1_en0cl")
@@ -9,4 +207,92 @@ script = ExtResource("1_en0cl")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.215902, 0.215902, 0.215902, 1)
 position = Vector2(0, -65)
-texture = ExtResource("2_a8rdk")
+scale = Vector2(0.25, 0.25)
+
+[node name="Idle" type="Sprite2D" parent="Sprite2D"]
+texture = ExtResource("3_cn5pn")
+
+[node name="StaffBlue" type="Sprite2D" parent="Sprite2D/Idle"]
+position = Vector2(-108, -8)
+texture = ExtResource("4_jf143")
+
+[node name="Sparkle" type="CPUParticles2D" parent="Sprite2D/Idle/StaffBlue"]
+position = Vector2(-8, -228)
+rotation = 0.466355
+lifetime = 6.0
+emission_shape = 1
+emission_sphere_radius = 80.0
+direction = Vector2(1, 1)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 10.0
+angular_velocity_min = -180.0
+angular_velocity_max = 180.0
+scale_amount_max = 3.0
+scale_amount_curve = SubResource("Curve_648k6")
+color_ramp = SubResource("Gradient_oegdn")
+color_initial_ramp = SubResource("Gradient_qy6c4")
+
+[node name="Cast" type="Sprite2D" parent="Sprite2D"]
+visible = false
+texture = ExtResource("5_648k6")
+
+[node name="StaffRed" type="Sprite2D" parent="Sprite2D/Cast"]
+position = Vector2(-96, -236)
+rotation = 0.466355
+texture = ExtResource("6_oegdn")
+
+[node name="Fire" type="CPUParticles2D" parent="Sprite2D/Cast/StaffRed"]
+position = Vector2(-2.404, -227.179)
+emitting = false
+amount = 16
+texture = ExtResource("7_jf143")
+lifetime = 0.8
+one_shot = true
+explosiveness = 1.0
+randomness = 0.1
+emission_shape = 1
+emission_sphere_radius = 40.0
+direction = Vector2(1, 1)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 20.0
+initial_velocity_max = 80.0
+angular_velocity_min = -60.0
+angular_velocity_max = 60.0
+angle_min = -720.0
+angle_max = 720.0
+scale_amount_curve = SubResource("Curve_jf143")
+color_ramp = SubResource("Gradient_648k6")
+color_initial_ramp = SubResource("Gradient_egid6")
+
+[node name="Sparks" type="CPUParticles2D" parent="Sprite2D/Cast/StaffRed"]
+position = Vector2(-0.581249, -214.662)
+emitting = false
+amount = 12
+one_shot = true
+explosiveness = 1.0
+emission_shape = 1
+emission_sphere_radius = 80.0
+direction = Vector2(1, 1)
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 10.0
+angular_velocity_min = -720.0
+angular_velocity_max = 720.0
+angle_min = -720.0
+angle_max = 720.0
+scale_amount_max = 2.0
+scale_amount_curve = SubResource("Curve_oegdn")
+color_ramp = SubResource("Gradient_kmk42")
+color_initial_ramp = SubResource("Gradient_qy6c4")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
+active = false
+libraries = {
+&"": SubResource("AnimationLibrary_pti8b")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="Sprite2D"]
+tree_root = SubResource("AnimationNodeStateMachine_c0jj1")
+anim_player = NodePath("../AnimationPlayer")
