@@ -8,14 +8,12 @@ func configure_player():
 	max_movement_points = 2  # But limited movement
 	movement_points = max_movement_points
 	move_speed = 0.7
-	abilities = ["shield_bash", "taunt", "drill", "drill_smash"]
+	abilities = ["drill", "drill_smash"]
 	max_health = 15
 	current_health = 15
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
-		"shield_bash": return 1
-		"taunt": return 1
 		"drill_smash": return 2
 		_: return super.get_ability_cost(ability_name)
 
@@ -24,32 +22,6 @@ func execute_ability(ability_name: String, target) -> bool:
 		return true
 		
 	match ability_name:
-		"shield_bash":
-			# Shield bash pushes an enemy back and stuns them
-			if target is EnemyEntity:
-				# Calculate direction from player to target
-				var direction = (target.grid_position - grid_position).normalized()
-				var push_position = target.grid_position + Vector2i(direction)
-				
-				# Check if the push position is valid
-				var push_tile = isometric_map.get_tile(push_position)
-				if push_tile and push_tile.is_walkable and not push_tile.is_occupied:
-					# Move the enemy to the new position
-					target.place_on_tile(push_tile)
-					# Apply stun effect
-					target.apply_status_effect("stunned", 1) # 1 turn duration
-					return true
-			return false
-			
-		"taunt":
-			# Taunt forces nearby enemies to target this player
-			var nearby_enemies = get_nearby_enemies(3) # 3 tile radius
-			for enemy in nearby_enemies:
-				if enemy is EnemyEntity:
-					enemy.target_entity = self
-					enemy.set_alert_status("alert")
-			return nearby_enemies.size() > 0
-			
 		"drill_smash":
 			# Drill smash damages and pushes enemies in the target area
 			if target is IsometricTile:

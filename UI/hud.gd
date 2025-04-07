@@ -9,6 +9,8 @@ signal DrillSmashButtonHovered(player)
 signal DrillSmashButtonUnhovered
 signal LineShotButtonHovered(player)
 signal LineShotButtonUnhovered
+signal FireballButtonHovered(player)
+signal FireballButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -44,6 +46,14 @@ func _ready() -> void:
 		# Connect to mouse enter/exit for hover detection
 		action_line_shot.mouse_entered.connect(_on_action_line_shot_mouse_entered)
 		action_line_shot.mouse_exited.connect(_on_action_line_shot_mouse_exited)
+	
+	# Connect fireball button
+	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
+	if action_fireball:
+		action_fireball.gui_input.connect(_on_action_fireball_input)
+		# Connect to mouse enter/exit for hover detection
+		action_fireball.mouse_entered.connect(_on_action_fireball_mouse_entered)
+		action_fireball.mouse_exited.connect(_on_action_fireball_mouse_exited)
 	
 	# Connect to the game controller for better synchronization
 	# We'll do this with a timer to ensure the game controller is fully initialized
@@ -242,6 +252,63 @@ func _on_action_line_shot_mouse_exited() -> void:
 	else:
 		print("HUD: Keeping line_shot highlights active since ability is selected")
 
+# Handle clicking on the fireball action button
+func _on_action_fireball_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
+		# If button is disabled, don't process the click
+		if action_fireball.disabled:
+			return
+			
+		# If we have a current player, check if they have the ability and highlight targets
+		if current_player and current_player.abilities.has("fireball"):
+			if current_player is WizardPlayer:
+				# Tell the GameController we're selecting a target for fireball
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller:
+					# Toggle the ability if it's already active
+					if game_controller.current_ability == "fireball":
+						game_controller.cancel_current_ability()
+						$Action/ActionMargin/ActionHBox/ActionFireball.modulate = Color(1, 1, 1, 1)  # Reset color
+						# Update buttons after canceling
+						update_action_buttons()
+						return
+					
+					# Check if player has enough action points for this ability
+					if current_player.action_points < current_player.get_ability_cost("fireball"):
+						print("HUD: Not enough action points for fireball")
+						return
+					
+					game_controller.current_ability = "fireball"
+					print("HUD: Set fireball as current ability")
+					
+					# Add visual feedback
+					$Action/ActionMargin/ActionHBox/ActionFireball.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button with reddish tint
+				
+				current_player.highlight_fireball_targets()
+				# The actual ability use will be handled by the tile selection
+				
+				# Update all buttons to reflect the current selection state
+				update_action_buttons()
+
+# Show fireball targets when hovering over fireball button
+func _on_action_fireball_mouse_entered() -> void:
+	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
+	# Only show hover effect if button is not disabled
+	if action_fireball and not action_fireball.disabled and current_player and current_player.abilities.has("fireball") and current_player is WizardPlayer:
+		print("HUD: Showing fireball hover effect")
+		FireballButtonHovered.emit(current_player)
+		current_player.highlight_fireball_targets()
+
+# Hide fireball targets when no longer hovering over fireball button
+func _on_action_fireball_mouse_exited() -> void:
+	# Only emit the unhover signal if we're not in fireball ability selection mode
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if game_controller and game_controller.current_ability != "fireball":
+		FireballButtonUnhovered.emit()
+	else:
+		print("HUD: Keeping fireball highlights active since ability is selected")
+
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
 
@@ -315,6 +382,7 @@ func _on_player_ability_used(ability_name: String) -> void:
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
+	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	
 	# Reset specific button based on which ability was used
 	match ability_name:
@@ -324,6 +392,8 @@ func _on_player_ability_used(ability_name: String) -> void:
 			action_drill_smash.modulate = Color(1, 1, 1, 1)
 		"line_shot":
 			action_line_shot.modulate = Color(1, 1, 1, 1)
+		"fireball":
+			action_fireball.modulate = Color(1, 1, 1, 1)
 	
 	# Update all buttons
 	update_action_buttons()
@@ -437,6 +507,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
+	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	
 	# Get current selected ability if any
 	var game_controller = get_node("/root").find_child("GameController", true, false)
@@ -452,6 +523,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_drill.visible = true
 		action_drill_smash.visible = true
 		action_line_shot.visible = true
+		action_fireball.visible = true
 	
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
@@ -510,6 +582,27 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_line_shot.visible = false
 			action_line_shot.disabled = true
 			print("HUD: Hiding line_shot button - ability not available")
+			
+		# Fireball ability - only for WizardPlayer
+		if current_player.abilities.has("fireball") and current_player is WizardPlayer and not current_player.is_drilling:
+			action_fireball.visible = true
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "fireball":
+				action_fireball.modulate = Color(1.3, 0.7, 0.7, 1) # Highlighted with reddish tint
+				action_fireball.disabled = false
+				print("HUD: Highlighting fireball button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("fireball"):
+				action_fireball.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_fireball.disabled = false
+			else:
+				action_fireball.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_fireball.disabled = true # Disable the button
+				print("HUD: Disabling fireball button - not enough AP")
+		else:
+			action_fireball.visible = false
+			action_fireball.disabled = true
+			print("HUD: Hiding fireball button - ability not available")
 	else:
 		# No active player, hide all buttons
 		action_drill.visible = false
@@ -518,4 +611,6 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_drill_smash.disabled = true
 		action_line_shot.visible = false
 		action_line_shot.disabled = true
+		action_fireball.visible = false
+		action_fireball.disabled = true
 		print("HUD: Hiding all ability buttons - no active player")

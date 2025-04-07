@@ -223,6 +223,36 @@ func _on_tile_selected(tile):
 				
 				return
 			
+			# Handle fireball ability
+			if current_ability == "fireball" and selected_entity.abilities.has("fireball"):
+				# Check if the tile is a valid target (should be highlighted)
+				if tile.is_action_target:
+					print("GameController: Using " + current_ability + " ability on tile at " + str(tile.grid_position))
+					var success = selected_entity.use_ability(current_ability, tile)
+					print("GameController: Ability use " + ("succeeded" if success else "failed"))
+					
+					if success:
+						# Reset current ability only if the ability was actually used
+						current_ability = ""
+						
+						# Clear highlights after using the ability
+						clear_all_highlights()
+						
+						# Update HUD buttons to ensure they're properly deselected
+						if Global.hud:
+							Global.hud.update_action_buttons()
+						
+						# Highlight movement range if the player still has movement points
+						if selected_entity.movement_points > 0:
+							highlight_movement_range(selected_entity)
+					else:
+						print("GameController: Ability failed to execute, keeping ability mode active")
+				else:
+					print("GameController: Invalid target for " + current_ability + ", canceling ability")
+					cancel_current_ability()
+				
+				return
+			
 			# Add handlers for other targeted abilities here
 		
 		# First check if the tile is highlighted for an ability like drill_smash
@@ -924,6 +954,13 @@ func _connect_hud_signals():
 			
 		if not Global.hud.is_connected("LineShotButtonUnhovered", Callable(self, "_on_line_shot_button_unhovered")):
 			Global.hud.LineShotButtonUnhovered.connect(_on_line_shot_button_unhovered)
+			
+		# Connect fireball button hover signals
+		if not Global.hud.is_connected("FireballButtonHovered", Callable(self, "_on_fireball_button_hovered")):
+			Global.hud.FireballButtonHovered.connect(_on_fireball_button_hovered)
+			
+		if not Global.hud.is_connected("FireballButtonUnhovered", Callable(self, "_on_fireball_button_unhovered")):
+			Global.hud.FireballButtonUnhovered.connect(_on_fireball_button_unhovered)
 	else:
 		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
 
@@ -999,6 +1036,40 @@ func _on_line_shot_button_unhovered():
 	# If we're in line_shot ability selection mode, don't clear the highlights
 	if current_ability == "line_shot":
 		print("GameController: Keeping line_shot highlights active since ability is selected")
+		return
+	
+	# Clear any highlighted tiles on all maps
+	clear_all_highlights()
+	
+	# If we have a selected entity with movement points, restore their movement highlights
+	if selected_entity and selected_entity in player_entities and selected_entity.is_turn_active:
+		if selected_entity.movement_points > 0 and not selected_entity.is_drilling:
+			highlight_movement_range(selected_entity)
+
+# Event handler for when the fireball button is hovered
+func _on_fireball_button_hovered(player: PlayerEntity):
+	print("GameController: Fireball button hovered for player: " + player.entity_name)
+	
+	# Only show if we have a valid player who can use fireball
+	if not player or not player.abilities.has("fireball") or not player is WizardPlayer:
+		return
+		
+	# Don't show hover effects if an ability is already selected
+	if current_ability != "":
+		print("GameController: Not showing fireball hover effect because ability " + current_ability + " is already selected")
+		return
+		
+	# WizardPlayer has its own method to highlight fireball targets
+	if player.has_method("highlight_fireball_targets"):
+		player.highlight_fireball_targets()
+
+# Event handler for when the fireball button is unhovered
+func _on_fireball_button_unhovered():
+	print("GameController: Fireball button unhovered")
+	
+	# If we're in fireball ability selection mode, don't clear the highlights
+	if current_ability == "fireball":
+		print("GameController: Keeping fireball highlights active since ability is selected")
 		return
 	
 	# Clear any highlighted tiles on all maps
