@@ -15,7 +15,7 @@ func _ready():
 	
 	# Chaser configuration
 	move_speed = 1.4  # Moves faster than a regular minion
-	detection_range = 6  # Better detection range to find players
+	detection_range = 8
 	aggression_level = 1.0  # Always highly aggressive
 	max_health = 4  # Less health than regular bombs
 	current_health = 4

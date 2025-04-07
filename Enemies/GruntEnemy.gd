@@ -16,7 +16,7 @@ func _ready():
 	
 	# Additional grunt-specific configuration
 	move_speed = 0.8
-	detection_range = 4
+	detection_range = 8
 	aggression_level = 0.4
 	max_health = 8
 	current_health = 8

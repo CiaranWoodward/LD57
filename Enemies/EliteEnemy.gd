@@ -18,7 +18,7 @@ func _ready():
 	
 	# Additional elite-specific configuration
 	move_speed = 1.0
-	detection_range = 6
+	detection_range = 8
 	aggression_level = 0.7
 	max_health = 12
 	current_health = 12

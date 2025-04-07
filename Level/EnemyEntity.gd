@@ -6,7 +6,7 @@ enum EnemyType { GRUNT, ELITE, BOSS, MINION, HELLBOMB, HELLBOMB_CHASER }
 # Enemy-specific properties
 var enemy_type: EnemyType = EnemyType.GRUNT
 var aggression_level: float = 0.5  # 0.0 to 1.0, how aggressive this enemy is
-var detection_range: int = 5  # How many tiles away this enemy can detect players
+var detection_range: int = 8  # How many tiles away this enemy can detect players
 var patrol_path: Array = []  # Array of grid positions for patrol route
 var current_patrol_index: int = 0  # Current position in patrol route
 var alert_status: String = "idle"  # "idle", "suspicious", "alert"
