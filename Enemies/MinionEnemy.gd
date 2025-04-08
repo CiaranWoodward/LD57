@@ -125,6 +125,9 @@ func calculate_aoe_target_score(center_pos: Vector2i) -> Dictionary:
 				# Don't count ourselves
 				if entity != self:
 					if entity is PlayerEntity:
+						# Skip players that are not visible to enemies (e.g., cloaked Scout)
+						if entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+							continue
 						player_count += 1
 					elif entity is EnemyEntity:
 						enemy_count += 1
@@ -196,6 +199,12 @@ func perform_aoe_attack(center_pos: Vector2i, attack_direction: Vector2i):
 				
 				# Don't damage ourselves
 				if entity != self:
+					var is_cloaked_scout = false
+					# Check if it's a cloaked scout - we'll still damage them, but note that they're cloaked
+					if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+						is_cloaked_scout = true
+						print("MinionEnemy: AOE attack found cloaked scout at " + str(pos))
+						
 					hit_entities.append(entity)
 					
 					# Create particles at each hit entity's position too
@@ -212,7 +221,13 @@ func perform_aoe_attack(center_pos: Vector2i, attack_direction: Vector2i):
 					attack_particles.initial_velocity_max = 60.0
 					attack_particles.scale_amount_min = 2.0
 					attack_particles.scale_amount_max = 4.0
-					attack_particles.color = Color(0.6, 0.8, 1, 0.7)
+					
+					# Use special color for cloaked units being revealed
+					if is_cloaked_scout:
+						attack_particles.color = Color(1.0, 0.8, 0.2, 0.9) # Bright yellow to show cloak breaking
+					else:
+						attack_particles.color = Color(0.6, 0.8, 1, 0.7)
+						
 					attack_particles.global_position = hit_pos
 					# Adjust height to center on entity
 					attack_particles.position.y -= 35  # Standard entity height offset

@@ -83,6 +83,11 @@ func find_player_in_cardinal_direction(player_entities: Array) -> Entity:
 			# If there's a player on this tile, we can attack them
 			if current_tile.is_occupied and current_tile.occupying_entity is PlayerEntity:
 				var player = current_tile.occupying_entity
+				
+				# Skip players that are not visible to enemies (e.g., cloaked Scout)
+				if player.has_method("is_visible_to_enemies") and not player.is_visible_to_enemies():
+					break
+					
 				print("EliteEnemy: Found player " + player.entity_name + " in direction " + str(direction))
 				return player
 	

@@ -4,6 +4,8 @@ extends PlayerEntity
 var fireball_range: int = 5  # Maximum range for fireball ability
 var aoe_radius: int = 1      # Radius for area of effect (1 = 3x3 grid)
 var hover_target: IsometricTile = null  # Track currently hovered target for AOE preview
+var animation_tree: AnimationTree
+var animation_state_machine: AnimationNodeStateMachinePlayback
 
 func configure_player():
 	entity_name = "Wizard"
@@ -15,6 +17,11 @@ func configure_player():
 	abilities = ["drill", "fireball"]
 	max_health = 15
 	current_health = 15
+	
+	# Setup animation tree
+	animation_tree = $Sprite2D/AnimationTree
+	animation_tree.active = true
+	animation_state_machine = animation_tree["parameters/playback"]
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
@@ -43,6 +50,9 @@ func execute_ability(ability_name: String, target) -> bool:
 				if action_points < cost:
 					print("WizardPlayer: " + entity_name + " - Not enough action points for fireball")
 					return false
+				
+				# Play cast animation
+				animation_state_machine.travel("Cast")
 				
 				# Get target position and calculate direction
 				var target_pos = target.grid_position

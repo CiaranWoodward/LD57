@@ -119,6 +119,10 @@ func find_closest_player(player_entities: Array) -> Entity:
 		if player.is_defeated() or player.current_level != current_level:
 			continue
 			
+		# Skip players that are not visible to enemies (e.g., cloaked Scout)
+		if player.has_method("is_visible_to_enemies") and not player.is_visible_to_enemies():
+			continue
+			
 		var distance = grid_position.distance_to(player.grid_position)
 		if distance <= detection_range and distance < closest_distance:
 			# Check line of sight

@@ -248,3 +248,14 @@ func highlight_line_shot_targets():
 				path_tiles[i].set_action_target(true)
 	
 	print("ScoutPlayer: Highlighted " + str(highlighted_count) + " line shot targets and their paths") 
+
+# Override take_damage to cancel cloak if hit
+func take_damage(amount: int) -> int:
+	var damage_taken = super.take_damage(amount)
+	
+	# If we took damage and are cloaked, cancel the cloak
+	if damage_taken > 0 and is_cloaked:
+		print("ScoutPlayer: " + entity_name + " - Cloak broken by damage!")
+		cancel_cloak()
+	
+	return damage_taken

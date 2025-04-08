@@ -201,6 +201,9 @@ func find_best_beam_direction(player_entities: Array) -> Dictionary:
 		var player_count = 0
 		for entity in hit_entities:
 			if entity is PlayerEntity:
+				# Skip players that are not visible to enemies (e.g., cloaked Scout)
+				if entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+					continue
 				player_count += 1
 		
 		# Only consider directions that would hit at least one player
@@ -289,6 +292,12 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 	
 	# Apply damage to hit entities
 	for entity in hit_entities:
+		var is_cloaked_scout = false
+		# Check if it's a cloaked scout - we'll still damage them, but note that they're cloaked
+		if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+			is_cloaked_scout = true
+			print("BossEnemy: Beam attack found cloaked scout")
+			
 		entity.take_damage(beam_attack_damage)
 		print("BossEnemy: Beam attack hit " + entity.entity_name + " for " + str(beam_attack_damage) + " damage")
 		
@@ -307,7 +316,12 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 			hit_particles.initial_velocity_max = 80.0
 			hit_particles.scale_amount_min = 3.0
 			hit_particles.scale_amount_max = 5.0
-			hit_particles.color = Color(1, 0.1, 0.1, 0.8)
+			
+			# Use special color for cloaked units being revealed
+			if is_cloaked_scout:
+				hit_particles.color = Color(1.0, 0.8, 0.2, 0.9) # Bright yellow to show cloak breaking
+			else:
+				hit_particles.color = Color(1, 0.1, 0.1, 0.8)
 			
 			# Position particles at the hit entity (use world coordinates)
 			var world_pos = entity.global_position
