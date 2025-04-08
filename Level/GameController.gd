@@ -653,6 +653,7 @@ func _on_entity_died(entity):
 			var xp_amount = entity.xp_value
 			print("GameController: Awarding " + str(xp_amount) + " XP for killing " + entity.entity_name)
 			Global.add_xp(xp_amount)
+			Global.increment_enemy_kill_count()
 		
 		# Remove from turn sequencer
 		turn_sequencer.remove_character(entity)

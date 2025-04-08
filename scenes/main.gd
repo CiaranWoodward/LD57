@@ -119,8 +119,11 @@ func set_upgrade(enable : bool) -> void:
 #Call for gameover screen. State = 1 for victory, 0 for defeat.
 func gameover(state) -> void :
 	
-	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label6.text = str($XP.get_total_xp())
-	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label6.text = str($XP.get_total_xp())
+	# Update statistics on game over screen
+	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label2.text = str(Global.enemies_killed)
+	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label4.text = str(Global.deepest_layer_reached)
+	$MenuGameOver/PanelContainer/MenuMargin/MenuVBox/MarginContainer/GridContainer/Label6.text = str(Global.total_xp_acquired)
+	
 	$MenuGameOver.set_victory(state)
 	show_xp(0)
 	show_hud(0)
@@ -184,6 +187,9 @@ func _on_menu_main_new_game_pressed() -> void:
 	game_started = true
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/NewGame.visible = !game_started
 	$MenuMain/MainMargin/MainVBox/MainPanelMargin/MainButtonMargin/MainButtonVBox/Resume.visible = game_started
+	
+	# Reset global tracking stats
+	Global.reset_stats()
 		
 	#Hide menu, enable HUD and show first level:
 	current_level = levels[0].instantiate()

@@ -215,6 +215,9 @@ func descend_player(player_entity: PlayerEntity, from_level_index: int, grid_pos
 		# Emit signal to notify other systems
 		emit_signal("player_descended", player_entity, from_level_index, to_level_index)
 		
+		# Update the Global singleton with the new deepest layer if applicable
+		Global.update_deepest_layer(to_level_index)
+		
 		print("LevelManager: Player " + player_entity.entity_name + " successfully moved to level " + str(to_level_index))
 		return true
 	else:
