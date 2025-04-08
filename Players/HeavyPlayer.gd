@@ -418,10 +418,24 @@ func continue_drilling() -> bool:
 		drilling_turns_left -= 1
 		print("HeavyPlayer: " + entity_name + " big drill progress: " + str(drilling_turns_left) + " turns left")
 		
+		# Apply drilling effect to the current tile with higher intensity
+		if current_tile:
+			current_tile.set_drilling_effect()  # Use default intensity
+		
 		# Check adjacent allies to make sure they're still there
 		var adjacent_allies = get_adjacent_players()
 		print("HeavyPlayer: Big drill has " + str(adjacent_allies.size()) + " adjacent allies")
 		
+		# Apply drilling effect to all adjacent tiles in a radius of 1
+		for x in range(-1, 2):  # -1, 0, 1
+			for y in range(-1, 2):  # -1, 0, 1
+				if x == 0 and y == 0:  # Skip the center tile (self)
+					continue
+					
+				var adjacent_pos = grid_position + Vector2i(x, y)
+				var tile = isometric_map.get_tile(adjacent_pos)
+				if tile:
+					tile.set_drilling_effect()  # Use default intensity
 		# Check if drilling is complete
 		if drilling_turns_left <= 0:
 			print("HeavyPlayer: Big drill operation complete!")
@@ -445,6 +459,8 @@ func complete_big_drilling() -> bool:
 	is_drilling = false
 	modulate = Color(1, 1, 1)  # Restore normal appearance
 	
+	# We no longer remove the drilling effect - it persists
+	
 	# Return to idle animation
 	if animation_state_machine:
 		animation_state_machine.travel("Idle")
@@ -452,6 +468,8 @@ func complete_big_drilling() -> bool:
 	# Find current adjacent allies (don't rely on status effects)
 	var adjacent_allies = get_adjacent_players()
 	print("HeavyPlayer: Found " + str(adjacent_allies.size()) + " adjacent allies for descent")
+	
+	# We no longer remove the drilling effect from allies' tiles - it persists
 	
 	# Check with game_controller to see if we can move to the target level
 	if game_controller and game_controller.level_manager:
@@ -515,11 +533,15 @@ func take_damage(amount: int):
 	if was_big_drilling and not is_drilling:
 		print("HeavyPlayer: " + entity_name + " big drilling interrupted - resetting ally appearance")
 		
+		# We no longer remove the drilling effect - it persists
+		
 		# Reset the appearance of all adjacent allies
 		var adjacent_allies = get_adjacent_players()
 		for ally in adjacent_allies:
 			print("HeavyPlayer: Resetting appearance for " + ally.entity_name)
 			ally.modulate = Color(1, 1, 1)
+			
+			# We no longer remove the drilling effect from ally tiles - it persists
 		
 		# Hide drill visualization
 		if game_controller:

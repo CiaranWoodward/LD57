@@ -274,6 +274,10 @@ func continue_drilling() -> bool:
 	drilling_turns_left -= 1
 	print("Entity: " + entity_name + " drilling progress: " + str(drilling_turns_left) + " turns left")
 	
+	# Apply drilling effect to the current tile
+	if current_tile:
+		current_tile.set_drilling_effect()
+	
 	# Check if drilling is complete
 	if drilling_turns_left <= 0:
 		complete_drilling()
@@ -286,7 +290,7 @@ func complete_drilling() -> bool:
 	print("Entity: " + entity_name + " completed drilling")
 	is_drilling = false
 	modulate = Color(1, 1, 1)  # Restore normal appearance
-	
+		
 	# Check with game_controller to see if we can move to the target level
 	if game_controller and game_controller.level_manager:
 		# Use the level manager to handle the descent

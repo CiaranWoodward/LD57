@@ -149,6 +149,18 @@ func _on_area_mouse_exited():
 	# Remove hover effect when mouse leaves
 	set_hovered(false)
 
+# Apply drilling visual effect to the tile
+func set_drilling_effect():
+	var sprite = get_node_or_null("Sprite2D")
+	if not sprite:
+		return
+		
+	# Darken the tile during drilling
+	sprite.modulate = sprite.modulate.darkened(0.2)
+	
+	# Apply vertical offset
+	sprite.position.y += 5.0
+
 # Get the world position for an entity to be placed on this tile
 func get_entity_position() -> Vector2:
 	return position
