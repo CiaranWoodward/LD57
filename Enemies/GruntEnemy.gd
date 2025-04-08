@@ -20,6 +20,8 @@ func _ready():
 	aggression_level = 0.4
 	max_health = 8
 	current_health = 8
+	
+	xp_value = 2
 
 # Override process_turn to check for melee attack opportunities
 func process_turn(player_entities: Array):

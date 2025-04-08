@@ -22,6 +22,8 @@ func _ready():
 	aggression_level = 1.0  # Maximum aggression
 	max_health = 20
 	current_health = 20
+	
+	xp_value = 15
 
 # Override process_turn to make the boss more formidable
 func process_turn(player_entities: Array):

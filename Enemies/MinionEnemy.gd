@@ -23,6 +23,8 @@ func _ready():
 	aggression_level = 0.3
 	max_health = 5
 	current_health = 5
+	
+	xp_value = 1
 
 # Override process_turn to check for AOE attack opportunities
 func process_turn(player_entities: Array):

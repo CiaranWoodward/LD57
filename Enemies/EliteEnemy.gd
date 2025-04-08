@@ -22,6 +22,8 @@ func _ready():
 	aggression_level = 0.7
 	max_health = 12
 	current_health = 12
+	
+	xp_value = 5
 
 # Override process_turn to check for ranged attack opportunities
 func process_turn(player_entities: Array):

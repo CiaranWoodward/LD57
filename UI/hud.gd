@@ -30,6 +30,9 @@ var is_hovering_cloak_button: bool = false
 func _ready() -> void:
 	Global.hud = self
 	
+	# Initialize with current XP value
+	update_xp_counter(Global.xp)
+	
 	# Connect action buttons
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	if action_drill:
@@ -879,3 +882,13 @@ func _on_big_drill_button_unhovered() -> void:
 	# Emit signal for unhover
 	emit_signal("BigDrillButtonUnhovered")
 	print("HUD: Big drill button unhovered")
+
+# Update the XP counter with the current value
+func update_xp_counter(xp_value: int):
+	# Find the XP scene in the main scene
+	var xp_scene = get_node("/root").find_child("XP", true, false)
+	if xp_scene:
+		xp_scene.add_xp(xp_value - xp_scene.get_xp())
+		print("HUD: Updated XP counter to " + str(xp_value))
+	else:
+		print("HUD: Could not find XP scene to update")

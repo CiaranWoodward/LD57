@@ -648,6 +648,12 @@ func _on_entity_died(entity):
 		enemy_entities.erase(entity)
 		print("GameController: Enemy removed from game, " + str(enemy_entities.size()) + " enemies remaining")
 		
+		# Add XP to the global counter if the entity was an enemy
+		if entity is EnemyEntity:
+			var xp_amount = entity.xp_value
+			print("GameController: Awarding " + str(xp_amount) + " XP for killing " + entity.entity_name)
+			Global.add_xp(xp_amount)
+		
 		# Remove from turn sequencer
 		turn_sequencer.remove_character(entity)
 		
