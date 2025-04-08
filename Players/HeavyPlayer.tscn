@@ -1,9 +1,433 @@
-[gd_scene load_steps=5 format=3 uid="uid://cxqxbsg5imf4d"]
+[gd_scene load_steps=31 format=3 uid="uid://cxqxbsg5imf4d"]
 
 [ext_resource type="Script" uid="uid://cux57ein80ay8" path="res://Players/HeavyPlayer.gd" id="1_y6ulq"]
 [ext_resource type="Texture2D" uid="uid://dbk5jfdkxlnyb" path="res://images/heavy.png" id="2_brafd"]
-[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_ux8rl"]
+[ext_resource type="Texture2D" uid="uid://dbkhnn2eiwu8j" path="res://Graphics/Players/Heavy/HeavyIdle0000.png" id="3_jxv6a"]
 [ext_resource type="Texture2D" uid="uid://bfpxbim6h8b62" path="res://images/heavy_bloody.png" id="3_wf5jv"]
+[ext_resource type="Texture2D" uid="uid://basonjyerxyra" path="res://Graphics/Players/Heavy/HeavyStand0000.png" id="4_ub6x5"]
+[ext_resource type="Texture2D" uid="uid://bslied1l8rhc8" path="res://Graphics/Players/Heavy/Drill0000.png" id="5_7y6g6"]
+[ext_resource type="Texture2D" uid="uid://jbned3f4hdx7" path="res://Graphics/Players/Heavy/Shield0000.png" id="6_cw6u8"]
+[ext_resource type="Texture2D" uid="uid://b67mscwxolm1n" path="res://Graphics/Players/Heavy/HeavySwing0000.png" id="7_0gq3j"]
+[ext_resource type="Texture2D" uid="uid://dt4mjjvbpnlog" path="res://Graphics/Particles/Fire0000.png" id="8_ub6x5"]
+
+[sub_resource type="Curve" id="Curve_7y6g6"]
+_data = [Vector2(0.397727, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -4.20225, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_cw6u8"]
+offsets = PackedFloat32Array(0.0133333, 0.0933333, 0.64, 0.833333)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_0gq3j"]
+offsets = PackedFloat32Array(0.0133333, 0.96)
+colors = PackedColorArray(0.898438, 0.990479, 1, 1, 0.457031, 0.923645, 1, 1)
+
+[sub_resource type="Animation" id="Animation_upvvt"]
+resource_name = "Idle"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Drilling:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shielding:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Swing:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_pw0im"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Drilling:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shielding:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Swing:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Shielding/Shield:scale")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Drilling/Drill:position")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(8, 116)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Drilling/Drill:scale")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1.32083, 1.32083)]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Swing/CPUParticles2D:emitting")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_kdgit"]
+resource_name = "Swing"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Drilling:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shielding:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Swing:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Swing/CPUParticles2D:emitting")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_1mvwx"]
+resource_name = "Shielding"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Drilling:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shielding:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Swing:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Shielding/Shield:scale")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.466667, 1),
+"transitions": PackedFloat32Array(1.8025, 0.594604, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.05, 1.05), Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_pyeli"]
+resource_name = "Drilling"
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Drilling:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shielding:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Swing:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Drilling/Drill:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1.51572, 0.615572, 1),
+"update": 0,
+"values": [Vector2(8, 150), Vector2(8, 24), Vector2(8, 150)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Drilling/Drill:scale")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(0.406126, 1.51572, 1),
+"update": 0,
+"values": [Vector2(1, 1.3), Vector2(1.6, 1.6), Vector2(1, 1.3)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_8icby"]
+_data = {
+&"Drilling": SubResource("Animation_pyeli"),
+&"Idle": SubResource("Animation_upvvt"),
+&"RESET": SubResource("Animation_pw0im"),
+&"Shielding": SubResource("Animation_1mvwx"),
+&"Swing": SubResource("Animation_kdgit")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_jxv6a"]
+animation = &"Drilling"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ub6x5"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_7y6g6"]
+animation = &"Shielding"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_cw6u8"]
+animation = &"Swing"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_0gq3j"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_upvvt"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pw0im"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_kdgit"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1mvwx"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pyeli"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_8icby"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_b8awh"]
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_w4w46"]
+states/Drilling/node = SubResource("AnimationNodeAnimation_jxv6a")
+states/Drilling/position = Vector2(249, 207)
+states/End/position = Vector2(535, 100)
+states/Idle/node = SubResource("AnimationNodeAnimation_ub6x5")
+states/Idle/position = Vector2(338, 100)
+states/Shielding/node = SubResource("AnimationNodeAnimation_7y6g6")
+states/Shielding/position = Vector2(408, 207)
+states/Swing/node = SubResource("AnimationNodeAnimation_cw6u8")
+states/Swing/position = Vector2(338, 6)
+transitions = ["Idle", "Drilling", SubResource("AnimationNodeStateMachineTransition_0gq3j"), "Drilling", "Idle", SubResource("AnimationNodeStateMachineTransition_upvvt"), "Idle", "Shielding", SubResource("AnimationNodeStateMachineTransition_pw0im"), "Shielding", "Idle", SubResource("AnimationNodeStateMachineTransition_kdgit"), "Idle", "Swing", SubResource("AnimationNodeStateMachineTransition_1mvwx"), "Swing", "Idle", SubResource("AnimationNodeStateMachineTransition_pyeli"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_8icby"), "Idle", "End", SubResource("AnimationNodeStateMachineTransition_b8awh")]
+graph_offset = Vector2(-141, -68)
 
 [node name="HeavyPlayer" type="Node2D"]
 script = ExtResource("1_y6ulq")
@@ -12,5 +436,60 @@ damaged_profile_texture = ExtResource("3_wf5jv")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.215902, 0.215902, 0.215902, 1)
-position = Vector2(0, -65)
-texture = ExtResource("2_ux8rl")
+position = Vector2(0, -68)
+scale = Vector2(0.25, 0.25)
+
+[node name="Idle" type="Sprite2D" parent="Sprite2D"]
+texture = ExtResource("3_jxv6a")
+
+[node name="Drilling" type="Sprite2D" parent="Sprite2D"]
+visible = false
+texture = ExtResource("4_ub6x5")
+
+[node name="Drill" type="Sprite2D" parent="Sprite2D/Drilling"]
+position = Vector2(8, 116)
+rotation = 3.14159
+scale = Vector2(1.32083, 1.32083)
+texture = ExtResource("5_7y6g6")
+
+[node name="Shielding" type="Sprite2D" parent="Sprite2D"]
+visible = false
+texture = ExtResource("4_ub6x5")
+
+[node name="Shield" type="Sprite2D" parent="Sprite2D/Shielding"]
+texture = ExtResource("6_cw6u8")
+
+[node name="Swing" type="Sprite2D" parent="Sprite2D"]
+visible = false
+texture = ExtResource("7_0gq3j")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="Sprite2D/Swing"]
+position = Vector2(56, 12)
+rotation = -0.276596
+emitting = false
+amount = 50
+texture = ExtResource("8_ub6x5")
+one_shot = true
+explosiveness = 0.8
+emission_shape = 3
+emission_rect_extents = Vector2(50, 200)
+direction = Vector2(-1, -1)
+gravity = Vector2(-50, -40)
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+angular_velocity_min = -720.0
+angular_velocity_max = 720.0
+scale_amount_min = 0.05
+scale_amount_max = 0.4
+scale_amount_curve = SubResource("Curve_7y6g6")
+color_ramp = SubResource("Gradient_cw6u8")
+color_initial_ramp = SubResource("Gradient_0gq3j")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
+libraries = {
+&"": SubResource("AnimationLibrary_8icby")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="Sprite2D"]
+tree_root = SubResource("AnimationNodeStateMachine_w4w46")
+anim_player = NodePath("../AnimationPlayer")
