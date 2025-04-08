@@ -342,6 +342,49 @@ func die():
 		print("Entity: " + entity_name + " removing from tile at " + str(current_tile.grid_position) + " on death")
 		current_tile.remove_entity()
 	
+	# Create death particles
+	var particle_parent = null
+	if isometric_map:
+		particle_parent = isometric_map
+	else:
+		particle_parent = self
+		
+	# Create death particles
+	var death_particles = CPUParticles2D.new()
+	particle_parent.add_child(death_particles)
+	
+	# Configure death particles
+	death_particles.z_index = 1
+	death_particles.amount = 30
+	death_particles.lifetime = 0.7
+	death_particles.one_shot = true
+	death_particles.explosiveness = 0.9
+	death_particles.direction = Vector2(0, 0)
+	death_particles.spread = 180.0
+	death_particles.gravity = Vector2.ZERO
+	death_particles.initial_velocity_min = 40.0
+	death_particles.initial_velocity_max = 80.0
+	death_particles.scale_amount_min = 3.0
+	death_particles.scale_amount_max = 5.0
+	death_particles.color = Color(0.8, 0.8, 0.8, 0.8)  # White/gray poof
+	
+	# Position particles
+	death_particles.global_position = global_position
+	death_particles.position.y -= 35  # Height offset to center on entity
+	death_particles.emitting = true
+	
+	# Create a Tween for the fade-out effect
+	var tween = create_tween()
+	tween.tween_property(self, "modulate", Color(1, 1, 1, 0), 0.7)  # Fade to transparent
+	
+	# Remove particles and entity after they finish
+	await get_tree().create_timer(0.8).timeout
+	if is_instance_valid(death_particles):
+		death_particles.queue_free()
+		
+	# Queue free the entity after the particles finish
+	queue_free()
+	
 	emit_signal("died", self)
 
 # Revive a dead entity
