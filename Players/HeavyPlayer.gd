@@ -3,6 +3,8 @@ extends PlayerEntity
 
 var hover_target: IsometricTile = null  # Track currently hovered target for AOE preview
 var defend_active: bool = false  # Track if defend ability is active
+var animation_tree: AnimationTree
+var animation_state_machine: AnimationNodeStateMachinePlayback
 
 func configure_player():
 	entity_name = "Heavy"
@@ -14,6 +16,11 @@ func configure_player():
 	abilities = ["drill", "drill_smash", "big_drill", "defend"]
 	max_health = 15
 	current_health = 15
+	
+	# Setup animation tree
+	animation_tree = $Sprite2D/AnimationTree
+	animation_tree.active = true
+	animation_state_machine = animation_tree["parameters/playback"]
 
 func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
@@ -37,6 +44,10 @@ func get_ability_description(ability_name: String) -> String:
 
 func execute_ability(ability_name: String, target) -> bool:
 	if super.execute_ability(ability_name, target):
+		# For drill ability, play the drilling animation
+		if ability_name == "drill":
+			if animation_state_machine:
+				animation_state_machine.travel("Drilling")
 		return true
 		
 	match ability_name:
@@ -48,6 +59,10 @@ func execute_ability(ability_name: String, target) -> bool:
 			# Apply a visual effect to show the defend status
 			modulate = Color(0.7, 0.7, 1.2)  # Bluish tint to indicate defense mode
 			
+			# Play the shielding animation
+			if animation_state_machine:
+				animation_state_machine.travel("Shielding")
+				
 			return true
 			
 		"drill_smash":
@@ -81,6 +96,10 @@ func execute_ability(ability_name: String, target) -> bool:
 				# Process each affected tile
 				var hit_something = false
 				print("HeavyPlayer: " + entity_name + " using drill_smash on " + str(affected_tiles.size()) + " tiles")
+				
+				# Play the swing animation for drill smash
+				if animation_state_machine:
+					animation_state_machine.travel("Swing")
 				
 				for tile in affected_tiles:
 					print("HeavyPlayer: Checking tile at " + str(tile.grid_position) + ", occupied: " + str(tile.is_occupied))
@@ -138,6 +157,10 @@ func execute_ability(ability_name: String, target) -> bool:
 				
 			# Start the drilling process - takes longer than regular drill
 			start_big_drilling(4)  # Takes 4 turns to complete
+			
+			# Play drilling animation
+			if animation_state_machine:
+				animation_state_machine.travel("Drilling")
 			
 			# End the turn immediately after starting to drill
 			call_deferred("finish_turn")
@@ -408,13 +431,23 @@ func continue_drilling() -> bool:
 		return false
 	else:
 		# Normal drilling behavior
-		return super.continue_drilling()
+		var result = super.continue_drilling()
+		
+		# If we're no longer drilling, go back to idle animation
+		if !is_drilling && animation_state_machine:
+			animation_state_machine.travel("Idle")
+			
+		return result
 
 # Complete the big drilling process and move all players to the lower level
 func complete_big_drilling() -> bool:
 	print("HeavyPlayer: " + entity_name + " completed big drilling")
 	is_drilling = false
 	modulate = Color(1, 1, 1)  # Restore normal appearance
+	
+	# Return to idle animation
+	if animation_state_machine:
+		animation_state_machine.travel("Idle")
 	
 	# Find current adjacent allies (don't rely on status effects)
 	var adjacent_allies = get_adjacent_players()
@@ -454,6 +487,16 @@ func complete_big_drilling() -> bool:
 		print("HeavyPlayer: No game_controller or level_manager, cannot descend")
 	
 	return false
+
+# Override complete_drilling to handle animation transition
+func complete_drilling() -> bool:
+	var result = super.complete_drilling()
+	
+	# Return to idle animation when drilling completes
+	if animation_state_machine:
+		animation_state_machine.travel("Idle")
+		
+	return result
 
 # Override the take_damage method to handle interruption of big drilling
 func take_damage(amount: int):
@@ -541,6 +584,10 @@ func start_turn():
 		print("HeavyPlayer: " + entity_name + " defend ability expired")
 		defend_active = false
 		modulate = Color(1, 1, 1, 1)  # Reset visual effect
+		
+		# Return to idle animation
+		if animation_state_machine:
+			animation_state_machine.travel("Idle")
 	
 	# Call parent implementation
 	super.start_turn()

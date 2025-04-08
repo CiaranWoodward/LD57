@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://cxqxbsg5imf4d"]
+[gd_scene load_steps=32 format=3 uid="uid://cxqxbsg5imf4d"]
 
 [ext_resource type="Script" uid="uid://cux57ein80ay8" path="res://Players/HeavyPlayer.gd" id="1_y6ulq"]
 [ext_resource type="Texture2D" uid="uid://dbk5jfdkxlnyb" path="res://images/heavy.png" id="2_brafd"]
@@ -21,6 +21,83 @@ colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 [sub_resource type="Gradient" id="Gradient_0gq3j"]
 offsets = PackedFloat32Array(0.0133333, 0.96)
 colors = PackedColorArray(0.898438, 0.990479, 1, 1, 0.457031, 0.923645, 1, 1)
+
+[sub_resource type="Animation" id="Animation_pyeli"]
+resource_name = "Drilling"
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Idle:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Drilling:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Shielding:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Swing:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Drilling/Drill:position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1.51572, 0.615572, 1),
+"update": 0,
+"values": [Vector2(8, 150), Vector2(8, 24), Vector2(8, 150)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Drilling/Drill:scale")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(0.406126, 1.51572, 1),
+"update": 0,
+"values": [Vector2(1, 1.3), Vector2(1.6, 1.6), Vector2(1, 1.3)]
+}
 
 [sub_resource type="Animation" id="Animation_upvvt"]
 resource_name = "Idle"
@@ -172,69 +249,6 @@ tracks/7/keys = {
 "values": [false]
 }
 
-[sub_resource type="Animation" id="Animation_kdgit"]
-resource_name = "Swing"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Idle:visible")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Drilling:visible")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Shielding:visible")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [false]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Swing:visible")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("Swing/CPUParticles2D:emitting")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
-
 [sub_resource type="Animation" id="Animation_1mvwx"]
 resource_name = "Shielding"
 loop_mode = 1
@@ -299,10 +313,8 @@ tracks/4/keys = {
 "values": [Vector2(1, 1), Vector2(1.05, 1.05), Vector2(1, 1)]
 }
 
-[sub_resource type="Animation" id="Animation_pyeli"]
-resource_name = "Drilling"
-loop_mode = 1
-step = 0.1
+[sub_resource type="Animation" id="Animation_kdgit"]
+resource_name = "Swing"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -325,7 +337,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [true]
+"values": [false]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -349,31 +361,19 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [false]
+"values": [true]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Drilling/Drill:position")
+tracks/4/path = NodePath("Swing/CPUParticles2D:emitting")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.5, 1),
-"transitions": PackedFloat32Array(1.51572, 0.615572, 1),
-"update": 0,
-"values": [Vector2(8, 150), Vector2(8, 24), Vector2(8, 150)]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("Drilling/Drill:scale")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 0.5, 1),
-"transitions": PackedFloat32Array(0.406126, 1.51572, 1),
-"update": 0,
-"values": [Vector2(1, 1.3), Vector2(1.6, 1.6), Vector2(1, 1.3)]
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_8icby"]
@@ -427,7 +427,7 @@ states/Shielding/position = Vector2(408, 207)
 states/Swing/node = SubResource("AnimationNodeAnimation_cw6u8")
 states/Swing/position = Vector2(338, 6)
 transitions = ["Idle", "Drilling", SubResource("AnimationNodeStateMachineTransition_0gq3j"), "Drilling", "Idle", SubResource("AnimationNodeStateMachineTransition_upvvt"), "Idle", "Shielding", SubResource("AnimationNodeStateMachineTransition_pw0im"), "Shielding", "Idle", SubResource("AnimationNodeStateMachineTransition_kdgit"), "Idle", "Swing", SubResource("AnimationNodeStateMachineTransition_1mvwx"), "Swing", "Idle", SubResource("AnimationNodeStateMachineTransition_pyeli"), "Start", "Idle", SubResource("AnimationNodeStateMachineTransition_8icby"), "Idle", "End", SubResource("AnimationNodeStateMachineTransition_b8awh")]
-graph_offset = Vector2(-141, -68)
+graph_offset = Vector2(-258, -17)
 
 [node name="HeavyPlayer" type="Node2D"]
 script = ExtResource("1_y6ulq")
