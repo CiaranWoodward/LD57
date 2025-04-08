@@ -6,6 +6,7 @@ extends Node2D
 @export var map_height: int = 10
 @export var tile_width: int = 128  # Width of tile in pixels
 @export var tile_height: int = 64  # Height of tile in pixels
+@export var tile_spacing: float = 1.1  # Spacing factor between tiles (1.0 = default, >1.0 = more space)
 @export var tile_scene: PackedScene  # Reference to the tile scene to instantiate
 
 var map : Array = [[]]
@@ -90,14 +91,8 @@ func generate_map():
 	
 	print("IsometricMap: Map generation complete")
 
-# Generates a default color appropriate for the current level with Perlin noise variation
-func generate_level_color(grid_pos: Vector2i) -> Color:
-	# Calculate a blend factor based on level_index (0 = grey, 1 = hell)
-	var blend_factor = min(float(level_index) / float(levels_to_hell), 1.0)
-	
-	# Lerp between grey and hell colors
-	var base_color = base_grey_color.lerp(base_hell_color, blend_factor)
-	
+# Generates a noise value for a grid position that can be used for consistent variations
+func get_noise_value(grid_pos: Vector2i) -> float:
 	# Use Perlin noise for consistent variation based on position
 	# Using grid position and level index for 3D noise
 	var noise_value = noise_generator.get_noise_3d(
@@ -108,6 +103,19 @@ func generate_level_color(grid_pos: Vector2i) -> Color:
 	
 	# Apply non-linear scaling to amplify the effect (convert from [-1,1] to more extreme values)
 	noise_value = sign(noise_value) * pow(abs(noise_value), 0.8) * 1.3
+	
+	return noise_value
+
+# Generates a default color appropriate for the current level with Perlin noise variation
+func generate_level_color(grid_pos: Vector2i) -> Color:
+	# Calculate a blend factor based on level_index (0 = grey, 1 = hell)
+	var blend_factor = min(float(level_index) / float(levels_to_hell), 1.0)
+	
+	# Lerp between grey and hell colors
+	var base_color = base_grey_color.lerp(base_hell_color, blend_factor)
+	
+	# Get noise value for this position
+	var noise_value = get_noise_value(grid_pos)
 	
 	# Noise is in range [-1, 1], so scale to our variation range
 	var variation = noise_value * color_variation
@@ -123,6 +131,13 @@ func generate_level_color(grid_pos: Vector2i) -> Color:
 	b = clamp(b, 0.0, 1.0)
 	
 	return Color(r, g, b, 1.0)
+
+# Calculate vertical offset for a tile based on the same noise value used for color
+func calculate_vertical_offset(grid_pos: Vector2i) -> float:
+	var noise_value = get_noise_value(grid_pos)
+	
+	# Scale the noise value to a range of -10 to 10 for vertical offset
+	return noise_value * 20.0
 
 # Creates a single tile at the specified grid position
 func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> IsometricTile:
@@ -149,6 +164,9 @@ func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> Isome
 	# Set a level-appropriate default color with Perlin noise variation
 	tile.default_color = generate_level_color(grid_pos)
 	
+	# Set the vertical offset based on the same noise value
+	tile.vertical_offset = calculate_vertical_offset(grid_pos)
+	
 	# Apply the default color
 	var sprite = tile.get_node_or_null("Sprite2D")
 	if sprite:
@@ -165,14 +183,17 @@ func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> Isome
 
 # Convert grid coordinates to isometric world position
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
-	var world_x = (grid_pos.x - grid_pos.y) * (tile_width / 2)
-	var world_y = (grid_pos.x + grid_pos.y) * (tile_height / 2)
+	var world_x = (grid_pos.x - grid_pos.y) * (tile_width / 2) * tile_spacing
+	var world_y = (grid_pos.x + grid_pos.y) * (tile_height / 2) * tile_spacing
 	return Vector2(world_x, world_y)
 
 # Convert isometric world position to grid coordinates
 func world_to_grid(world_pos: Vector2) -> Vector2i:
-	var grid_x = (world_pos.x / (tile_width / 2) + world_pos.y / (tile_height / 2)) / 2
-	var grid_y = (world_pos.y / (tile_height / 2) - world_pos.x / (tile_width / 2)) / 2
+	var scaled_tile_width = (tile_width / 2) * tile_spacing
+	var scaled_tile_height = (tile_height / 2) * tile_spacing
+	
+	var grid_x = (world_pos.x / scaled_tile_width + world_pos.y / scaled_tile_height) / 2
+	var grid_y = (world_pos.y / scaled_tile_height - world_pos.x / scaled_tile_width) / 2
 	return Vector2i(round(grid_x), round(grid_y))
 
 # Handle tile click events

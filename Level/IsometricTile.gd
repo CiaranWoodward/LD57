@@ -8,6 +8,7 @@ var is_walkable: bool = true
 var is_occupied: bool = false
 var movement_cost: float = 1.0
 var occupying_entity = null  # Entity currently occupying this tile
+var vertical_offset: float = 0.0  # New property for height variation
 
 # Visual properties
 var highlight_color: Color = Color(1.3, 1.3, 0.8, 1)  # Yellow-ish highlight
@@ -42,7 +43,7 @@ func _ready():
 		
 	var sprite : Sprite2D = get_node_or_null("Sprite2D")
 	if sprite:
-		sprite.position.y += randf_range(-5, 5)
+		sprite.position.y += vertical_offset  # Use the vertical_offset property
 
 # Highlight tile (used for selection or movement range display)
 func highlight(highlight: bool = true):
