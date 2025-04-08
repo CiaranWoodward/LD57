@@ -231,24 +231,6 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 	
 	print("BossEnemy: " + entity_name + " performing beam attack in direction " + str(attack_direction))
 	
-	# Draw the beam - make sure it starts from the boss's position
-	var beam_line = $BeamAttackLine
-	if beam_line:
-		beam_line.visible = true
-		beam_line.clear_points()
-		
-		# Start position is at the boss's center (adjusted for height)
-		var start_pos = Vector2(0, -36)
-		beam_line.add_point(start_pos)
-		
-		# Calculate end position - beam extends from boss in the attack direction
-		var end_pos = start_pos + (Vector2(attack_direction) * beam_attack_range * 64)
-		beam_line.add_point(end_pos)
-		
-		# Hide the beam after a short delay
-		var line_timer = get_tree().create_timer(0.3)
-		line_timer.timeout.connect(func(): beam_line.visible = false)
-	
 	# Play attack particles at the boss position
 	var particles = $BeamAttackParticles
 	if particles:
@@ -304,7 +286,7 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 		# Fallback to original damage application if no projectile spawner
 		apply_beam_damage(hit_entities)
 	
-	print("BossEnemy: Beam attack hit " + str(hit_entities.size()) + " entities") 
+	print("BossEnemy: Beam attack hit " + str(hit_entities.size()) + " entities")
 
 # Create hit effect at entity's position (reused from previous implementation)
 func create_hit_effect(entity, is_cloaked_scout: bool = false):

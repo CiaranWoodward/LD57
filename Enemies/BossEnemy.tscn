@@ -19,12 +19,6 @@ texture = ExtResource("2_67mml")
 position = Vector2(0, -35)
 polygon = PackedVector2Array(-35, 35, 35, 35, 35, -35, -35, -35)
 
-[node name="BeamAttackLine" type="Line2D" parent="."]
-visible = false
-points = PackedVector2Array(0, 0, 0, 0)
-width = 8.0
-default_color = Color(1, 0, 0, 0.6)
-
 [node name="BeamAttackParticles" type="CPUParticles2D" parent="."]
 emitting = false
 amount = 40
