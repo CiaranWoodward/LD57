@@ -41,9 +41,8 @@ func execute_ability(ability_name: String, target) -> bool:
 	if super.execute_ability(ability_name, target):
 		return true
 		
-	match ability_name:	
+	match ability_name:
 		"fireball":
-			# Fireball is an AOE ranged attack that damages all entities in a radius
 			if target is IsometricTile:
 				# Check if player has enough action points
 				var cost = get_ability_cost("fireball")
@@ -92,38 +91,158 @@ func execute_ability(ability_name: String, target) -> bool:
 				if not impact_pos:
 					print("WizardPlayer: fireball failed - no valid impact position")
 					return false
+				
+				# Fire a projectile to the impact position
+				var projectile_spawner = $ProjectileSpawner
+				if projectile_spawner and isometric_map:
+					# Get the current tile and target tile
+					var source_tile = isometric_map.get_tile(grid_position)
+					var target_tile = isometric_map.get_tile(impact_pos)
 					
-				# Calculate the area of effect
-				var affected_entities = []
-				
-				# Loop through all tiles within radius of the impact position
-				for x in range(-aoe_radius, aoe_radius + 1):
-					for y in range(-aoe_radius, aoe_radius + 1):
-						var aoe_pos = impact_pos + Vector2i(x, y)
-						var aoe_tile = isometric_map.get_tile(aoe_pos)
+					if source_tile and target_tile:
+						# Spawn projectile between tiles
+						var projectile = projectile_spawner.spawn_projectile_between_tiles(source_tile, target_tile)
 						
-						# If the tile exists and has an entity, damage it
-						if aoe_tile and aoe_tile.is_occupied and aoe_tile.occupying_entity is Entity:
-							var entity = aoe_tile.occupying_entity
-							print("WizardPlayer: fireball hit entity " + entity.entity_name + " at " + str(aoe_pos))
+						if projectile:
+							# When the projectile reaches its target, create the explosion effect
+							projectile.hit_target.connect(func():
+								# Execute the explosion effect
+								apply_fireball_explosion(impact_pos)
+							)
 							
-							# Don't damage self (in case wizard is in the AOE)
-							if entity != self:
-								# Add to the list of affected entities
-								affected_entities.append(entity)
+							# Deduct action points
+							action_points -= cost
+							return true
 				
-				# Apply damage to all affected entities (3 points of damage)
-				for entity in affected_entities:
-					entity.take_damage(3)
+				# Fallback if no projectile spawner - apply the damage directly
+				apply_fireball_explosion(impact_pos)
 				
-				print("WizardPlayer: fireball affected " + str(affected_entities.size()) + " entities")
-				return true  # Return true even if we didn't hit anything, as the ability was still used
+				# Deduct action points
+				action_points -= cost
+				return true
 			
 			print("WizardPlayer: " + entity_name + " fireball failed - invalid target")
 			return false
 			
 		_:
 			return false
+
+# Helper function to apply fireball explosion and damage
+func apply_fireball_explosion(impact_pos: Vector2i):
+	# Calculate the area of effect
+	var affected_entities = []
+	
+	# Create explosion particles at the impact position
+	var impact_tile = isometric_map.get_tile(impact_pos)
+	if impact_tile:
+		var impact_world_pos = impact_tile.get_entity_position()
+		
+		# Get parent for the particles (prefer isometric_map)
+		var particle_parent = null
+		if isometric_map:
+			particle_parent = isometric_map
+		else:
+			particle_parent = self
+		
+		# Create explosion particles
+		var explosion = CPUParticles2D.new()
+		particle_parent.add_child(explosion)
+		
+		# Configure explosion particles
+		explosion.z_index = 1
+		explosion.amount = 60
+		explosion.lifetime = 0.6
+		explosion.one_shot = true
+		explosion.explosiveness = 0.9
+		explosion.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+		explosion.emission_sphere_radius = 10.0
+		explosion.direction = Vector2(0, 0)
+		explosion.spread = 180.0
+		explosion.gravity = Vector2(0, 0)
+		explosion.initial_velocity_min = 80.0
+		explosion.initial_velocity_max = 150.0
+		explosion.scale_amount_min = 4.0
+		explosion.scale_amount_max = 8.0
+		explosion.color = Color(1, 0.3, 0.1, 0.8)
+		
+		# Position explosion at impact point
+		explosion.global_position = impact_world_pos
+		explosion.position.y -= 35  # Height adjustment
+		explosion.emitting = true
+		
+		# Remove explosion particles after they finish
+		var timer = get_tree().create_timer(0.8)
+		timer.timeout.connect(func(): 
+			if is_instance_valid(explosion):
+				explosion.queue_free()
+		)
+	
+	# Loop through all tiles within radius of the impact position
+	for x in range(-aoe_radius, aoe_radius + 1):
+		for y in range(-aoe_radius, aoe_radius + 1):
+			var aoe_pos = impact_pos + Vector2i(x, y)
+			var aoe_tile = isometric_map.get_tile(aoe_pos)
+			
+			# If the tile exists and has an entity, damage it
+			if aoe_tile and aoe_tile.is_occupied and aoe_tile.occupying_entity is Entity:
+				var entity = aoe_tile.occupying_entity
+				print("WizardPlayer: fireball hit entity " + entity.entity_name + " at " + str(aoe_pos))
+				
+				# Don't damage self (in case wizard is in the AOE)
+				if entity != self:
+					# Add to the list of affected entities
+					affected_entities.append(entity)
+					
+					# Create hit particles at entity position
+					var hit_pos = aoe_tile.get_entity_position()
+					create_hit_effect(entity, hit_pos)
+	
+	# Apply damage to all affected entities (3 points of damage)
+	for entity in affected_entities:
+		entity.take_damage(3)
+	
+	print("WizardPlayer: fireball affected " + str(affected_entities.size()) + " entities")
+
+# Create hit effect at the target position
+func create_hit_effect(target_entity: Entity, position: Vector2):
+	if is_instance_valid(target_entity):
+		# Get parent for the particles (prefer isometric_map)
+		var particle_parent = null
+		if isometric_map:
+			particle_parent = isometric_map
+		else:
+			particle_parent = self
+		
+		# Create hit particles
+		var hit_particles = CPUParticles2D.new()
+		particle_parent.add_child(hit_particles)
+		
+		# Configure hit particles
+		hit_particles.z_index = 1
+		hit_particles.amount = 20
+		hit_particles.lifetime = 0.4
+		hit_particles.one_shot = true
+		hit_particles.explosiveness = 0.9
+		hit_particles.direction = Vector2(0, 0)
+		hit_particles.spread = 180.0
+		hit_particles.gravity = Vector2.ZERO
+		hit_particles.initial_velocity_min = 40.0
+		hit_particles.initial_velocity_max = 80.0
+		hit_particles.scale_amount_min = 2.0
+		hit_particles.scale_amount_max = 4.0
+		hit_particles.color = Color(1, 0.3, 0.1, 0.7)
+		
+		# Position particles
+		hit_particles.global_position = position
+		hit_particles.position.y -= 35  # Height offset to center on entity
+		hit_particles.emitting = true
+		
+		# Remove particles after they finish
+		var timer = get_tree().create_timer(0.5)
+		timer.timeout.connect(func(): 
+			if is_instance_valid(hit_particles):
+				hit_particles.queue_free()
+		)
 
 # Helper to find nearby enemies
 func get_nearby_enemies(radius: int) -> Array:

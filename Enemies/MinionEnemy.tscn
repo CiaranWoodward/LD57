@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://dc40kqfykbc2o"]
+[gd_scene load_steps=4 format=3 uid="uid://dc40kqfykbc2o"]
 
 [ext_resource type="Script" uid="uid://bxoj1njd660h3" path="res://Enemies/MinionEnemy.gd" id="1_h27ej"]
 [ext_resource type="Texture2D" uid="uid://bau3w7vbo0o1i" path="res://Graphics/super_Bomb_egg.png" id="2_67mml"]
+[ext_resource type="Script" uid="uid://b2phw6axqtl2" path="res://scenes/ProjectileSpawner.gd" id="3_e2mtr"]
 
 [node name="MinionEnemy" type="Node2D"]
 script = ExtResource("1_h27ej")
@@ -45,3 +46,8 @@ color = Color(0.6, 0.8, 1, 0.7)
 
 [node name="HealthBarPos" type="Marker2D" parent="."]
 position = Vector2(4, -89)
+
+[node name="ProjectileSpawner" type="Node2D" parent="."]
+script = ExtResource("3_e2mtr")
+projectile_speed = 450.0
+projectile_color = Color(0.6, 0.8, 1, 0.8)

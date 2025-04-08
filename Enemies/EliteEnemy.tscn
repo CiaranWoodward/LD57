@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bl3petyk1hi0y"]
+[gd_scene load_steps=4 format=3 uid="uid://bl3petyk1hi0y"]
 
 [ext_resource type="Script" uid="uid://uo235dtxwwq0" path="res://Enemies/EliteEnemy.gd" id="1_hsdep"]
 [ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_68xh1"]
+[ext_resource type="Script" path="res://scenes/ProjectileSpawner.gd" id="3_v13sd"]
 
 [node name="EliteEnemy" type="Node2D"]
 script = ExtResource("1_hsdep")
@@ -10,3 +11,11 @@ script = ExtResource("1_hsdep")
 self_modulate = Color(0.408598, 0.407394, 1.92523e-07, 1)
 position = Vector2(0, -65)
 texture = ExtResource("2_68xh1")
+
+[node name="HealthBarPos" type="Marker2D" parent="."]
+position = Vector2(4, -105)
+
+[node name="ProjectileSpawner" type="Node2D" parent="."]
+script = ExtResource("3_v13sd")
+projectile_speed = 500.0
+projectile_color = Color(0.408, 0.407, 0, 0.8)

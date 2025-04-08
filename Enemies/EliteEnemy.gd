@@ -107,10 +107,78 @@ func perform_ranged_attack(target_entity: Entity):
 		var direction = target_entity.grid_position - grid_position
 		update_facing_direction(Vector2(direction))
 		
-		# Deal damage to the target
-		target_entity.take_damage(ranged_attack_damage)
+		# Use projectile spawner if available
+		var projectile_spawner = $ProjectileSpawner
+		if projectile_spawner:
+			# Calculate spawn position (from Elite)
+			var from_pos = global_position
+			from_pos.y -= 65  # Height adjustment for elite
+			
+			# Calculate target position (at target entity)
+			var to_pos = target_entity.global_position
+			to_pos.y -= 35  # Standard entity height offset
+			
+			# Spawn the projectile
+			var projectile = projectile_spawner.spawn_projectile(from_pos, to_pos)
+			if projectile:
+				# When projectile hits, apply damage to the target
+				projectile.hit_target.connect(func():
+					if is_instance_valid(target_entity) and !target_entity.is_dead:
+						# Deal damage to the target
+						target_entity.take_damage(ranged_attack_damage)
+						
+						print("EliteEnemy: " + entity_name + " dealt " + str(ranged_attack_damage) + " ranged damage to " + target_entity.entity_name)
+						
+						# Create hit effect at target
+						create_hit_effect(target_entity)
+				)
+				return
 		
+		# Fallback if no projectile spawner
+		target_entity.take_damage(ranged_attack_damage)
 		print("EliteEnemy: " + entity_name + " dealt " + str(ranged_attack_damage) + " ranged damage to " + target_entity.entity_name)
+
+# Create hit effect at the target position
+func create_hit_effect(target_entity: Entity):
+	if is_instance_valid(target_entity):
+		# Get parent for the particles (prefer isometric_map)
+		var particle_parent = null
+		if isometric_map:
+			particle_parent = isometric_map
+		else:
+			particle_parent = self
+		
+		# Create hit particles
+		var hit_particles = CPUParticles2D.new()
+		particle_parent.add_child(hit_particles)
+		
+		# Configure hit particles
+		hit_particles.z_index = 1
+		hit_particles.amount = 25
+		hit_particles.lifetime = 0.4
+		hit_particles.one_shot = true
+		hit_particles.explosiveness = 0.9
+		hit_particles.direction = Vector2(0, 0)
+		hit_particles.spread = 180.0
+		hit_particles.gravity = Vector2.ZERO
+		hit_particles.initial_velocity_min = 40.0
+		hit_particles.initial_velocity_max = 80.0
+		hit_particles.scale_amount_min = 3.0
+		hit_particles.scale_amount_max = 5.0
+		hit_particles.color = Color(0.408, 0.407, 0, 0.8)
+		
+		# Position particles at the target (use world coordinates)
+		var world_pos = target_entity.global_position
+		hit_particles.global_position = world_pos
+		hit_particles.position.y -= 35  # Height offset to center on entity
+		hit_particles.emitting = true
+		
+		# Remove particles after they finish
+		var timer = get_tree().create_timer(0.5)
+		timer.timeout.connect(func(): 
+			if is_instance_valid(hit_particles):
+				hit_particles.queue_free()
+		)
 
 # Retreat from player to maintain optimal distance
 func retreat_from_player(player: Entity):

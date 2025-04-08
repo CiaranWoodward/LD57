@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://cbkvvc0s2okhl"]
+[gd_scene load_steps=30 format=3 uid="uid://cbkvvc0s2okhl"]
 
 [ext_resource type="Script" uid="uid://drkvdj5dsvaic" path="res://Players/ScoutPlayer.gd" id="1_1vdjo"]
 [ext_resource type="Texture2D" uid="uid://ygc46253hamc" path="res://images/scout.png" id="2_v774x"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://c6m631g845is5" path="res://Graphics/Players/Scout/ScoutShoot0000.png" id="4_gdd2h"]
 [ext_resource type="Texture2D" uid="uid://83geac367hqp" path="res://Graphics/Players/Scout/ScoutHide0000.png" id="5_4elv6"]
 [ext_resource type="Texture2D" uid="uid://dt4mjjvbpnlog" path="res://Graphics/Particles/Fire0000.png" id="6_gdd2h"]
+[ext_resource type="Script" uid="uid://b2phw6axqtl2" path="res://scenes/ProjectileSpawner.gd" id="8_bj7ey"]
 
 [sub_resource type="Gradient" id="Gradient_gdd2h"]
 offsets = PackedFloat32Array(0, 0.0733333, 0.28, 0.613333)
@@ -347,3 +348,7 @@ anim_player = NodePath("../AnimationPlayer")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 position = Vector2(1, -42)
 shape = SubResource("RectangleShape2D_4elv6")
+
+[node name="ProjectileSpawner" type="Node2D" parent="."]
+script = ExtResource("8_bj7ey")
+projectile_color = Color(0.196078, 0.745098, 0.196078, 0.8)

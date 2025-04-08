@@ -1,10 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://be8pgjtgq0tau"]
+[gd_scene load_steps=4 format=3 uid="uid://be8pgjtgq0tau"]
 
-[ext_resource type="Script" uid="uid://sw4of2ta4k3o" path="res://Enemies/BossEnemy.gd" id="1_3e2ik"]
+[ext_resource type="Script" uid="uid://sw4of2ta4k3o" path="res://Enemies/BossEnemy.gd" id="1_v1r8x"]
 [ext_resource type="Texture2D" uid="uid://bau3w7vbo0o1i" path="res://Graphics/super_Bomb_egg.png" id="2_67mml"]
+[ext_resource type="Script" uid="uid://b2phw6axqtl2" path="res://scenes/ProjectileSpawner.gd" id="2_ij15e"]
 
 [node name="BossEnemy" type="Node2D"]
-script = ExtResource("1_3e2ik")
+script = ExtResource("1_v1r8x")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(1, 0.2, 0.2, 1)
@@ -20,28 +21,31 @@ polygon = PackedVector2Array(-35, 35, 35, 35, 35, -35, -35, -35)
 
 [node name="BeamAttackLine" type="Line2D" parent="."]
 visible = false
-position = Vector2(0, -36)
-width = 4.0
-default_color = Color(1, 0.2, 0.2, 0.8)
+points = PackedVector2Array(0, 0, 0, 0)
+width = 8.0
+default_color = Color(1, 0, 0, 0.6)
 
 [node name="BeamAttackParticles" type="CPUParticles2D" parent="."]
-position = Vector2(0, -36)
 emitting = false
-amount = 80
-lifetime = 0.6
+amount = 40
+lifetime = 0.5
 one_shot = true
-explosiveness = 0.9
-randomness = 0.3
+explosiveness = 0.8
 emission_shape = 1
 emission_sphere_radius = 5.0
 direction = Vector2(0, 0)
 spread = 180.0
 gravity = Vector2(0, 0)
-initial_velocity_min = 80.0
-initial_velocity_max = 160.0
-scale_amount_min = 4.0
-scale_amount_max = 8.0
-color = Color(1, 0.2, 0.2, 0.7)
+initial_velocity_min = 30.0
+initial_velocity_max = 60.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(1, 0, 0, 0.8)
 
 [node name="HealthBarPos" type="Marker2D" parent="."]
 position = Vector2(4, -105)
+
+[node name="ProjectileSpawner" type="Node2D" parent="."]
+script = ExtResource("2_ij15e")
+projectile_speed = 600.0
+projectile_color = Color(1, 0, 0, 0.8)

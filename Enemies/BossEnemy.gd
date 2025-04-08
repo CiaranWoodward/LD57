@@ -258,38 +258,104 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 		# Set particle direction to match beam
 		particles.direction = Vector2(attack_direction)
 		particles.emitting = true
-		
-		# For more visual impact, add particles along the beam path
-		for i in range(1, beam_attack_range + 1):
-			var beam_pos = Vector2(attack_direction * i)
-			var beam_particles = CPUParticles2D.new()
-			add_child(beam_particles)
-			
-			# Configure the beam particles
-			beam_particles.amount = 15
-			beam_particles.lifetime = 0.3
-			beam_particles.one_shot = true
-			beam_particles.explosiveness = 0.8
-			beam_particles.direction = Vector2(0, 0)
-			beam_particles.spread = 180.0
-			beam_particles.gravity = Vector2.ZERO
-			beam_particles.initial_velocity_min = 20.0
-			beam_particles.initial_velocity_max = 40.0
-			beam_particles.scale_amount_min = 2.0
-			beam_particles.scale_amount_max = 3.0
-			beam_particles.color = Color(1, 0.2, 0.2, 0.7)
-			
-			# Position particles along the beam path
-			beam_particles.position = Vector2(0, -36) + (Vector2(attack_direction) * i * 64)
-			beam_particles.emitting = true
-			
-			# Remove particles after they finish
-			var particle_timer = get_tree().create_timer(0.5)
-			particle_timer.timeout.connect(func(): 
-				if is_instance_valid(beam_particles):
-					beam_particles.queue_free()
-			)
 	
+	# Calculate furthest impact position
+	var furthest_pos = global_position
+	furthest_pos.y -= 36  # Height adjustment
+	furthest_pos += Vector2(attack_direction) * beam_attack_range * 64
+	
+	# Create projectiles for any hit entities
+	var projectile_spawner = $ProjectileSpawner
+	if projectile_spawner:
+		# For each hit entity, spawn a projectile from boss to entity
+		for entity in hit_entities:
+			var target_pos = entity.global_position
+			target_pos.y -= 35  # Standard entity height offset
+			
+			# Spawn projectile
+			var from_pos = global_position
+			from_pos.y -= 36  # Height adjustment for boss
+			
+			var projectile = projectile_spawner.spawn_projectile(from_pos, target_pos)
+			if projectile:
+				# When projectile hits, apply damage to entity
+				projectile.hit_target.connect(func():
+					var is_cloaked_scout = false
+					# Check if it's a cloaked scout - we'll still damage them, but note that they're cloaked
+					if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+						is_cloaked_scout = true
+						print("BossEnemy: Beam attack found cloaked scout")
+					
+					# Apply damage
+					entity.take_damage(beam_attack_damage)
+					print("BossEnemy: Beam attack hit " + entity.entity_name + " for " + str(beam_attack_damage) + " damage")
+					
+					# Add hit effect at entity's position
+					create_hit_effect(entity, is_cloaked_scout)
+				)
+		
+		# If no entities were hit, still show projectile to furthest point
+		if hit_entities.size() == 0:
+			var from_pos = global_position
+			from_pos.y -= 36  # Height adjustment for boss
+			
+			projectile_spawner.spawn_projectile(from_pos, furthest_pos)
+	else:
+		# Fallback to original damage application if no projectile spawner
+		apply_beam_damage(hit_entities)
+	
+	print("BossEnemy: Beam attack hit " + str(hit_entities.size()) + " entities") 
+
+# Create hit effect at entity's position (reused from previous implementation)
+func create_hit_effect(entity, is_cloaked_scout: bool = false):
+	# Add hit effect at entity's position
+	if is_instance_valid(entity):
+		var hit_particles = CPUParticles2D.new()
+		
+		# Try to add to isometric map first
+		var particle_parent = null
+		if isometric_map:
+			particle_parent = isometric_map
+		else:
+			particle_parent = self
+		
+		particle_parent.add_child(hit_particles)
+		
+		# Configure hit particles
+		hit_particles.z_index = 1
+		hit_particles.amount = 30
+		hit_particles.lifetime = 0.4
+		hit_particles.one_shot = true
+		hit_particles.explosiveness = 0.9
+		hit_particles.direction = Vector2(0, 0)
+		hit_particles.spread = 180.0
+		hit_particles.gravity = Vector2.ZERO
+		hit_particles.initial_velocity_min = 40.0
+		hit_particles.initial_velocity_max = 80.0
+		hit_particles.scale_amount_min = 3.0
+		hit_particles.scale_amount_max = 5.0
+		
+		# Use special color for cloaked units being revealed
+		if is_cloaked_scout:
+			hit_particles.color = Color(1.0, 0.8, 0.2, 0.9) # Bright yellow to show cloak breaking
+		else:
+			hit_particles.color = Color(1, 0.1, 0.1, 0.8)
+		
+		# Position particles at the hit entity (use world coordinates)
+		var world_pos = entity.global_position
+		hit_particles.global_position = world_pos
+		hit_particles.position.y -= 35  # Height offset to center on entity
+		hit_particles.emitting = true
+		
+		# Remove particles after they finish
+		var hit_timer = get_tree().create_timer(0.5)
+		hit_timer.timeout.connect(func(): 
+			if is_instance_valid(hit_particles):
+				hit_particles.queue_free()
+		)
+
+# Fallback function to apply damage directly (used if projectiles can't be created)
+func apply_beam_damage(hit_entities: Array):
 	# Apply damage to hit entities
 	for entity in hit_entities:
 		var is_cloaked_scout = false
@@ -301,39 +367,5 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 		entity.take_damage(beam_attack_damage)
 		print("BossEnemy: Beam attack hit " + entity.entity_name + " for " + str(beam_attack_damage) + " damage")
 		
-		# Add hit effect at each entity's position
-		if is_instance_valid(entity):
-			var hit_particles = CPUParticles2D.new()
-			add_child(hit_particles)
-			hit_particles.amount = 30
-			hit_particles.lifetime = 0.4
-			hit_particles.one_shot = true
-			hit_particles.explosiveness = 0.9
-			hit_particles.direction = Vector2(0, 0)
-			hit_particles.spread = 180.0
-			hit_particles.gravity = Vector2.ZERO
-			hit_particles.initial_velocity_min = 40.0
-			hit_particles.initial_velocity_max = 80.0
-			hit_particles.scale_amount_min = 3.0
-			hit_particles.scale_amount_max = 5.0
-			
-			# Use special color for cloaked units being revealed
-			if is_cloaked_scout:
-				hit_particles.color = Color(1.0, 0.8, 0.2, 0.9) # Bright yellow to show cloak breaking
-			else:
-				hit_particles.color = Color(1, 0.1, 0.1, 0.8)
-			
-			# Position particles at the hit entity (use world coordinates)
-			var world_pos = entity.global_position
-			hit_particles.global_position = world_pos
-			hit_particles.position.y -= 35  # Height offset to center on entity
-			hit_particles.emitting = true
-			
-			# Remove particles after they finish
-			var hit_timer = get_tree().create_timer(0.5)
-			hit_timer.timeout.connect(func(): 
-				if is_instance_valid(hit_particles):
-					hit_particles.queue_free()
-			)
-	
-	print("BossEnemy: Beam attack hit " + str(hit_entities.size()) + " entities") 
+		# Add hit effect at entity's position
+		create_hit_effect(entity, is_cloaked_scout)

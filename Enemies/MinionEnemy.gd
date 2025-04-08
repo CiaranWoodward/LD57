@@ -175,16 +175,45 @@ func perform_aoe_attack(center_pos: Vector2i, attack_direction: Vector2i):
 			var line_timer = get_tree().create_timer(0.3)
 			line_timer.timeout.connect(func(): line.visible = false)
 		
-		# Play attack particles - adjust position to be centered at the target
-		var particles = $AOEAttackParticles
-		if particles:
-			particles.position = Vector2(0, -36)  # Reset to default position first
-			particles.global_position = world_pos
-			# Apply height offset to properly center on entities
-			particles.position.y -= 35  # Standard entity height offset
-			particles.emitting = true
-	
-	# Apply damage to all entities in the area
+		# Fire a projectile to the center position
+		var projectile_spawner = $ProjectileSpawner
+		if projectile_spawner:
+			var from_pos = global_position
+			from_pos.y -= 36  # Height adjustment for minion
+			
+			# Spawn projectile
+			var projectile = projectile_spawner.spawn_projectile(from_pos, world_pos)
+			if projectile:
+				# When projectile hits, trigger the AOE explosion
+				projectile.hit_target.connect(func():
+					# Play attack particles at the center
+					var particles = $AOEAttackParticles
+					if particles:
+						particles.position = Vector2(0, -36)  # Reset to default position first
+						particles.global_position = world_pos
+						# Apply height offset to properly center on entities
+						particles.position.y -= 35  # Standard entity height offset
+						particles.emitting = true
+					
+					# Apply damage to all entities in the area
+					apply_aoe_damage(center_pos)
+				)
+		else:
+			# Fallback if no projectile spawner - use the original implementation
+			# Play attack particles at the center
+			var particles = $AOEAttackParticles
+			if particles:
+				particles.position = Vector2(0, -36)  # Reset to default position first
+				particles.global_position = world_pos
+				# Apply height offset to properly center on entities
+				particles.position.y -= 35  # Standard entity height offset
+				particles.emitting = true
+			
+			# Apply damage directly
+			apply_aoe_damage(center_pos)
+
+# Helper function to apply AOE damage
+func apply_aoe_damage(center_pos: Vector2i):
 	var hit_entities = []
 	
 	# Check the 3x3 grid around the center position
@@ -207,10 +236,19 @@ func perform_aoe_attack(center_pos: Vector2i, attack_direction: Vector2i):
 						
 					hit_entities.append(entity)
 					
-					# Create particles at each hit entity's position too
+					# Create particles at each hit entity's position
 					var hit_pos = tile.get_entity_position()
+					
+					# Try to find the isometric map first
+					var particle_parent = null
+					if isometric_map:
+						particle_parent = isometric_map
+					else:
+						particle_parent = self
+						
 					var attack_particles = CPUParticles2D.new()
-					add_child(attack_particles)
+					particle_parent.add_child(attack_particles)
+					attack_particles.z_index = 1
 					attack_particles.amount = 20
 					attack_particles.lifetime = 0.4
 					attack_particles.one_shot = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://dd0074w7xtehw"]
+[gd_scene load_steps=28 format=3 uid="uid://dd0074w7xtehw"]
 
 [ext_resource type="Script" uid="uid://drnsw0dsha5tv" path="res://Players/WizardPlayer.gd" id="1_en0cl"]
 [ext_resource type="Texture2D" uid="uid://dyv8e5pdfkuqu" path="res://Graphics/Players/Wizard/Idle0000.png" id="3_cn5pn"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://1bittoatmyq4" path="res://Graphics/Players/Wizard/Cast0000.png" id="5_648k6"]
 [ext_resource type="Texture2D" uid="uid://boeubfmnnsiat" path="res://Graphics/Players/Wizard/StaffRed0000.png" id="6_oegdn"]
 [ext_resource type="Texture2D" uid="uid://dt4mjjvbpnlog" path="res://Graphics/Particles/Fire0000.png" id="7_jf143"]
+[ext_resource type="Script" uid="uid://b2phw6axqtl2" path="res://scenes/ProjectileSpawner.gd" id="8_8yytx"]
 
 [sub_resource type="Curve" id="Curve_648k6"]
 _data = [Vector2(0, 0), 0.0, 2.02052, 0, 0, Vector2(0.6875, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -7.91011, 0.0, 0, 0]
@@ -305,3 +306,8 @@ anim_player = NodePath("../AnimationPlayer")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 position = Vector2(10, -60)
 shape = SubResource("RectangleShape2D_cn5pn")
+
+[node name="ProjectileSpawner" type="Node2D" parent="."]
+script = ExtResource("8_8yytx")
+projectile_speed = 550.0
+projectile_color = Color(1, 0.3, 0.1, 0.8)

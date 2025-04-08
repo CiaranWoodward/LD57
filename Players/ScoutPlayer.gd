@@ -8,6 +8,7 @@ var cloak_turns_remaining: int = 0
 @onready var sprite_node = $Sprite2D # Reference to the player's sprite node
 @onready var animation_tree = $Sprite2D/AnimationTree
 @onready var animation_state_machine = animation_tree.get("parameters/playback")
+@onready var projectile_spawner = $ProjectileSpawner
 
 func configure_player():
 	entity_name = "Scout"
@@ -84,6 +85,9 @@ func execute_ability(ability_name: String, target) -> bool:
 				var current_pos = grid_position
 				var has_hit = false
 				var distance = 0
+				var target_entity = null
+				var target_tile = null
+				var farthest_tile = null
 				
 				# We'll stop if we hit a wall or if we go beyond the maximum range
 				while distance < line_shot_range:
@@ -99,15 +103,36 @@ func execute_ability(ability_name: String, target) -> bool:
 						print("ScoutPlayer: line_shot hit a wall at " + str(current_pos))
 						break
 					
+					# Keep track of the farthest walkable tile
+					farthest_tile = current_tile
+					
 					# If there's an entity on this tile, damage it and stop
 					if current_tile.is_occupied and current_tile.occupying_entity is Entity:
-						var entity = current_tile.occupying_entity
-						print("ScoutPlayer: line_shot hit entity " + entity.entity_name + " at " + str(current_pos))
-						
-						# Damage the entity (2 points of damage)
-						entity.take_damage(2)
+						target_entity = current_tile.occupying_entity
+						target_tile = current_tile
+						print("ScoutPlayer: line_shot hit entity " + target_entity.entity_name + " at " + str(current_pos))
 						has_hit = true
 						break
+				
+				# If no entity was hit, set the target to the farthest tile
+				if not has_hit and farthest_tile:
+					target_tile = farthest_tile
+				
+				# Spawn a projectile for the attack if we have a target tile
+				if target_tile and projectile_spawner:
+					var current_tile = isometric_map.get_tile(grid_position)
+					if current_tile:
+						# Create projectile and connect to the hit signal
+						var projectile = projectile_spawner.spawn_projectile_between_tiles(current_tile, target_tile)
+						if projectile:
+							projectile.hit_target.connect(func():
+								# Apply damage to the target entity if there was one
+								if target_entity:
+									target_entity.take_damage(2)
+							)
+				# Otherwise fallback to the original immediate damage logic
+				elif target_entity:
+					target_entity.take_damage(2)
 				
 				# Cancel cloak if we used line shot
 				if is_cloaked:
@@ -250,12 +275,10 @@ func highlight_line_shot_targets():
 	print("ScoutPlayer: Highlighted " + str(highlighted_count) + " line shot targets and their paths") 
 
 # Override take_damage to cancel cloak if hit
-func take_damage(amount: int) -> int:
-	var damage_taken = super.take_damage(amount)
+func take_damage(amount: int):
+	super.take_damage(amount)
 	
 	# If we took damage and are cloaked, cancel the cloak
-	if damage_taken > 0 and is_cloaked:
+	if amount > 0 and is_cloaked:
 		print("ScoutPlayer: " + entity_name + " - Cloak broken by damage!")
 		cancel_cloak()
-	
-	return damage_taken
