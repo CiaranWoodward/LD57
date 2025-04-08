@@ -12,6 +12,12 @@ var map : Array = [[]]
 
 var level_index = 0
 
+# Color settings for different levels
+@export var base_grey_color: Color = Color(0.85, 0.85, 0.85, 1.0)  # Light grey for upper levels
+@export var base_hell_color: Color = Color(0.85, 0.25, 0.25, 1.0)  # Reddish for lower levels
+@export var color_variation: float = 0.1  # Random variation amount
+@export var levels_to_hell: int = 5  # How many levels until full hell colors
+
 # References
 var tiles: Dictionary = {}  # Dictionary of Vector2i -> IsometricTile
 var selected_tile: IsometricTile = null
@@ -72,6 +78,27 @@ func generate_map():
 	
 	print("IsometricMap: Map generation complete")
 
+# Generates a default color appropriate for the current level with some randomization
+func generate_level_color() -> Color:
+	# Calculate a blend factor based on level_index (0 = grey, 1 = hell)
+	var blend_factor = min(float(level_index) / float(levels_to_hell), 1.0)
+	
+	# Lerp between grey and hell colors
+	var base_color = base_grey_color.lerp(base_hell_color, blend_factor)
+	
+	# Add the same random variation to all channels for consistent coloring
+	var variation = randf_range(-color_variation, color_variation)
+	var r = base_color.r + variation
+	var g = base_color.g + variation
+	var b = base_color.b + variation
+	
+	# Clamp values to valid range
+	r = clamp(r, 0.0, 1.0)
+	g = clamp(g, 0.0, 1.0)
+	b = clamp(b, 0.0, 1.0)
+	
+	return Color(r, g, b, 1.0)
+
 # Creates a single tile at the specified grid position
 func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> IsometricTile:
 	# Instantiate the appropriate tile scene based on the type
@@ -93,6 +120,14 @@ func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> Isome
 	# Set the tile's position in the world
 	var world_pos = grid_to_world(grid_pos)
 	tile.position = world_pos
+	
+	# Set a level-appropriate default color
+	tile.default_color = generate_level_color()
+	
+	# Apply the default color
+	var sprite = tile.get_node_or_null("Sprite2D")
+	if sprite:
+		sprite.modulate = tile.default_color
 	
 	# Add tile to the map
 	add_child(tile)

@@ -18,6 +18,7 @@ var is_attackable: bool = false
 var is_action_target: bool = false  # New property for action targeting (like drilling)
 
 # Highlight colors for different states
+var default_color: Color = Color(1, 1, 1, 1)    # Default color (no highlighting)
 var hover_color: Color = Color(1.3, 1.3, 0.8, 1)  # Yellow-ish for hover
 var move_color: Color = Color(0.7, 1.3, 0.7, 1)   # Green-ish for movement
 var attack_color: Color = Color(1.3, 0.7, 0.7, 1) # Red-ish for attack range
@@ -106,7 +107,7 @@ func update_highlight_color():
 	elif is_highlighted:
 		sprite.modulate = highlight_color
 	else:
-		sprite.modulate = Color(1, 1, 1, 1)
+		sprite.modulate = default_color
 
 # Place an entity on this tile
 func place_entity(entity: Entity):
