@@ -15,8 +15,12 @@ var level_index = 0
 # Color settings for different levels
 @export var base_grey_color: Color = Color(0.85, 0.85, 0.85, 1.0)  # Light grey for upper levels
 @export var base_hell_color: Color = Color(0.85, 0.25, 0.25, 1.0)  # Reddish for lower levels
-@export var color_variation: float = 0.1  # Random variation amount
+@export var color_variation: float = 0.3  # Dramatically increased variation amount
 @export var levels_to_hell: int = 5  # How many levels until full hell colors
+@export var noise_scale: float = 0.6  # Dramatically increased scale factor for more noticeable variation
+
+# Noise generator for consistent color variations
+var noise_generator = FastNoiseLite.new()
 
 # References
 var tiles: Dictionary = {}  # Dictionary of Vector2i -> IsometricTile
@@ -27,6 +31,14 @@ signal tile_selected(tile)
 
 func _ready():
 	print("IsometricMap: Initializing")
+	
+	# Initialize noise generator with dramatically tuned parameters
+	noise_generator.seed = randi()  # Random seed for each level
+	noise_generator.noise_type = FastNoiseLite.TYPE_PERLIN
+	noise_generator.frequency = 0.5  # Dramatically increased frequency
+	noise_generator.fractal_octaves = 3  # More detail layers
+	noise_generator.fractal_gain = 0.7  # Increased detail intensity
+	noise_generator.fractal_lacunarity = 2.5  # More variation between detail levels
 	
 	generate_map()
 
@@ -78,16 +90,29 @@ func generate_map():
 	
 	print("IsometricMap: Map generation complete")
 
-# Generates a default color appropriate for the current level with some randomization
-func generate_level_color() -> Color:
+# Generates a default color appropriate for the current level with Perlin noise variation
+func generate_level_color(grid_pos: Vector2i) -> Color:
 	# Calculate a blend factor based on level_index (0 = grey, 1 = hell)
 	var blend_factor = min(float(level_index) / float(levels_to_hell), 1.0)
 	
 	# Lerp between grey and hell colors
 	var base_color = base_grey_color.lerp(base_hell_color, blend_factor)
 	
-	# Add the same random variation to all channels for consistent coloring
-	var variation = randf_range(-color_variation, color_variation)
+	# Use Perlin noise for consistent variation based on position
+	# Using grid position and level index for 3D noise
+	var noise_value = noise_generator.get_noise_3d(
+		grid_pos.x * noise_scale, 
+		grid_pos.y * noise_scale,
+		level_index * 3.0  # Reduced to create more consistency within a level
+	)
+	
+	# Apply non-linear scaling to amplify the effect (convert from [-1,1] to more extreme values)
+	noise_value = sign(noise_value) * pow(abs(noise_value), 0.8) * 1.3
+	
+	# Noise is in range [-1, 1], so scale to our variation range
+	var variation = noise_value * color_variation
+	
+	# Apply variation to all channels for consistent coloring
 	var r = base_color.r + variation
 	var g = base_color.g + variation
 	var b = base_color.b + variation
@@ -121,8 +146,8 @@ func create_tile(grid_pos: Vector2i, tile_type: String = "stone_floor") -> Isome
 	var world_pos = grid_to_world(grid_pos)
 	tile.position = world_pos
 	
-	# Set a level-appropriate default color
-	tile.default_color = generate_level_color()
+	# Set a level-appropriate default color with Perlin noise variation
+	tile.default_color = generate_level_color(grid_pos)
 	
 	# Apply the default color
 	var sprite = tile.get_node_or_null("Sprite2D")
