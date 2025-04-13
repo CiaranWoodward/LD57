@@ -1,5 +1,7 @@
 extends Node
 
+signal xp_changed(new_xp: int)
+
 # Global game state and utility functions
 var debug_mode: bool = true
 var current_level: int = 1
@@ -30,7 +32,10 @@ func add_xp(amount: int):
 	
 	# Update the HUD if it exists
 	if hud:
-		hud.update_xp_counter(xp) 
+		hud.update_xp_counter(xp)
+		
+	# Emit signal with new XP value
+	xp_changed.emit(xp)
 
 # Increment the enemy kill counter
 func increment_enemy_kill_count():
@@ -49,4 +54,6 @@ func reset_stats():
 	total_xp_acquired = 0
 	enemies_killed = 0
 	deepest_layer_reached = 1
-	print("Global: Stats reset for new game") 
+	print("Global: Stats reset for new game")
+	# Emit signal with reset XP value
+	xp_changed.emit(xp) 

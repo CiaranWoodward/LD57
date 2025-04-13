@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bmro7tjun8tux"]
+[gd_scene load_steps=8 format=3 uid="uid://cyacsk53tfihk"]
 
 [ext_resource type="Script" uid="uid://cmeplptcnct3n" path="res://UI/menu_upgrade.gd" id="1_56d15"]
 [ext_resource type="Texture2D" uid="uid://dbk5jfdkxlnyb" path="res://images/heavy.png" id="2_2tc4k"]
+[ext_resource type="PackedScene" uid="uid://cj3kkhtadmxrv" path="res://UI/stats_panel.tscn" id="3_60wun"]
 [ext_resource type="Texture2D" uid="uid://ygc46253hamc" path="res://images/scout.png" id="3_yruxc"]
 [ext_resource type="Texture2D" uid="uid://df60u1a7y7m8y" path="res://images/wizard.png" id="4_60wun"]
+[ext_resource type="PackedScene" uid="uid://blk6i2nnvv4sq" path="res://UI/ability_panel.tscn" id="4_ryhlo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xsur3"]
 corner_radius_top_left = 30
@@ -65,271 +67,37 @@ layout_mode = 2
 texture = ExtResource("2_2tc4k")
 expand_mode = 2
 
-[node name="StatsPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox"]
+[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="StatsMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel"]
+[node name="AbilityPanel0" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 2
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 2
+ability_text = "More Range on
+Big Drill"
+ability_name = "more_big_drill"
+ability_cost = 20
+ability_tooltip = "An extra tile of range,
+so allies which are further
+away will also be brought
+down to the next level."
 
-[node name="StatsVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin"]
+[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 10
+ability_text = "Bigger Drill
+Smash Area"
+ability_name = "more_drill_smash"
+ability_cost = 20
+ability_tooltip = "An extra tile of range,
+so allies which are furhter
+away will also be brought
+down to the next level."
 
-[node name="HPHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox"]
+[node name="AbilityPanel2" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HPLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="HPLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/HPHBox/HPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "HP:"
-horizontal_alignment = 2
-
-[node name="HPVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/HPHBox/HPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="APHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="APLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="APLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/APHBox/APLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "AP:"
-horizontal_alignment = 2
-
-[node name="APVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/APHBox/APLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="MPHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="MPLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="MPLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/MPHBox/MPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "MP:"
-horizontal_alignment = 2
-
-[node name="MPVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/MPHBox/MPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="AbilityPanel0" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel0"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel0/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel0/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel0/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel0/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel0/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel1" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel1"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel1/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel1/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel1/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel1/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel1/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel2" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel2"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel2/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel2/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel2/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel2/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel2/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel3" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel3"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel3/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel3/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel3/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel3/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/AbilityPanel3/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
+ability_text = "Charge Attack"
+ability_name = "charge_attack"
+ability_cost = 20
+ability_tooltip = "Charge in a straight line towards an enemy and knock them back."
 
 [node name="CharHBox2" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
 layout_mode = 2
@@ -352,271 +120,32 @@ layout_mode = 2
 texture = ExtResource("3_yruxc")
 expand_mode = 2
 
-[node name="StatsPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2"]
+[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="StatsMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel"]
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 2
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 2
+ability_text = "Penetrating Shot"
+ability_name = "penetrating_quick_shot"
+ability_cost = 20
+ability_tooltip = "The quick shot ability
+will now penetrate through enemies."
 
-[node name="StatsVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin"]
+[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 10
+ability_text = "Stay Cloaked
+When Attacking"
+ability_name = "stay_cloaked"
+ability_cost = 20
+ability_tooltip = "The cloak ability will not be broken when attacking."
 
-[node name="HPHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox"]
+[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HPLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="HPLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/HPHBox/HPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "HP:"
-horizontal_alignment = 2
-
-[node name="HPVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/HPHBox/HPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="APHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="APLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="APLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/APHBox/APLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "AP:"
-horizontal_alignment = 2
-
-[node name="APVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/APHBox/APLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="MPHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="MPLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="MPLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/MPHBox/MPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "MP:"
-horizontal_alignment = 2
-
-[node name="MPVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/MPHBox/MPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="AbilityPanel0" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel0"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel0/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel0/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel0/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel0/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel0/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel1" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel1"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel1/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel1/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel1/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel1/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel1/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel2" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel2"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel2/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel2/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel2/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel2/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel2/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel3" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel3"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel3/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel3/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel3/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel3/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/AbilityPanel3/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
+ability_text = "Emergency
+Teleport"
+ability_name = "emergency_teleport"
+ability_cost = 20
+ability_tooltip = "Teleport to a random other location on the map to evade danger (hopefully)."
 
 [node name="CharHBox3" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
 layout_mode = 2
@@ -639,271 +168,29 @@ layout_mode = 2
 texture = ExtResource("4_60wun")
 expand_mode = 2
 
-[node name="StatsPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3"]
+[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="StatsMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel"]
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 2
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 2
+ability_text = "Healing Splash"
+ability_name = "healing_aoe"
+ability_cost = 20
+ability_tooltip = "Area-of-effect minor healing"
 
-[node name="StatsVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin"]
+[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 10
+ability_text = "Freeze Zone"
+ability_name = "freeze_aoe"
+ability_cost = 20
+ability_tooltip = "Area-of-effect freeze spell"
 
-[node name="HPHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox"]
+[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HPLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="HPLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/HPHBox/HPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "HP:"
-horizontal_alignment = 2
-
-[node name="HPVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/HPHBox/HPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/HPHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="APHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="APLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="APLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/APHBox/APLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "AP:"
-horizontal_alignment = 2
-
-[node name="APVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/APHBox/APLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/APHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="MPHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="MPLabels" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="MPLabel" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/MPHBox/MPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "MP:"
-horizontal_alignment = 2
-
-[node name="MPVal" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/MPHBox/MPLabels"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "8"
-
-[node name="HPInc" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_font_sizes/font_size = 20
-text = "+"
-
-[node name="HPIncCost" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/StatsPanel/StatsMargin/StatsVBox/MPHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "(100)"
-
-[node name="AbilityPanel0" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel0"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel0/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel0/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel0/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel0/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel0/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel1" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel1"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel1/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel1/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel1/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel1/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel1/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel2" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel2"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel2/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel2/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel2/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel2/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel2/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="AbilityPanel3" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="AbilityMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel3"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
-
-[node name="AbilityVBox" type="VBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel3/AbilityMargin"]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel3/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Ability0"
-
-[node name="AbilityHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel3/AbilityMargin/AbilityVBox"]
-layout_mode = 2
-size_flags_vertical = 6
-
-[node name="Label" type="Label" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel3/AbilityMargin/AbilityVBox/AbilityHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "100"
-
-[node name="Button" type="Button" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/AbilityPanel3/AbilityMargin/AbilityVBox/AbilityHBox"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-size_flags_horizontal = 10
+ability_text = "Poison Cloud"
+ability_name = "poison_aoe"
+ability_cost = 20
+ability_tooltip = "Area-of-effect poison ability"
 
 [node name="ExitMargin" type="MarginContainer" parent="."]
 anchors_preset = 1

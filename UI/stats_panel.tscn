@@ -1,0 +1,117 @@
+[gd_scene load_steps=2 format=3 uid="uid://cj3kkhtadmxrv"]
+
+[ext_resource type="Script" uid="uid://dx51d8grg0vpc" path="res://UI/stats_panel.gd" id="1_2vhjs"]
+
+[node name="StatsPanel" type="PanelContainer"]
+script = ExtResource("1_2vhjs")
+
+[node name="StatsMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 2
+
+[node name="StatsVBox" type="VBoxContainer" parent="StatsMargin"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 10
+
+[node name="HPHBox" type="HBoxContainer" parent="StatsMargin/StatsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HPLabels" type="HBoxContainer" parent="StatsMargin/StatsVBox/HPHBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 10
+
+[node name="HPLabel" type="Label" parent="StatsMargin/StatsVBox/HPHBox/HPLabels"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "HP:"
+horizontal_alignment = 2
+
+[node name="HPVal" type="Label" parent="StatsMargin/StatsVBox/HPHBox/HPLabels"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "8/8"
+
+[node name="HPInc" type="Button" parent="StatsMargin/StatsVBox/HPHBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_font_sizes/font_size = 20
+text = "+"
+
+[node name="HPIncCost" type="Label" parent="StatsMargin/StatsVBox/HPHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "(100)"
+
+[node name="APHBox" type="HBoxContainer" parent="StatsMargin/StatsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="APLabels" type="HBoxContainer" parent="StatsMargin/StatsVBox/APHBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 10
+
+[node name="APLabel" type="Label" parent="StatsMargin/StatsVBox/APHBox/APLabels"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "AP:"
+horizontal_alignment = 2
+
+[node name="APVal" type="Label" parent="StatsMargin/StatsVBox/APHBox/APLabels"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "8"
+
+[node name="HPInc" type="Button" parent="StatsMargin/StatsVBox/APHBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_font_sizes/font_size = 20
+text = "+"
+
+[node name="HPIncCost" type="Label" parent="StatsMargin/StatsVBox/APHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "(100)"
+
+[node name="MPHBox" type="HBoxContainer" parent="StatsMargin/StatsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MPLabels" type="HBoxContainer" parent="StatsMargin/StatsVBox/MPHBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 10
+
+[node name="MPLabel" type="Label" parent="StatsMargin/StatsVBox/MPHBox/MPLabels"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "MP:"
+horizontal_alignment = 2
+
+[node name="MPVal" type="Label" parent="StatsMargin/StatsVBox/MPHBox/MPLabels"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "8"
+
+[node name="HPInc" type="Button" parent="StatsMargin/StatsVBox/MPHBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_font_sizes/font_size = 20
+text = "+"
+
+[node name="HPIncCost" type="Label" parent="StatsMargin/StatsVBox/MPHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "(100)"
