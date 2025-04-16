@@ -163,8 +163,17 @@ func _update_mp_display():
 
 func _update_cost_labels():
 	hp_cost_label.text = "(" + str(get_upgrade_cost(StatType.HP)) + ")"
-	ap_cost_label.text = "(" + str(get_upgrade_cost(StatType.AP)) + ")"
-	mp_cost_label.text = "(" + str(get_upgrade_cost(StatType.MP)) + ")"
+	
+	# Hide costs for maxed out stats
+	if connected_entity and connected_entity.max_action_points >= MAX_AP_MP:
+		ap_cost_label.text = ""
+	else:
+		ap_cost_label.text = "(" + str(get_upgrade_cost(StatType.AP)) + ")"
+		
+	if connected_entity and connected_entity.max_movement_points >= MAX_AP_MP:
+		mp_cost_label.text = ""
+	else:
+		mp_cost_label.text = "(" + str(get_upgrade_cost(StatType.MP)) + ")"
 
 # Calculate upgrade costs based on number of previous upgrades
 func get_upgrade_cost(stat_type: StatType) -> int:
@@ -204,12 +213,26 @@ func can_afford_upgrade(stat_type: StatType) -> bool:
 func _update_button_states():
 	if connected_entity:
 		hp_upgrade_button.disabled = not can_afford_upgrade(StatType.HP)
-		ap_upgrade_button.disabled = not can_afford_upgrade(StatType.AP)
-		mp_upgrade_button.disabled = not can_afford_upgrade(StatType.MP)
+		
+		# Handle AP button visibility and state
+		if connected_entity.max_action_points >= MAX_AP_MP:
+			ap_upgrade_button.visible = false
+		else:
+			ap_upgrade_button.visible = true
+			ap_upgrade_button.disabled = not can_afford_upgrade(StatType.AP)
+		
+		# Handle MP button visibility and state
+		if connected_entity.max_movement_points >= MAX_AP_MP:
+			mp_upgrade_button.visible = false
+		else:
+			mp_upgrade_button.visible = true
+			mp_upgrade_button.disabled = not can_afford_upgrade(StatType.MP)
 	else:
 		hp_upgrade_button.disabled = true
 		ap_upgrade_button.disabled = true
 		mp_upgrade_button.disabled = true
+		ap_upgrade_button.visible = true
+		mp_upgrade_button.visible = true
 
 # Handle Global XP changes
 func _on_global_xp_changed(_new_xp: int):
