@@ -885,10 +885,11 @@ func _on_big_drill_button_unhovered() -> void:
 
 # Update the XP counter with the current value
 func update_xp_counter(xp_value: int):
-	# Find the XP scene in the main scene
+	# We don't need to set the XP value again since we're already using Global.xp
+	# But we should make sure the XP display is updated
 	var xp_scene = get_node("/root").find_child("XP", true, false)
 	if xp_scene:
-		xp_scene.add_xp(xp_value - xp_scene.get_xp())
+		xp_scene.update_xp()
 		print("HUD: Updated XP counter to " + str(xp_value))
 	else:
 		print("HUD: Could not find XP scene to update")

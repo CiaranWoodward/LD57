@@ -78,27 +78,42 @@ texture = ExtResource("1_ktti3")
 expand_mode = 2
 
 [node name="ColorRect6" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.749751, 0.731299, 0.045859, 1)
 
 [node name="ColorRect7" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.749751, 0.731299, 0.045859, 1)
 
 [node name="ColorRect8" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.749751, 0.731299, 0.045859, 1)
 
 [node name="ColorRect9" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.749751, 0.731299, 0.045859, 1)
 
 [node name="ColorRect10" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
+layout_mode = 2
+color = Color(0.749751, 0.731299, 0.045859, 1)
+
+[node name="ColorRect11" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
+custom_minimum_size = Vector2(15, 40)
+layout_mode = 2
+color = Color(0.749751, 0.731299, 0.045859, 1)
+
+[node name="ColorRect12" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
+custom_minimum_size = Vector2(15, 40)
+layout_mode = 2
+color = Color(0.749751, 0.731299, 0.045859, 1)
+
+[node name="ColorRect13" type="ColorRect" parent="Info/InfoMargin/InfoVBox/ActHBox"]
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.749751, 0.731299, 0.045859, 1)
 
@@ -113,27 +128,42 @@ texture = ExtResource("2_cgfq5")
 expand_mode = 2
 
 [node name="ColorRect" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.348878, 0.504725, 1, 1)
 
 [node name="ColorRect2" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.348878, 0.504725, 1, 1)
 
 [node name="ColorRect3" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.348878, 0.504725, 1, 1)
 
 [node name="ColorRect4" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.348878, 0.504725, 1, 1)
 
 [node name="ColorRect5" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
-custom_minimum_size = Vector2(20, 40)
+custom_minimum_size = Vector2(15, 40)
+layout_mode = 2
+color = Color(0.348878, 0.504725, 1, 1)
+
+[node name="ColorRect6" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
+custom_minimum_size = Vector2(15, 40)
+layout_mode = 2
+color = Color(0.348878, 0.504725, 1, 1)
+
+[node name="ColorRect7" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
+custom_minimum_size = Vector2(15, 40)
+layout_mode = 2
+color = Color(0.348878, 0.504725, 1, 1)
+
+[node name="ColorRect8" type="ColorRect" parent="Info/InfoMargin/InfoVBox/MoveHBox"]
+custom_minimum_size = Vector2(15, 40)
 layout_mode = 2
 color = Color(0.348878, 0.504725, 1, 1)
 

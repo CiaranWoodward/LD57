@@ -57,9 +57,7 @@ func _on_xp_changed(_new_xp: int):
 func _update_button_state():
 	if is_purchased:
 		$AbilityMargin/Button.disabled = true
-		$AbilityMargin/Button.text = "Purchased"
 		$AbilityMargin/Button.modulate = Color(0.5, 0.7, 0.5)  # Gray out the button
 	else:
 		$AbilityMargin/Button.disabled = Global.xp < ability_cost
-		$AbilityMargin/Button.text = "Purchase"
 		$AbilityMargin/Button.modulate = Color(1, 1, 1)  # Reset to normal color

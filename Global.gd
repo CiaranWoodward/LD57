@@ -6,6 +6,7 @@ signal xp_changed(new_xp: int)
 var debug_mode: bool = true
 var current_level: int = 1
 var hud : HUD = null
+var upgrade_menu : UpgradeMenu = null
 var xp: int = 0  # Global XP counter shared between all players
 
 # Additional tracking variables

@@ -15,6 +15,7 @@ theme_override_constants/margin_bottom = 10
 
 [node name="Button" type="Button" parent="AbilityMargin"]
 layout_mode = 2
+tooltip_text = "Placeholder"
 flat = true
 
 [node name="AbilityVBox" type="VBoxContainer" parent="AbilityMargin"]
@@ -27,8 +28,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 6
 mouse_filter = 1
 theme_override_font_sizes/font_size = 20
-text = "Further
-Big Drill Range"
+text = "Placeholder"
 horizontal_alignment = 1
 
 [node name="Cost" type="Label" parent="AbilityMargin/AbilityVBox"]
@@ -36,5 +36,5 @@ layout_mode = 2
 mouse_filter = 1
 theme_override_colors/font_color = Color(0.807843, 0.776471, 0, 1)
 theme_override_font_sizes/font_size = 20
-text = "100"
+text = "0"
 horizontal_alignment = 1

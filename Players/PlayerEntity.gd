@@ -7,7 +7,6 @@ extends Entity
 @export var movement_points: int = 3
 @export var max_movement_points: int = 3
 @export var abilities: Array = []
-@export var experience: int = 0
 @export var level: int = 1
 
 # Visual properties
@@ -31,6 +30,7 @@ func _init():
 func _ready():
 	super._ready()
 	configure_player()
+	Global.upgrade_menu.connect_to_entity(self)
 
 # Override to configure class-specific properties in subclasses
 func configure_player():
@@ -137,10 +137,10 @@ func execute_ability(ability_name: String, target) -> bool:
 
 # Add experience and handle level up if needed
 func add_experience(amount: int):
-	experience += amount
+	Global.add_xp(amount)
 	
 	# Simple leveling formula: level = experience / 100 + 1
-	var new_level = (experience / 100) + 1
+	var new_level = (Global.xp / 100) + 1
 	
 	if new_level > level:
 		level = new_level

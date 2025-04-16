@@ -251,7 +251,7 @@ func _on_menu_options_sfx_vol_changed(volume: Variant) -> void:
 
 
 func _on_menu_debug_dbg_add_xp(value: Variant) -> void:
-	$XP.add_xp(100)
+	Global.add_xp(100)
 
 func _on_menu_debug_dbg_win() -> void:
 	gameover(1)

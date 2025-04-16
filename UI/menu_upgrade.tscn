@@ -46,14 +46,14 @@ theme_override_constants/margin_bottom = 15
 layout_mode = 2
 theme_override_constants/separation = 30
 
-[node name="CharHBox" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
+[node name="Heavy" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="PortraitPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox"]
+[node name="PortraitPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy"]
 layout_mode = 2
 
-[node name="PortraitMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/PortraitPanel"]
+[node name="PortraitMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy/PortraitPanel"]
 custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 theme_override_constants/margin_left = 5
@@ -61,16 +61,16 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Portrait" type="TextureRect" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox/PortraitPanel/PortraitMargin"]
+[node name="Portrait" type="TextureRect" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy/PortraitPanel/PortraitMargin"]
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 texture = ExtResource("2_2tc4k")
 expand_mode = 2
 
-[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("3_60wun")]
+[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="AbilityPanel0" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel0" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "More Range on
 Big Drill"
@@ -81,7 +81,7 @@ so allies which are further
 away will also be brought
 down to the next level."
 
-[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Bigger Drill
 Smash Area"
@@ -92,21 +92,21 @@ so allies which are furhter
 away will also be brought
 down to the next level."
 
-[node name="AbilityPanel2" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel2" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Charge Attack"
 ability_name = "charge_attack"
 ability_cost = 20
 ability_tooltip = "Charge in a straight line towards an enemy and knock them back."
 
-[node name="CharHBox2" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
+[node name="Scout" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="PortraitPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2"]
+[node name="PortraitPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout"]
 layout_mode = 2
 
-[node name="PortraitMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/PortraitPanel"]
+[node name="PortraitMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout/PortraitPanel"]
 custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 theme_override_constants/margin_left = 5
@@ -114,16 +114,16 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Portrait" type="TextureRect" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2/PortraitPanel/PortraitMargin"]
+[node name="Portrait" type="TextureRect" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout/PortraitPanel/PortraitMargin"]
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 texture = ExtResource("3_yruxc")
 expand_mode = 2
 
-[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("3_60wun")]
+[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Penetrating Shot"
 ability_name = "penetrating_quick_shot"
@@ -131,7 +131,7 @@ ability_cost = 20
 ability_tooltip = "The quick shot ability
 will now penetrate through enemies."
 
-[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Stay Cloaked
 When Attacking"
@@ -139,7 +139,7 @@ ability_name = "stay_cloaked"
 ability_cost = 20
 ability_tooltip = "The cloak ability will not be broken when attacking."
 
-[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox2" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Emergency
 Teleport"
@@ -147,14 +147,14 @@ ability_name = "emergency_teleport"
 ability_cost = 20
 ability_tooltip = "Teleport to a random other location on the map to evade danger (hopefully)."
 
-[node name="CharHBox3" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
+[node name="Wizard" type="HBoxContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="PortraitPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3"]
+[node name="PortraitPanel" type="PanelContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard"]
 layout_mode = 2
 
-[node name="PortraitMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/PortraitPanel"]
+[node name="PortraitMargin" type="MarginContainer" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard/PortraitPanel"]
 custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 theme_override_constants/margin_left = 5
@@ -162,30 +162,30 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="Portrait" type="TextureRect" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3/PortraitPanel/PortraitMargin"]
+[node name="Portrait" type="TextureRect" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard/PortraitPanel/PortraitMargin"]
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 texture = ExtResource("4_60wun")
 expand_mode = 2
 
-[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("3_60wun")]
+[node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Healing Splash"
 ability_name = "healing_aoe"
 ability_cost = 20
 ability_tooltip = "Area-of-effect minor healing"
 
-[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Freeze Zone"
 ability_name = "freeze_aoe"
 ability_cost = 20
 ability_tooltip = "Area-of-effect freeze spell"
 
-[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/CharHBox3" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Poison Cloud"
 ability_name = "poison_aoe"

@@ -138,7 +138,6 @@ func execute_ability(ability_name: String, target) -> bool:
 				if is_cloaked:
 					cancel_cloak()
 					
-				action_points -= cost
 				return true  # Return true even if we didn't hit anything, as the ability was still used
 			
 			print("ScoutPlayer: " + entity_name + " line_shot failed - invalid target")
@@ -154,7 +153,6 @@ func execute_ability(ability_name: String, target) -> bool:
 			# Apply cloak effect
 			is_cloaked = true
 			cloak_turns_remaining = 2
-			action_points -= cost
 			print("ScoutPlayer: " + entity_name + " activates cloak for 2 turns")
 			
 			# Play poof and hide animation

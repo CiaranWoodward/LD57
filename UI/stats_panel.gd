@@ -5,6 +5,9 @@ signal stat_upgraded(stat_type)
 # Constants for stat types
 enum StatType { HP, AP, MP }
 
+# Maximum stat values
+const MAX_AP_MP: int = 8
+
 # Connected entity
 var connected_entity: PlayerEntity = null
 
@@ -39,6 +42,9 @@ func _ready():
 	hp_upgrade_button.pressed.connect(_on_hp_upgrade_pressed)
 	ap_upgrade_button.pressed.connect(_on_ap_upgrade_pressed)
 	mp_upgrade_button.pressed.connect(_on_mp_upgrade_pressed)
+	
+	# Connect to Global XP changes
+	Global.xp_changed.connect(_on_global_xp_changed)
 	
 	# Initially disable buttons until entity is connected
 	_update_button_states()
@@ -104,39 +110,42 @@ func _on_hp_upgrade_pressed():
 		if connected_entity.current_health < connected_entity.max_health:
 			# Just heal if not at max health
 			var heal_cost = hp_upgrade_cost / 2
-			connected_entity.experience -= heal_cost
+			Global.add_xp(-heal_cost)
 			connected_entity.heal_damage(connected_entity.max_health)
 		else:
 			# Upgrade max health
-			connected_entity.experience -= get_upgrade_cost(StatType.HP)
+			Global.add_xp(-get_upgrade_cost(StatType.HP))
 			connected_entity.max_health += 2
 			connected_entity.heal_damage(2) # Also heal by the amount increased
 			hp_upgrades += 1
 		
 		_update_cost_labels()
 		_update_button_states()
+		_update_hp_display()
 		emit_signal("stat_upgraded", StatType.HP)
 
 func _on_ap_upgrade_pressed():
 	if connected_entity and can_afford_upgrade(StatType.AP):
-		connected_entity.experience -= get_upgrade_cost(StatType.AP)
+		Global.add_xp(-get_upgrade_cost(StatType.AP))
 		connected_entity.max_action_points += 1
 		connected_entity.action_points += 1
 		ap_upgrades += 1
 		
 		_update_cost_labels()
 		_update_button_states()
+		_update_ap_display()
 		emit_signal("stat_upgraded", StatType.AP)
 
 func _on_mp_upgrade_pressed():
 	if connected_entity and can_afford_upgrade(StatType.MP):
-		connected_entity.experience -= get_upgrade_cost(StatType.MP)
+		Global.add_xp(-get_upgrade_cost(StatType.MP))
 		connected_entity.max_movement_points += 1
 		connected_entity.movement_points += 1
 		mp_upgrades += 1
 		
 		_update_cost_labels()
 		_update_button_states()
+		_update_mp_display()
 		emit_signal("stat_upgraded", StatType.MP)
 
 # Update UI displays
@@ -182,8 +191,14 @@ func get_upgrade_cost(stat_type: StatType) -> int:
 func can_afford_upgrade(stat_type: StatType) -> bool:
 	if not connected_entity:
 		return false
+	
+	# Check max limits for AP and MP
+	if stat_type == StatType.AP and connected_entity.max_action_points >= MAX_AP_MP:
+		return false
+	if stat_type == StatType.MP and connected_entity.max_movement_points >= MAX_AP_MP:
+		return false
 		
-	return connected_entity.experience >= get_upgrade_cost(stat_type)
+	return Global.xp >= get_upgrade_cost(stat_type)
 
 # Update button enabled/disabled states based on affordability
 func _update_button_states():
@@ -195,3 +210,7 @@ func _update_button_states():
 		hp_upgrade_button.disabled = true
 		ap_upgrade_button.disabled = true
 		mp_upgrade_button.disabled = true
+
+# Handle Global XP changes
+func _on_global_xp_changed(_new_xp: int):
+	_update_button_states()

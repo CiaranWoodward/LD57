@@ -110,15 +110,11 @@ func execute_ability(ability_name: String, target) -> bool:
 								apply_fireball_explosion(impact_pos)
 							)
 							
-							# Deduct action points
-							action_points -= cost
 							return true
 				
 				# Fallback if no projectile spawner - apply the damage directly
 				apply_fireball_explosion(impact_pos)
 				
-				# Deduct action points
-				action_points -= cost
 				return true
 			
 			print("WizardPlayer: " + entity_name + " fireball failed - invalid target")
