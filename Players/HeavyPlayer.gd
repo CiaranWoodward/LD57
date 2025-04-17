@@ -146,12 +146,6 @@ func execute_ability(ability_name: String, target) -> bool:
 				print("HeavyPlayer: " + entity_name + " - Cannot big drill, no valid tile below")
 				return false
 				
-			# Check for player allies in range (adjacent or further depending on upgrade)
-			var allies_in_range = get_allies_in_range(get_big_drill_range())
-			if allies_in_range.size() < 1:
-				print("HeavyPlayer: " + entity_name + " - Cannot big drill, need at least one ally in range")
-				return false
-				
 			# Start the drilling process - takes longer than regular drill
 			start_big_drilling(4)  # Takes 4 turns to complete
 			
@@ -490,24 +484,43 @@ func continue_drilling() -> bool:
 		drilling_turns_left -= 1
 		print("HeavyPlayer: " + entity_name + " big drill progress: " + str(drilling_turns_left) + " turns left")
 		
-		# Apply drilling effect to the current tile with higher intensity
+		# Make sure we have access to the target level map
+		if not game_controller or not game_controller.level_manager:
+			print("HeavyPlayer: Cannot continue drilling - game_controller or level_manager not set")
+			return false
+			
+		var target_level = current_level + 1
+		var target_map = game_controller.level_manager.level_nodes.get(target_level)
+		if not target_map:
+			print("HeavyPlayer: Cannot continue drilling - target level map not found")
+			return false
+		
+		# Apply drilling effect to the current tile if tile below is walkable
 		if current_tile:
-			current_tile.set_drilling_effect()  # Use default intensity
+			var target_tile = target_map.get_tile(grid_position)
+			if target_tile and target_tile.is_walkable:
+				current_tile.set_drilling_effect()  # Use default intensity
 		
-		# Check adjacent allies to make sure they're still there
-		var adjacent_allies = get_adjacent_players()
-		print("HeavyPlayer: Big drill has " + str(adjacent_allies.size()) + " adjacent allies")
+		# Get range distance for area of effect
+		var range_distance = get_big_drill_range()
 		
-		# Apply drilling effect to all adjacent tiles in a radius of 1
-		for x in range(-1, 2):  # -1, 0, 1
-			for y in range(-1, 2):  # -1, 0, 1
+		# Apply drilling effect to all tiles within range that have walkable tiles below
+		for x in range(-range_distance, range_distance + 1):
+			for y in range(-range_distance, range_distance + 1):
 				if x == 0 and y == 0:  # Skip the center tile (self)
 					continue
 					
-				var adjacent_pos = grid_position + Vector2i(x, y)
-				var tile = isometric_map.get_tile(adjacent_pos)
-				if tile:
-					tile.set_drilling_effect()  # Use default intensity
+				# Calculate the Manhattan distance
+				if abs(x) + abs(y) <= range_distance:
+					var adjacent_pos = grid_position + Vector2i(x, y)
+					var tile = isometric_map.get_tile(adjacent_pos)
+					
+					# Check if the corresponding tile on the level below is walkable
+					var target_tile = target_map.get_tile(adjacent_pos)
+					
+					if tile and target_tile and target_tile.is_walkable:
+						tile.set_drilling_effect()  # Use default intensity
+						
 		# Check if drilling is complete
 		if drilling_turns_left <= 0:
 			print("HeavyPlayer: Big drill operation complete!")
@@ -555,7 +568,7 @@ func complete_big_drilling() -> bool:
 		print("HeavyPlayer: Self descent " + ("succeeded" if success else "failed"))
 		
 		# If successful, move all adjacent allies down
-		if success:
+		if success and adjacent_allies.size() > 0:
 			var all_success = true
 			for ally in adjacent_allies:
 				# Restore visual appearance
@@ -566,13 +579,9 @@ func complete_big_drilling() -> bool:
 				if not ally_success:
 					print("HeavyPlayer: Failed to move ally " + ally.entity_name + " to next level")
 					all_success = false
-			return all_success
-		else:
-			print("HeavyPlayer: Failed to descend self, aborting team descent")
-			
-			# Restore appearance for adjacent allies
-			for ally in adjacent_allies:
-				ally.modulate = Color(1, 1, 1)  # Restore appearance
+			return success and all_success
+		
+		return success
 	else:
 		print("HeavyPlayer: No game_controller or level_manager, cannot descend")
 	
@@ -631,46 +640,59 @@ func highlight_big_drill_targets():
 		print("HeavyPlayer: Cannot highlight big drill targets - no valid tile below")
 		return
 		
-	# Check for allies in range
-	var range_distance = get_big_drill_range()
-	var allies_in_range = get_allies_in_range(range_distance)
-	if allies_in_range.size() < 1:
-		print("HeavyPlayer: Cannot highlight big drill targets - need at least one ally in range")
+	# Get the target level map
+	var target_level = current_level + 1
+	var target_map = game_controller.level_manager.level_nodes.get(target_level)
+	if not target_map:
+		print("HeavyPlayer: Cannot highlight big drill targets - target level map not found")
 		return
 		
 	# Clear any existing highlights
 	if game_controller:
 		game_controller.clear_all_highlights()
 		
+	# Get range distance for area of effect
+	var range_distance = get_big_drill_range()
+		
 	# Highlight the current tile as the target
 	var current_tile = isometric_map.get_tile(grid_position)
 	if current_tile:
-		current_tile.set_action_target(true)
-		print("HeavyPlayer: Highlighting current tile for big drill at position " + str(grid_position))
+		# Check if the tile below is passable
+		var target_tile = target_map.get_tile(grid_position)
+		if target_tile and target_tile.is_walkable:
+			current_tile.set_action_target(true)
+			print("HeavyPlayer: Highlighting current tile for big drill at position " + str(grid_position))
 		
-	# Also highlight the allies in range that will be part of the drill team
-	for ally in allies_in_range:
-		var ally_tile = isometric_map.get_tile(ally.grid_position)
-		if ally_tile:
-			ally_tile.set_action_target(true)
-			print("HeavyPlayer: Highlighting ally tile for big drill at position " + str(ally.grid_position))
+	# Highlight all tiles within the big drill range
+	for x in range(-range_distance, range_distance + 1):
+		for y in range(-range_distance, range_distance + 1):
+			# Skip the center tile (already handled above)
+			if x == 0 and y == 0:
+				continue
+				
+			# Calculate the Manhattan distance (|x| + |y|)
+			if abs(x) + abs(y) <= range_distance:
+				var pos = grid_position + Vector2i(x, y)
+				var tile = isometric_map.get_tile(pos)
+				
+				# Check if the corresponding tile on the level below is passable
+				var target_tile = target_map.get_tile(pos)
+				
+				if tile and tile.is_walkable and target_tile and target_tile.is_walkable:
+					tile.set_action_target(true)
+					print("HeavyPlayer: Highlighting tile in range at position " + str(pos))
 			
-	# Highlight the target level position (below the current position)
-	if game_controller.level_manager:
-		var target_level = current_level + 1
-		var target_map = game_controller.level_manager.level_nodes.get(target_level)
-		if target_map:
-			var target_tile = target_map.get_tile(grid_position)
-			if target_tile:
-				target_tile.set_action_target(true)
-				print("HeavyPlayer: Highlighting target tile for big drill at level " + str(target_level) + ", position " + str(grid_position))
-
-			# Also highlight where allies will end up
-			for ally in allies_in_range:
-				var ally_target_tile = target_map.get_tile(ally.grid_position)
-				if ally_target_tile:
-					ally_target_tile.set_action_target(true)
-					print("HeavyPlayer: Highlighting ally target tile for big drill at level " + str(target_level) + ", position " + str(ally.grid_position)) 
+	# Also highlight the target level tiles that are passable
+	for x in range(-range_distance, range_distance + 1):
+		for y in range(-range_distance, range_distance + 1):
+			# Calculate the Manhattan distance (|x| + |y|)
+			if abs(x) + abs(y) <= range_distance:
+				var pos = grid_position + Vector2i(x, y)
+				var tile = target_map.get_tile(pos)
+				
+				if tile and tile.is_walkable:
+					tile.set_action_target(true)
+					print("HeavyPlayer: Highlighting target level tile in range at level " + str(target_level) + ", position " + str(pos))
 
 # Override start_turn to handle defend ability reset
 func start_turn():
