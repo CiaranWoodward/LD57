@@ -70,7 +70,15 @@ expand_mode = 2
 [node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="AbilityPanel0" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
+layout_mode = 2
+ability_text = "Bigger Drill
+Smash Area"
+ability_name = "more_drill_smash"
+ability_cost = 20
+ability_tooltip = "An extra tile of range, so the drill smash affects a bigger area."
+
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "More Range on
 Big Drill"
@@ -78,17 +86,6 @@ ability_name = "more_big_drill"
 ability_cost = 20
 ability_tooltip = "An extra tile of range,
 so allies which are further
-away will also be brought
-down to the next level."
-
-[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Heavy" instance=ExtResource("4_ryhlo")]
-layout_mode = 2
-ability_text = "Bigger Drill
-Smash Area"
-ability_name = "more_drill_smash"
-ability_cost = 20
-ability_tooltip = "An extra tile of range,
-so allies which are furhter
 away will also be brought
 down to the next level."
 
@@ -123,7 +120,7 @@ expand_mode = 2
 [node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Penetrating Shot"
 ability_name = "penetrating_quick_shot"
@@ -131,7 +128,7 @@ ability_cost = 20
 ability_tooltip = "The quick shot ability
 will now penetrate through enemies."
 
-[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel2" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Stay Cloaked
 When Attacking"
@@ -139,7 +136,7 @@ ability_name = "stay_cloaked"
 ability_cost = 20
 ability_tooltip = "The cloak ability will not be broken when attacking."
 
-[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Scout" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Emergency
 Teleport"
@@ -171,21 +168,21 @@ expand_mode = 2
 [node name="StatsPanel" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("3_60wun")]
 layout_mode = 2
 
-[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel1" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Healing Splash"
 ability_name = "healing_aoe"
 ability_cost = 20
 ability_tooltip = "Area-of-effect minor healing"
 
-[node name="AbilityPanel4" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel2" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Freeze Zone"
 ability_name = "freeze_aoe"
 ability_cost = 20
 ability_tooltip = "Area-of-effect freeze spell"
 
-[node name="AbilityPanel5" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
+[node name="AbilityPanel3" parent="UpgradeMargin/UpgradePanel/UpgradeHBoxMargin/UpgradeVBox/Wizard" instance=ExtResource("4_ryhlo")]
 layout_mode = 2
 ability_text = "Poison Cloud"
 ability_name = "poison_aoe"

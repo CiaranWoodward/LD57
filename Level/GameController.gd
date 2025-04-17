@@ -236,33 +236,67 @@ func _handle_tile_selection_for_abilities(tile: IsometricTile, selected_entity: 
 		cancel_current_ability()
 
 # Called when an entity is selected
-func _on_entity_selected(entity):
-	print("GameController: Entity selected: " + entity.entity_name)
+func _select_entity(entity):
+	# Clear any existing highlights
+	clear_all_highlights()
 	
-	# Only allow selection of player entities during their turn
-	if current_state == GameState.PLAYER_TURN_ACTIVE and entity in player_entities and entity.is_turn_active:
-		# Don't allow selection of players who are drilling
-		if entity.is_drilling:
-			print("GameController: Cannot select " + entity.entity_name + " because they are drilling")
-			return
+	# Set the selected entity
+	if entity != selected_entity and is_instance_valid(selected_entity) and selected_entity is PlayerEntity:
+		# Reset the previous entity's appearance
+		if selected_entity is PlayerEntity:
+			selected_entity.deselect()
+	
+	selected_entity = entity
+	
+	# Handle player-specific selection
+	if entity is PlayerEntity:
+		print("GameController: Selected player entity: " + entity.entity_name)
 		
-		if selected_entity:
-			# Deselect previous entity
-			print("GameController: Deselecting previous entity")
-			# Clear all highlighted tiles
-			clear_all_highlights()
-		
-		selected_entity = entity
-		print("GameController: New entity selected: " + entity.entity_name)
-		# Visual feedback for selection would be implemented here
-		emit_signal("player_activated", entity)
-		
-		# Update the HUD with the selected player
+		# Make sure the HUD has a reference to the selected player
 		if Global.hud:
 			Global.hud.set_active_player(entity)
 		
-		# Highlight movement range for the selected entity
-		highlight_movement_range(entity)
+		# Mark the player as selected
+		entity.select()
+		
+		# If this is a player, highlight their movement range
+		if entity.is_turn_active and not entity.is_drilling:
+			if selected_entity.movement_points > 0:
+				highlight_movement_range(entity)
+				
+			# Check if there's a current ability selection
+			if current_ability != "":
+				print("GameController: Active ability: " + current_ability)
+				
+				# Highlight the appropriate targets for the ability
+				match current_ability:
+					"drill":
+						# Handle drill specifically since it needs level-based visualization
+						_handle_drill_hover(entity)
+					"drill_smash":
+						if entity.has_method("highlight_drill_smash_targets"):
+							entity.highlight_drill_smash_targets()
+					"line_shot":
+						if entity.has_method("highlight_line_shot_targets"):
+							entity.highlight_line_shot_targets()
+					"fireball":
+						if entity.has_method("highlight_fireball_targets"):
+							entity.highlight_fireball_targets()
+					"big_drill":
+						if entity.has_method("highlight_big_drill_targets"):
+							entity.highlight_big_drill_targets()
+					"charge_attack":
+						if entity.has_method("highlight_charge_attack_targets"):
+							entity.highlight_charge_attack_targets()
+	
+	elif entity is EnemyEntity:
+		# Enemy selection behavior
+		print("GameController: Selected enemy entity: " + entity.entity_name)
+		
+		# If we have a player entity selected that's in active turn, check if they can target this enemy
+		if is_instance_valid(selected_entity) and selected_entity is PlayerEntity and selected_entity.is_turn_active and current_ability != "":
+			# Players might want to target enemies with some abilities, but for now we keep the enemy selected
+			pass
 
 # Move an entity to a specific tile
 func move_entity_to_tile(entity, target_grid_pos):
@@ -604,7 +638,7 @@ func _setup_entity(entity, grid_pos, level_index: int, entity_type: String):
 	# Handle type-specific setup
 	if entity_type == "player":
 		# Connect player-specific signals
-		entity.entity_selected.connect(_on_entity_selected)
+		entity.entity_selected.connect(_select_entity)
 		entity.connect("action_selection_changed", _on_player_action_selection_changed)
 		entity.connect("movement_points_changed", _on_player_movement_points_changed)
 		entity.connect("action_points_changed", _on_player_action_points_changed)
@@ -799,49 +833,45 @@ func get_entities_at_level(level_index: int, entity_type: String = "all") -> Arr
 	return result
 
 # Connect signals from the HUD
-func _connect_hud_signals():
+func _connect_hud_signals() -> void:
 	print("GameController: Connecting HUD signals")
-	
 	if Global.hud:
-		# Connect end turn button
-		var end_turn_button = Global.hud.get_end_turn_button()
-		if end_turn_button:
-			end_turn_button.pressed.connect(_on_end_turn_button_pressed)
-			
-		# Connect drill button hover signals
+		# Connect the HUD signal for when players want to interact with the map
 		if not Global.hud.is_connected("DrillButtonHovered", Callable(self, "_on_drill_button_hovered")):
 			Global.hud.DrillButtonHovered.connect(_on_drill_button_hovered)
 			
 		if not Global.hud.is_connected("DrillButtonUnhovered", Callable(self, "_on_drill_button_unhovered")):
 			Global.hud.DrillButtonUnhovered.connect(_on_drill_button_unhovered)
 			
-		# Connect drill smash button hover signals
 		if not Global.hud.is_connected("DrillSmashButtonHovered", Callable(self, "_on_drill_smash_button_hovered")):
 			Global.hud.DrillSmashButtonHovered.connect(_on_drill_smash_button_hovered)
 			
 		if not Global.hud.is_connected("DrillSmashButtonUnhovered", Callable(self, "_on_drill_smash_button_unhovered")):
 			Global.hud.DrillSmashButtonUnhovered.connect(_on_drill_smash_button_unhovered)
 			
-		# Connect line shot button hover signals
 		if not Global.hud.is_connected("LineShotButtonHovered", Callable(self, "_on_line_shot_button_hovered")):
 			Global.hud.LineShotButtonHovered.connect(_on_line_shot_button_hovered)
 			
 		if not Global.hud.is_connected("LineShotButtonUnhovered", Callable(self, "_on_line_shot_button_unhovered")):
 			Global.hud.LineShotButtonUnhovered.connect(_on_line_shot_button_unhovered)
 			
-		# Connect fireball button hover signals
 		if not Global.hud.is_connected("FireballButtonHovered", Callable(self, "_on_fireball_button_hovered")):
 			Global.hud.FireballButtonHovered.connect(_on_fireball_button_hovered)
 			
 		if not Global.hud.is_connected("FireballButtonUnhovered", Callable(self, "_on_fireball_button_unhovered")):
 			Global.hud.FireballButtonUnhovered.connect(_on_fireball_button_unhovered)
 			
-		# Connect big drill button hover signals
 		if not Global.hud.is_connected("BigDrillButtonHovered", Callable(self, "_on_big_drill_button_hovered")):
 			Global.hud.BigDrillButtonHovered.connect(_on_big_drill_button_hovered)
 			
 		if not Global.hud.is_connected("BigDrillButtonUnhovered", Callable(self, "_on_big_drill_button_unhovered")):
 			Global.hud.BigDrillButtonUnhovered.connect(_on_big_drill_button_unhovered)
+			
+		if not Global.hud.is_connected("ChargeAttackButtonHovered", Callable(self, "_on_charge_attack_button_hovered")):
+			Global.hud.ChargeAttackButtonHovered.connect(_on_charge_attack_button_hovered)
+			
+		if not Global.hud.is_connected("ChargeAttackButtonUnhovered", Callable(self, "_on_charge_attack_button_unhovered")):
+			Global.hud.ChargeAttackButtonUnhovered.connect(_on_charge_attack_button_unhovered)
 	else:
 		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
 
@@ -875,6 +905,12 @@ func _on_big_drill_button_hovered(player):
 
 func _on_big_drill_button_unhovered():
 	_on_ability_button_unhovered("big_drill")
+	
+func _on_charge_attack_button_hovered(player):
+	_on_ability_button_hovered(player, "charge_attack")
+
+func _on_charge_attack_button_unhovered():
+	_on_ability_button_unhovered("charge_attack")
 
 # Generic handler for ability button hover
 func _on_ability_button_hovered(player: PlayerEntity, ability_name: String):
@@ -909,6 +945,9 @@ func _on_ability_button_hovered(player: PlayerEntity, ability_name: String):
 			if player.has_method("highlight_big_drill_targets"):
 				player.highlight_big_drill_targets()
 				_handle_big_drill_hover(player)
+		"charge_attack":
+			if player.has_method("highlight_charge_attack_targets"):
+				player.highlight_charge_attack_targets()
 
 # Generic handler for ability button unhover
 func _on_ability_button_unhovered(ability_name: String):
@@ -1096,3 +1135,50 @@ func _highlight_ability_targets(ability_name: String, entity: PlayerEntity):
 		"drill":
 			# Handle drill specifically since it needs level-based visualization
 			_handle_drill_hover(entity)
+		"charge_attack":
+			if entity.has_method("highlight_charge_attack_targets"):
+				entity.highlight_charge_attack_targets()
+
+func _add_entity(entity: Entity, tile: IsometricTile) -> bool:
+	# Ensure the entity isn't already on a tile
+	if entity.current_tile:
+		print("GameController: Entity " + entity.entity_name + " is already on a tile at " + str(entity.grid_position))
+		return false
+		
+	# Place the entity on the tile
+	if tile.is_walkable and not tile.is_occupied:
+		# Clear any existing selection
+		if selected_entity and selected_entity is PlayerEntity:
+			selected_entity.deselect()
+			selected_entity = null
+			clear_all_highlights()
+		
+		# Set the entity's position
+		entity.place_on_tile(tile)
+		
+		# Connect signals from the entity
+		if not entity.is_connected("entity_selected", Callable(self, "_select_entity")):
+			entity.entity_selected.connect(_select_entity)
+		
+		# Add the entity to the appropriate list
+		if entity is PlayerEntity:
+			if not player_entities.has(entity):
+				player_entities.append(entity)
+				
+			# Set the entity's game controller reference
+			entity.game_controller = self
+			print("GameController: Added player " + entity.entity_name + " at " + str(tile.grid_position))
+		elif entity is EnemyEntity:
+			if not enemy_entities.has(entity):
+				enemy_entities.append(entity)
+				
+			# Set the entity's game controller reference
+			entity.game_controller = self
+			print("GameController: Added enemy " + entity.entity_name + " at " + str(tile.grid_position))
+		else:
+			print("GameController: Added entity " + entity.entity_name + " at " + str(tile.grid_position))
+		
+		return true
+	
+	print("GameController: Failed to add entity " + entity.entity_name + " - tile is not walkable or is occupied")
+	return false

@@ -16,14 +16,14 @@ extends PanelContainer
 		ability_cost = value
 		if is_instance_valid($AbilityMargin/AbilityVBox/Cost):
 			$AbilityMargin/AbilityVBox/Cost.text = str(value)
-		if is_instance_valid($AbilityMargin/Button):
+		if is_instance_valid($Button):
 			_update_button_state()
 
 @export_multiline var ability_tooltip: String = "Placeholder":
 	set(value):
 		ability_tooltip = value
-		if is_instance_valid($AbilityMargin/Button):
-			$AbilityMargin/Button.tooltip_text = value
+		if is_instance_valid($Button):
+			$Button.tooltip_text = value
 
 var is_purchased: bool = false
 
@@ -31,9 +31,9 @@ signal button_pressed(button)
 
 func _ready():
 	$AbilityMargin/AbilityVBox/Label.text = ability_text
-	$AbilityMargin/Button.tooltip_text = ability_tooltip
+	$Button.tooltip_text = ability_tooltip
 	$AbilityMargin/AbilityVBox/Cost.text = str(ability_cost)
-	$AbilityMargin/Button.pressed.connect(_on_button_pressed)
+	$Button.pressed.connect(_on_button_pressed)
 	
 	# Connect to Global's xp_changed signal
 	Global.xp_changed.connect(_on_xp_changed)
@@ -56,8 +56,8 @@ func _on_xp_changed(_new_xp: int):
 
 func _update_button_state():
 	if is_purchased:
-		$AbilityMargin/Button.disabled = true
-		$AbilityMargin/Button.modulate = Color(0.5, 0.7, 0.5)  # Gray out the button
+		$Button.disabled = true
+		$Button.modulate = Color(0.5, 0.7, 0.5)  # Gray out the button
 	else:
-		$AbilityMargin/Button.disabled = Global.xp < ability_cost
-		$AbilityMargin/Button.modulate = Color(1, 1, 1)  # Reset to normal color
+		$Button.disabled = (Global.xp < ability_cost)
+		$Button.modulate = Color(1, 1, 1)  # Reset to normal color

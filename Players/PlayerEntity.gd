@@ -208,3 +208,10 @@ func _on_path_completed():
 	# Signal that movement is completed for UI updates
 	if is_turn_active:
 		emit_signal("action_selection_changed")
+
+# Used by the upgrade menu to unlock new abilities
+func unlock_ability(ability_name: String) -> void:
+	print("PlayerEntity: " + entity_name + " unlocked ability: " + ability_name)
+	
+	# Override this to do the actual unlocking
+	pass

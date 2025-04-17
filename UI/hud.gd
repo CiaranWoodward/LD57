@@ -17,6 +17,8 @@ signal CloakButtonHovered(player)
 signal CloakButtonUnhovered
 signal DefendButtonHovered(player)
 signal DefendButtonUnhovered
+signal ChargeAttackButtonHovered(player)
+signal ChargeAttackButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -25,7 +27,9 @@ var current_player: PlayerEntity = null
 var is_hovering_drill_button: bool = false
 var is_hovering_drill_smash_button: bool = false
 var is_hovering_line_shot_button: bool = false
+var is_hovering_fireball_button: bool = false
 var is_hovering_cloak_button: bool = false
+var is_hovering_charge_attack_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -102,6 +106,28 @@ func _ready() -> void:
 		action_defend.mouse_exited.connect(_on_defend_button_mouse_exited)
 		# Set default tooltip
 		action_defend.tooltip_text = "Defend"
+		
+	# Connect charge attack button
+	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
+	if action_charge_attack:
+		action_charge_attack.gui_input.connect(_on_action_charge_attack_input)
+		# Connect to mouse enter/exit for hover detection
+		action_charge_attack.mouse_entered.connect(_on_action_charge_attack_mouse_entered)
+		action_charge_attack.mouse_exited.connect(_on_action_charge_attack_mouse_exited)
+		# Set default tooltip
+		action_charge_attack.tooltip_text = "Charge Attack"
+		
+	# Connect XP signal
+	Global.xp_changed.connect(update_xp_counter)
+	
+	# End turn button
+	var end_button = $End/EndMargin/EndButton
+	if end_button:
+		end_button.pressed.connect(_on_end_button_pressed)
+	
+	# Connect menu buttons
+	$MenuMargin/HBoxContainer/ButtonMenu.pressed.connect(_on_button_menu_pressed)
+	$MenuMargin/HBoxContainer/ButtonUpgrade.pressed.connect(_on_button_upgrade_pressed)
 	
 	# Connect to the game controller for better synchronization
 	# We'll do this with a timer to ensure the game controller is fully initialized
@@ -515,6 +541,7 @@ func _on_player_ability_used(ability_name: String) -> void:
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
+	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
 	
 	# Reset specific button based on which ability was used
 	match ability_name:
@@ -530,6 +557,8 @@ func _on_player_ability_used(ability_name: String) -> void:
 			action_cloak.modulate = Color(1, 1, 1, 1)
 		"defend":
 			action_defend.modulate = Color(1, 1, 1, 1)
+		"charge_attack":
+			action_charge_attack.modulate = Color(1, 1, 1, 1)
 	
 	# Update all buttons
 	update_action_buttons()
@@ -645,6 +674,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
+	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
 	
 	# Get current selected ability if any
 	var game_controller = get_node("/root").find_child("GameController", true, false)
@@ -660,6 +690,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	action_fireball.tooltip_text = "Fireball"
 	action_cloak.tooltip_text = "Cloak"
 	action_defend.tooltip_text = "Defend"
+	action_charge_attack.tooltip_text = "Charge Attack"
 	
 	if current_player:
 		print("HUD: Updating action buttons for player " + current_player.entity_name + 
@@ -673,6 +704,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_fireball.visible = true
 		action_cloak.visible = true
 		action_defend.visible = true
+		action_charge_attack.visible = true
 	
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
@@ -822,6 +854,28 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_defend.visible = false
 			action_defend.disabled = true
 			print("HUD: Hiding defend button - ability not available")
+			
+		# Charge Attack ability - only for HeavyPlayer
+		if current_player.abilities.has("charge_attack") and current_player is HeavyPlayer and not current_player.is_drilling:
+			action_charge_attack.visible = true
+			action_charge_attack.tooltip_text = current_player.get_ability_description("charge_attack")
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "charge_attack":
+				action_charge_attack.modulate = Color(1.3, 0.7, 0.7, 1) # Highlighted with reddish tint
+				action_charge_attack.disabled = false
+				print("HUD: Highlighting charge_attack button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("charge_attack"):
+				action_charge_attack.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_charge_attack.disabled = false
+			else:
+				action_charge_attack.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_charge_attack.disabled = true # Disable the button
+				print("HUD: Disabling charge_attack button - not enough AP")
+		else:
+			action_charge_attack.visible = false
+			action_charge_attack.disabled = true
+			print("HUD: Hiding charge_attack button - ability not available")
 	else:
 		# No active player, hide all buttons
 		action_drill.visible = false
@@ -838,6 +892,8 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_cloak.disabled = true
 		action_defend.visible = false
 		action_defend.disabled = true
+		action_charge_attack.visible = false
+		action_charge_attack.disabled = true
 		print("HUD: Hiding all ability buttons - no active player")
 
 # Event handler for when the big drill button is clicked
@@ -893,3 +949,69 @@ func update_xp_counter(xp_value: int):
 		print("HUD: Updated XP counter to " + str(xp_value))
 	else:
 		print("HUD: Could not find XP scene to update")
+
+# Handler for the charge attack button
+func _on_action_charge_attack_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
+		# If button is disabled, don't process the click
+		if action_charge_attack.disabled:
+			return
+			
+		# If we have a current player, check if they have the ability and highlight targets
+		if current_player and current_player.abilities.has("charge_attack"):
+			if current_player is HeavyPlayer:
+				# Tell the GameController we're selecting a target for charge attack
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller:
+					# Toggle the ability if it's already active
+					if game_controller.current_ability == "charge_attack":
+						game_controller.cancel_current_ability()
+						$Action/ActionMargin/ActionHBox/ActionChargeAttack.modulate = Color(1, 1, 1, 1)  # Reset color
+						# Update buttons after canceling
+						update_action_buttons()
+						return
+					
+					# Check if player has enough action points for this ability
+					if current_player.action_points < current_player.get_ability_cost("charge_attack"):
+						print("HUD: Not enough action points for charge_attack")
+						return
+					
+					game_controller.current_ability = "charge_attack"
+					print("HUD: Set charge_attack as current ability")
+					
+					# Add visual feedback
+					$Action/ActionMargin/ActionHBox/ActionChargeAttack.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button
+				
+				current_player.highlight_charge_attack_targets()
+				# The actual ability use will be handled by the tile selection
+				
+				# Update all buttons to reflect the current selection state
+				update_action_buttons()
+
+# Show charge attack targets when hovering over charge attack button
+func _on_action_charge_attack_mouse_entered() -> void:
+	is_hovering_charge_attack_button = true
+	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
+	# Only show hover effect if button is not disabled
+	if action_charge_attack and not action_charge_attack.disabled and current_player and current_player.abilities.has("charge_attack") and current_player is HeavyPlayer:
+		print("HUD: Showing charge_attack hover effect")
+		ChargeAttackButtonHovered.emit(current_player)
+		current_player.highlight_charge_attack_targets()
+
+# Hide charge attack targets when no longer hovering over charge attack button
+func _on_action_charge_attack_mouse_exited() -> void:
+	is_hovering_charge_attack_button = false
+	
+	# Only emit the unhover signal if we're not in charge_attack ability selection mode
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if game_controller and game_controller.current_ability != "charge_attack":
+		ChargeAttackButtonUnhovered.emit()
+	else:
+		print("HUD: Keeping charge_attack highlights active since ability is selected")
+
+# End turn button
+func _on_end_button_pressed() -> void:
+	if current_player:
+		current_player.end_turn()
+		print("HUD: End turn button pressed for player " + current_player.entity_name)

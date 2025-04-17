@@ -27,6 +27,7 @@ func get_ability_cost(ability_name: String) -> int:
 		"drill_smash": return 2
 		"big_drill": return 3
 		"defend": return 1
+		"charge_attack": return 2
 		_: return super.get_ability_cost(ability_name)
 
 # Override to provide specific descriptions for Heavy abilities
@@ -34,11 +35,17 @@ func get_ability_description(ability_name: String) -> String:
 	var cost = get_ability_cost(ability_name)
 	match ability_name:
 		"drill_smash": 
+			if has_meta("drill_smash_description"):
+				return get_meta("drill_smash_description")
 			return "Drill Smash: AOE damage nearby (Cost: " + str(cost) + " AP)"
 		"big_drill": 
+			if has_meta("big_drill_description"):
+				return get_meta("big_drill_description")
 			return "Big Drill: Takes 4 turns, brings adjacent allies down too (Cost: " + str(cost) + " AP)"
 		"defend": 
 			return "Defend: Increase defense until next turn (Cost: " + str(cost) + " AP)"
+		"charge_attack":
+			return "Charge Attack: Rush toward enemy and deal damage (Cost: " + str(cost) + " AP)"
 		_: 
 			return super.get_ability_description(ability_name)
 
@@ -74,32 +81,17 @@ func execute_ability(ability_name: String, target) -> bool:
 					print("HeavyPlayer: " + entity_name + " drill_smash failed - target not in cardinal direction")
 					return false
 					
-				# Calculate the tiles that would be affected (target + left/right of target)
-				var affected_tiles = [target]
-				
-				# Find tiles to the "sides" of the target depending on direction
-				if direction.x != 0:  # Horizontal direction
-					var left_pos = target.grid_position + Vector2i(0, -1)
-					var right_pos = target.grid_position + Vector2i(0, 1)
-					var left_tile = isometric_map.get_tile(left_pos)
-					var right_tile = isometric_map.get_tile(right_pos)
-					if left_tile: affected_tiles.append(left_tile)
-					if right_tile: affected_tiles.append(right_tile)
-				else:  # Vertical direction
-					var left_pos = target.grid_position + Vector2i(-1, 0)
-					var right_pos = target.grid_position + Vector2i(1, 0)
-					var left_tile = isometric_map.get_tile(left_pos)
-					var right_tile = isometric_map.get_tile(right_pos)
-					if left_tile: affected_tiles.append(left_tile)
-					if right_tile: affected_tiles.append(right_tile)
-				
-				# Process each affected tile
-				var hit_something = false
+				# Get all tiles that would be affected using our helper function
+				var affected_tiles = _get_affected_tiles_for_direction(direction)
 				print("HeavyPlayer: " + entity_name + " using drill_smash on " + str(affected_tiles.size()) + " tiles")
 				
 				# Play the swing animation for drill smash
 				if animation_state_machine:
 					animation_state_machine.travel("Swing")
+				
+				# Process each affected tile
+				var hit_something = false
+				var pushed_entities = []  # Keep track of entities we've already pushed
 				
 				for tile in affected_tiles:
 					print("HeavyPlayer: Checking tile at " + str(tile.grid_position) + ", occupied: " + str(tile.is_occupied))
@@ -113,11 +105,16 @@ func execute_ability(ability_name: String, target) -> bool:
 						hit_something = true
 						print("HeavyPlayer: Dealt 3 damage to " + entity.entity_name)
 						
-						# Push the entity away if still alive
-						if not entity.is_dead:
-							# Calculate push position (1 tile away from player in the same direction)
-							var push_direction = direction
-							var push_position = entity.grid_position + Vector2i(round(push_direction.x), round(push_direction.y))
+						# Push the entity away if still alive and hasn't been pushed yet
+						if not entity.is_dead and not (entity in pushed_entities):
+							# Add to the list of pushed entities
+							pushed_entities.append(entity)
+							
+							# Ensure push is exactly 1 tile in the nearest cardinal direction
+							var push_position = entity.grid_position + Vector2i(
+								clamp(round(direction.x), -1, 1),
+								clamp(round(direction.y), -1, 1)
+							)
 							
 							# Check if the push position is valid
 							var push_tile = isometric_map.get_tile(push_position)
@@ -149,10 +146,10 @@ func execute_ability(ability_name: String, target) -> bool:
 				print("HeavyPlayer: " + entity_name + " - Cannot big drill, no valid tile below")
 				return false
 				
-			# Check for adjacent player allies
-			var adjacent_allies = get_adjacent_players()
-			if adjacent_allies.size() < 1:
-				print("HeavyPlayer: " + entity_name + " - Cannot big drill, need at least one adjacent ally")
+			# Check for player allies in range (adjacent or further depending on upgrade)
+			var allies_in_range = get_allies_in_range(get_big_drill_range())
+			if allies_in_range.size() < 1:
+				print("HeavyPlayer: " + entity_name + " - Cannot big drill, need at least one ally in range")
 				return false
 				
 			# Start the drilling process - takes longer than regular drill
@@ -165,6 +162,66 @@ func execute_ability(ability_name: String, target) -> bool:
 			# End the turn immediately after starting to drill
 			call_deferred("finish_turn")
 			return true
+			
+		"charge_attack":
+			# Charge attack rushes toward an enemy and deals damage
+			if target is IsometricTile and target.is_occupied and target.occupying_entity is Entity:
+				var target_entity = target.occupying_entity
+				var target_position = target.grid_position
+				
+				# Calculate the direction from player to target
+				var direction = target_position - grid_position
+				
+				# We want to normalize to a cardinal direction
+				var normalized_direction = Vector2i(0, 0)
+				if abs(direction.x) > abs(direction.y):
+					normalized_direction.x = sign(direction.x)
+				else:
+					normalized_direction.y = sign(direction.y)
+				
+				# Determine the position adjacent to the target in the direction we're coming from
+				var charge_position = target_position - normalized_direction
+				var charge_tile = isometric_map.get_tile(charge_position)
+				
+				# Make sure the charge position is valid
+				if charge_tile and charge_tile.is_walkable and not charge_tile.is_occupied:
+					# First move to the charge position
+					print("HeavyPlayer: " + entity_name + " charging from " + str(grid_position) + " to " + str(charge_position))
+					
+					# Store original tile for reference
+					var original_tile = current_tile
+					
+					# Actually move the player to the charge position
+					place_on_tile(charge_tile)
+					
+					# Play the charge animation
+					if animation_state_machine:
+						animation_state_machine.travel("Swing")  # Reuse swing animation for now
+					
+					# Damage the target entity
+					target_entity.take_damage(4)  # More damage than drill_smash
+					print("HeavyPlayer: " + entity_name + " charge attacked " + target_entity.entity_name + " for 4 damage")
+					
+					# Push the target entity back if still alive
+					if not target_entity.is_dead:
+						# Calculate push position (1 tile away from target in the same direction)
+						var push_position = target_position + normalized_direction
+						
+						# Check if the push position is valid
+						var push_tile = isometric_map.get_tile(push_position)
+						if push_tile and push_tile.is_walkable and not push_tile.is_occupied:
+							# Move the entity to the new position
+							print("HeavyPlayer: Pushing " + target_entity.entity_name + " from " + str(target_position) + " to " + str(push_position))
+							target_entity.place_on_tile(push_tile)
+						else:
+							print("HeavyPlayer: Cannot push " + target_entity.entity_name + " - destination tile invalid or occupied")
+					
+					return true
+				else:
+					print("HeavyPlayer: " + entity_name + " charge_attack failed - no valid position to charge to")
+				
+			print("HeavyPlayer: " + entity_name + " charge_attack failed - invalid target")
+			return false
 			
 		_:
 			return false
@@ -329,47 +386,62 @@ func _get_affected_tiles_for_direction(direction: Vector2i) -> Array:
 		
 		# Find tiles to the "sides" of the target depending on direction
 		if direction.x != 0:  # Horizontal direction
+			# Add side tiles
 			var left_pos = target_pos + Vector2i(0, -1)
 			var right_pos = target_pos + Vector2i(0, 1)
 			var left_tile = isometric_map.get_tile(left_pos)
 			var right_tile = isometric_map.get_tile(right_pos)
 			if left_tile: affected_tiles.append(left_tile)
 			if right_tile: affected_tiles.append(right_tile)
+			
+			# If enhanced, add additional tiles in all three directions
+			if has_meta("enhanced_drill_smash"):
+				# Extended main direction
+				var extended_pos = target_pos + direction
+				var extended_tile = isometric_map.get_tile(extended_pos)
+				if extended_tile: affected_tiles.append(extended_tile)
+				
+				# Extended left side
+				var extended_left_pos = extended_pos + Vector2i(0, -1)
+				var extended_left_tile = isometric_map.get_tile(extended_left_pos)
+				if extended_left_tile: affected_tiles.append(extended_left_tile)
+				
+				# Extended right side
+				var extended_right_pos = extended_pos + Vector2i(0, 1)
+				var extended_right_tile = isometric_map.get_tile(extended_right_pos)
+				if extended_right_tile: affected_tiles.append(extended_right_tile)
 		else:  # Vertical direction
+			# Add side tiles
 			var left_pos = target_pos + Vector2i(-1, 0)
 			var right_pos = target_pos + Vector2i(1, 0)
 			var left_tile = isometric_map.get_tile(left_pos)
 			var right_tile = isometric_map.get_tile(right_pos)
 			if left_tile: affected_tiles.append(left_tile)
 			if right_tile: affected_tiles.append(right_tile)
+			
+			# If enhanced, add additional tiles in all three directions
+			if has_meta("enhanced_drill_smash"):
+				# Extended main direction
+				var extended_pos = target_pos + direction
+				var extended_tile = isometric_map.get_tile(extended_pos)
+				if extended_tile: affected_tiles.append(extended_tile)
+				
+				# Extended left side
+				var extended_left_pos = extended_pos + Vector2i(-1, 0)
+				var extended_left_tile = isometric_map.get_tile(extended_left_pos)
+				if extended_left_tile: affected_tiles.append(extended_left_tile)
+				
+				# Extended right side
+				var extended_right_pos = extended_pos + Vector2i(1, 0)
+				var extended_right_tile = isometric_map.get_tile(extended_right_pos)
+				if extended_right_tile: affected_tiles.append(extended_right_tile)
 	
 	return affected_tiles 
 
 # Helper to find adjacent player allies
 func get_adjacent_players() -> Array:
-	var adjacent_players = []
-	
-	# Use the game_controller reference
-	assert(game_controller != null, "HeavyPlayer: " + entity_name + " - GameController reference not set")
-	assert(game_controller is GameController, "HeavyPlayer: " + entity_name + " - game_controller is not a GameController instance")
-	
-	# Get the cardinal directions
-	var directions = [
-		Vector2i(1, 0),  # Right
-		Vector2i(-1, 0), # Left
-		Vector2i(0, 1),  # Down
-		Vector2i(0, -1)  # Up
-	]
-	
-	# Check each adjacent tile for player entities
-	for dir in directions:
-		var check_pos = grid_position + dir
-		var tile = isometric_map.get_tile(check_pos)
-		
-		if tile and tile.is_occupied and tile.occupying_entity is PlayerEntity and tile.occupying_entity != self:
-			adjacent_players.append(tile.occupying_entity)
-	
-	return adjacent_players
+	var range_distance = get_big_drill_range()
+	return get_allies_in_range(range_distance)
 
 # Starts the big drilling operation, which affects adjacent players too
 func start_big_drilling(turns_required: int = 4):
@@ -559,10 +631,11 @@ func highlight_big_drill_targets():
 		print("HeavyPlayer: Cannot highlight big drill targets - no valid tile below")
 		return
 		
-	# Check for adjacent player allies
-	var adjacent_allies = get_adjacent_players()
-	if adjacent_allies.size() < 1:
-		print("HeavyPlayer: Cannot highlight big drill targets - need at least one adjacent ally")
+	# Check for allies in range
+	var range_distance = get_big_drill_range()
+	var allies_in_range = get_allies_in_range(range_distance)
+	if allies_in_range.size() < 1:
+		print("HeavyPlayer: Cannot highlight big drill targets - need at least one ally in range")
 		return
 		
 	# Clear any existing highlights
@@ -575,8 +648,8 @@ func highlight_big_drill_targets():
 		current_tile.set_action_target(true)
 		print("HeavyPlayer: Highlighting current tile for big drill at position " + str(grid_position))
 		
-	# Also highlight the adjacent player allies that will be part of the drill team
-	for ally in adjacent_allies:
+	# Also highlight the allies in range that will be part of the drill team
+	for ally in allies_in_range:
 		var ally_tile = isometric_map.get_tile(ally.grid_position)
 		if ally_tile:
 			ally_tile.set_action_target(true)
@@ -593,7 +666,7 @@ func highlight_big_drill_targets():
 				print("HeavyPlayer: Highlighting target tile for big drill at level " + str(target_level) + ", position " + str(grid_position))
 
 			# Also highlight where allies will end up
-			for ally in adjacent_allies:
+			for ally in allies_in_range:
 				var ally_target_tile = target_map.get_tile(ally.grid_position)
 				if ally_target_tile:
 					ally_target_tile.set_action_target(true)
@@ -613,3 +686,121 @@ func start_turn():
 	
 	# Call parent implementation
 	super.start_turn()
+
+# Override to implement ability unlocking for Heavy class
+func unlock_ability(ability_name: String) -> void:
+	print("HeavyPlayer: " + entity_name + " unlocking ability: " + ability_name)
+	
+	match ability_name:
+		"more_drill_smash":
+			# Enhance drill_smash to have a larger area of effect
+			print("HeavyPlayer: Unlocked enhanced drill_smash - larger area effect")
+			
+			# Add a property to track the upgrade state
+			set_meta("enhanced_drill_smash", true)
+			
+			# Update description to reflect the enhanced ability
+			var cost = get_ability_cost("drill_smash")
+			set_meta("drill_smash_description", "Drill Smash: Extended range in all directions (6 tiles total) (Cost: " + str(cost) + " AP)")
+			
+		"more_big_drill":
+			# Enhance big_drill to have a larger range for allies
+			print("HeavyPlayer: Unlocked enhanced big_drill - can bring distant allies down")
+			
+			# Add a property to track the upgrade state
+			set_meta("enhanced_big_drill", true)
+			
+			# Update description to reflect the enhanced ability
+			var cost = get_ability_cost("big_drill")
+			set_meta("big_drill_description", "Big Drill: Takes 4 turns, brings nearby allies down too (Cost: " + str(cost) + " AP)")
+			
+		"charge_attack":
+			# Add a new charge attack ability to the player's abilities list
+			print("HeavyPlayer: Unlocked new charge_attack ability")
+			
+			# Add the new ability if not already present
+			if not abilities.has("charge_attack"):
+				abilities.append("charge_attack")
+			
+			# Signal that abilities have changed
+			emit_signal("ability_used")  # This will update the UI
+
+# Helper function to get the big drill range (enhanced if upgraded)
+func get_big_drill_range() -> int:
+	return 2 if has_meta("enhanced_big_drill") else 1
+
+# Helper function to get the drill smash range (enhanced if upgraded)
+func get_drill_smash_sides_count() -> int:
+	return 2 if has_meta("enhanced_drill_smash") else 1
+
+# Helper function to get allies within a certain range
+func get_allies_in_range(range_distance: int) -> Array:
+	var allies_in_range = []
+	
+	# Use the game_controller reference
+	assert(game_controller != null, "HeavyPlayer: " + entity_name + " - GameController reference not set")
+	
+	# Check for player entities in range
+	for player in game_controller.player_entities:
+		if player != self:  # Don't include self
+			var distance = grid_position.distance_to(player.grid_position)
+			if distance <= range_distance:
+				allies_in_range.append(player)
+	
+	return allies_in_range
+
+# Highlight the charge attack targets
+func highlight_charge_attack_targets():
+	# Get the isometric map
+	if not isometric_map:
+		print("HeavyPlayer: Cannot highlight charge attack targets - isometric_map is null")
+		return
+		
+	# Clear any existing highlights
+	if game_controller:
+		game_controller.clear_all_highlights()
+	
+	# Let's look for enemies that are in a straight line (cardinal directions)
+	var directions = [
+		Vector2i(1, 0),   # Right
+		Vector2i(-1, 0),  # Left
+		Vector2i(0, 1),   # Down
+		Vector2i(0, -1),  # Up
+	]
+	
+	var max_charge_distance = 4  # Maximum distance for charge attack
+	var highlighted_count = 0
+	
+	# Check in each cardinal direction
+	for dir in directions:
+		var current_pos = grid_position
+		var distance = 0
+		
+		# Check up to max_charge_distance tiles in this direction
+		while distance < max_charge_distance:
+			current_pos += dir
+			distance += 1
+			
+			# Check if tile exists and is walkable
+			var current_tile = isometric_map.get_tile(current_pos)
+			if not current_tile or not current_tile.is_walkable:
+				break
+			
+			# If there's an entity on this tile, highlight it as a target
+			if current_tile.is_occupied and current_tile.occupying_entity is Entity:
+				var entity = current_tile.occupying_entity
+				
+				# Only highlight enemy entities as targets
+				if entity in game_controller.enemy_entities:
+					# Make sure there's a free tile adjacent to the enemy that we can charge to
+					var charge_position = current_pos - dir
+					var charge_tile = isometric_map.get_tile(charge_position)
+					
+					# Only highlight if we have a valid position to charge to
+					if charge_tile and charge_tile.is_walkable and not charge_tile.is_occupied and charge_position != grid_position:
+						current_tile.set_action_target(true)
+						highlighted_count += 1
+						print("HeavyPlayer: Highlighted charge target at " + str(current_pos))
+					break
+	
+	print("HeavyPlayer: Highlighted " + str(highlighted_count) + " charge attack targets")
