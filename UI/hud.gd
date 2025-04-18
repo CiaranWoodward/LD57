@@ -229,41 +229,40 @@ func _on_action_drill_smash_input(event: InputEvent) -> void:
 			
 		# If we have a current player, check if they have the ability and highlight targets
 		if current_player and current_player.abilities.has("drill_smash"):
-			if current_player is HeavyPlayer:
-				# Tell the GameController we're selecting a target for drill smash
-				var game_controller = get_node("/root").find_child("GameController", true, false)
-				if game_controller:
-					# Toggle the ability if it's already active
-					if game_controller.current_ability == "drill_smash":
-						game_controller.cancel_current_ability()
-						$Action/ActionMargin/ActionHBox/ActionDrillSmash.modulate = Color(1, 1, 1, 1)  # Reset color
-						# Update buttons after canceling
-						update_action_buttons()
-						return
-					
-					# Check if player has enough action points for this ability
-					if current_player.action_points < current_player.get_ability_cost("drill_smash"):
-						print("HUD: Not enough action points for drill_smash")
-						return
-					
-					game_controller.current_ability = "drill_smash"
-					print("HUD: Set drill_smash as current ability")
-					
-					# Add visual feedback
-					$Action/ActionMargin/ActionHBox/ActionDrillSmash.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button
+			# Tell the GameController we're selecting a target for drill smash
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				# Toggle the ability if it's already active
+				if game_controller.current_ability == "drill_smash":
+					game_controller.cancel_current_ability()
+					$Action/ActionMargin/ActionHBox/ActionDrillSmash.modulate = Color(1, 1, 1, 1)  # Reset color
+					# Update buttons after canceling
+					update_action_buttons()
+					return
 				
-				current_player.highlight_drill_smash_targets()
-				# The actual ability use will be handled by the tile selection
+				# Check if player has enough action points for this ability
+				if current_player.action_points < current_player.get_ability_cost("drill_smash"):
+					print("HUD: Not enough action points for drill_smash")
+					return
 				
-				# Update all buttons to reflect the current selection state
-				update_action_buttons()
+				game_controller.current_ability = "drill_smash"
+				print("HUD: Set drill_smash as current ability")
+				
+				# Add visual feedback
+				$Action/ActionMargin/ActionHBox/ActionDrillSmash.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button
+			
+			current_player.highlight_drill_smash_targets()
+			# The actual ability use will be handled by the tile selection
+			
+			# Update all buttons to reflect the current selection state
+			update_action_buttons()
 
 # Show drill smash targets when hovering over drill smash button
 func _on_action_drill_smash_mouse_entered() -> void:
 	is_hovering_drill_smash_button = true
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	# Only show hover effect if button is not disabled
-	if action_drill_smash and not action_drill_smash.disabled and current_player and current_player.abilities.has("drill_smash") and current_player is HeavyPlayer:
+	if action_drill_smash and not action_drill_smash.disabled and current_player and current_player.abilities.has("drill_smash"):
 		print("HUD: Showing drill_smash hover effect")
 		DrillSmashButtonHovered.emit(current_player)
 		current_player.highlight_drill_smash_targets()
@@ -289,41 +288,40 @@ func _on_action_line_shot_input(event: InputEvent) -> void:
 			
 		# If we have a current player, check if they have the ability and highlight targets
 		if current_player and current_player.abilities.has("line_shot"):
-			if current_player is ScoutPlayer:
-				# Tell the GameController we're selecting a target for line shot
-				var game_controller = get_node("/root").find_child("GameController", true, false)
-				if game_controller:
-					# Toggle the ability if it's already active
-					if game_controller.current_ability == "line_shot":
-						game_controller.cancel_current_ability()
-						$Action/ActionMargin/ActionHBox/ActionLineShot.modulate = Color(1, 1, 1, 1)  # Reset color
-						# Update buttons after canceling
-						update_action_buttons()
-						return
-					
-					# Check if player has enough action points for this ability
-					if current_player.action_points < current_player.get_ability_cost("line_shot"):
-						print("HUD: Not enough action points for line_shot")
-						return
-					
-					game_controller.current_ability = "line_shot"
-					print("HUD: Set line_shot as current ability")
-					
-					# Add visual feedback
-					$Action/ActionMargin/ActionHBox/ActionLineShot.modulate = Color(0.7, 1.3, 0.7, 1)  # Highlight button
+			# Tell the GameController we're selecting a target for line shot
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				# Toggle the ability if it's already active
+				if game_controller.current_ability == "line_shot":
+					game_controller.cancel_current_ability()
+					$Action/ActionMargin/ActionHBox/ActionLineShot.modulate = Color(1, 1, 1, 1)  # Reset color
+					# Update buttons after canceling
+					update_action_buttons()
+					return
 				
-				current_player.highlight_line_shot_targets()
-				# The actual ability use will be handled by the tile selection
+				# Check if player has enough action points for this ability
+				if current_player.action_points < current_player.get_ability_cost("line_shot"):
+					print("HUD: Not enough action points for line_shot")
+					return
 				
-				# Update all buttons to reflect the current selection state
-				update_action_buttons()
+				game_controller.current_ability = "line_shot"
+				print("HUD: Set line_shot as current ability")
+				
+				# Add visual feedback
+				$Action/ActionMargin/ActionHBox/ActionLineShot.modulate = Color(0.7, 1.3, 0.7, 1)  # Highlight button
+			
+			current_player.highlight_line_shot_targets()
+			# The actual ability use will be handled by the tile selection
+			
+			# Update all buttons to reflect the current selection state
+			update_action_buttons()
 
 # Show line shot targets when hovering over line shot button
 func _on_action_line_shot_mouse_entered() -> void:
 	is_hovering_line_shot_button = true
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	# Only show hover effect if button is not disabled
-	if action_line_shot and not action_line_shot.disabled and current_player and current_player.abilities.has("line_shot") and current_player is ScoutPlayer:
+	if action_line_shot and not action_line_shot.disabled and current_player and current_player.abilities.has("line_shot"):
 		print("HUD: Showing line_shot hover effect")
 		LineShotButtonHovered.emit(current_player)
 		current_player.highlight_line_shot_targets()
@@ -349,40 +347,39 @@ func _on_action_fireball_input(event: InputEvent) -> void:
 			
 		# If we have a current player, check if they have the ability and highlight targets
 		if current_player and current_player.abilities.has("fireball"):
-			if current_player is WizardPlayer:
-				# Tell the GameController we're selecting a target for fireball
-				var game_controller = get_node("/root").find_child("GameController", true, false)
-				if game_controller:
-					# Toggle the ability if it's already active
-					if game_controller.current_ability == "fireball":
-						game_controller.cancel_current_ability()
-						$Action/ActionMargin/ActionHBox/ActionFireball.modulate = Color(1, 1, 1, 1)  # Reset color
-						# Update buttons after canceling
-						update_action_buttons()
-						return
-					
-					# Check if player has enough action points for this ability
-					if current_player.action_points < current_player.get_ability_cost("fireball"):
-						print("HUD: Not enough action points for fireball")
-						return
-					
-					game_controller.current_ability = "fireball"
-					print("HUD: Set fireball as current ability")
-					
-					# Add visual feedback
-					$Action/ActionMargin/ActionHBox/ActionFireball.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button with reddish tint
+			# Tell the GameController we're selecting a target for fireball
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				# Toggle the ability if it's already active
+				if game_controller.current_ability == "fireball":
+					game_controller.cancel_current_ability()
+					$Action/ActionMargin/ActionHBox/ActionFireball.modulate = Color(1, 1, 1, 1)  # Reset color
+					# Update buttons after canceling
+					update_action_buttons()
+					return
 				
-				current_player.highlight_fireball_targets()
-				# The actual ability use will be handled by the tile selection
+				# Check if player has enough action points for this ability
+				if current_player.action_points < current_player.get_ability_cost("fireball"):
+					print("HUD: Not enough action points for fireball")
+					return
 				
-				# Update all buttons to reflect the current selection state
-				update_action_buttons()
+				game_controller.current_ability = "fireball"
+				print("HUD: Set fireball as current ability")
+				
+				# Add visual feedback
+				$Action/ActionMargin/ActionHBox/ActionFireball.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button with reddish tint
+			
+			current_player.highlight_fireball_targets()
+			# The actual ability use will be handled by the tile selection
+			
+			# Update all buttons to reflect the current selection state
+			update_action_buttons()
 
 # Show fireball targets when hovering over fireball button
 func _on_action_fireball_mouse_entered() -> void:
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	# Only show hover effect if button is not disabled
-	if action_fireball and not action_fireball.disabled and current_player and current_player.abilities.has("fireball") and current_player is WizardPlayer:
+	if action_fireball and not action_fireball.disabled and current_player and current_player.abilities.has("fireball"):
 		print("HUD: Showing fireball hover effect")
 		FireballButtonHovered.emit(current_player)
 		current_player.highlight_fireball_targets()
@@ -405,7 +402,7 @@ func _on_action_cloak_input(event: InputEvent) -> void:
 			return
 			
 		# If we have a current player, try to use the cloak ability
-		if current_player and current_player.abilities.has("cloak") and current_player is ScoutPlayer:
+		if current_player and current_player.abilities.has("cloak"):
 			var success = current_player.execute_ability("cloak", null)  # Cloak doesn't need a target
 			print("HUD: Cloak ability use " + ("succeeded" if success else "failed"))
 			
@@ -429,7 +426,7 @@ func _on_action_cloak_mouse_entered() -> void:
 	is_hovering_cloak_button = true
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	# Only show hover effect if button is not disabled
-	if action_cloak and not action_cloak.disabled and current_player and current_player.abilities.has("cloak") and current_player is ScoutPlayer:
+	if action_cloak and not action_cloak.disabled and current_player and current_player.abilities.has("cloak"):
 		print("HUD: Showing cloak hover effect")
 		CloakButtonHovered.emit(current_player)
 
@@ -447,7 +444,7 @@ func _on_action_defend_input(event: InputEvent) -> void:
 			return
 			
 		# If we have a current player, try to use the defend ability
-		if current_player and current_player.abilities.has("defend") and current_player is HeavyPlayer:
+		if current_player and current_player.abilities.has("defend"):
 			var success = current_player.use_ability("defend", null)  # Defend doesn't need a target
 			print("HUD: Defend ability use " + ("succeeded" if success else "failed"))
 			
@@ -470,7 +467,7 @@ func _on_action_defend_input(event: InputEvent) -> void:
 func _on_defend_button_mouse_entered() -> void:
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	# Only show hover effect if button is not disabled
-	if action_defend and not action_defend.disabled and current_player and current_player.abilities.has("defend") and current_player is HeavyPlayer:
+	if action_defend and not action_defend.disabled and current_player and current_player.abilities.has("defend"):
 		print("HUD: Showing defend hover effect")
 		DefendButtonHovered.emit(current_player)
 
@@ -765,7 +762,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding big drill button - ability not available")
 		
 		# Drill Smash ability - only for HeavyPlayer
-		if current_player.abilities.has("drill_smash") and current_player is HeavyPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("drill_smash") and not current_player.is_drilling:
 			action_drill_smash.visible = true
 			action_drill_smash.tooltip_text = current_player.get_ability_description("drill_smash")
 			# If it's the current selected ability, keep it highlighted
@@ -787,7 +784,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding drill_smash button - ability not available")
 		
 		# Line Shot ability - only for ScoutPlayer
-		if current_player.abilities.has("line_shot") and current_player is ScoutPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("line_shot") and not current_player.is_drilling:
 			action_line_shot.visible = true
 			action_line_shot.tooltip_text = current_player.get_ability_description("line_shot")
 			# If it's the current selected ability, keep it highlighted
@@ -809,7 +806,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding line_shot button - ability not available")
 			
 		# Cloak ability - only for ScoutPlayer
-		if current_player.abilities.has("cloak") and current_player is ScoutPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("cloak") and not current_player.is_drilling:
 			action_cloak.visible = true
 			action_cloak.tooltip_text = current_player.get_ability_description("cloak")
 			# If cloak is already active, keep it highlighted
@@ -831,7 +828,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding cloak button - ability not available")
 			
 		# Fireball ability - only for WizardPlayer
-		if current_player.abilities.has("fireball") and current_player is WizardPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("fireball") and not current_player.is_drilling:
 			action_fireball.visible = true
 			action_fireball.tooltip_text = current_player.get_ability_description("fireball")
 			# If it's the current selected ability, keep it highlighted
@@ -853,7 +850,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding fireball button - ability not available")
 			
 		# Defend ability - only for HeavyPlayer
-		if current_player.abilities.has("defend") and current_player is HeavyPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("defend") and not current_player.is_drilling:
 			action_defend.visible = true
 			action_defend.tooltip_text = current_player.get_ability_description("defend")
 			# If defend is already active, keep it highlighted
@@ -875,7 +872,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding defend button - ability not available")
 			
 		# Charge Attack ability - only for HeavyPlayer
-		if current_player.abilities.has("charge_attack") and current_player is HeavyPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("charge_attack") and not current_player.is_drilling:
 			action_charge_attack.visible = true
 			action_charge_attack.tooltip_text = current_player.get_ability_description("charge_attack")
 			# If it's the current selected ability, keep it highlighted
@@ -897,7 +894,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			print("HUD: Hiding charge_attack button - ability not available")
 			
 		# Emergency Teleport ability - only for ScoutPlayer
-		if current_player.abilities.has("emergency_teleport") and current_player is ScoutPlayer and not current_player.is_drilling:
+		if current_player.abilities.has("emergency_teleport") and not current_player.is_drilling:
 			action_emergency_teleport.visible = true
 			action_emergency_teleport.tooltip_text = current_player.get_ability_description("emergency_teleport")
 			# If it's the current selected ability, keep it highlighted
@@ -948,7 +945,7 @@ func _on_action_big_drill_input(event: InputEvent) -> void:
 			return
 			
 		# If we have a current player, try to use the big drill ability
-		if current_player and current_player.abilities.has("big_drill") and current_player is HeavyPlayer:
+		if current_player and current_player.abilities.has("big_drill"):
 			var success = current_player.use_ability("big_drill", null)  # Big drill doesn't need a target
 			print("HUD: Big drill ability use " + ("succeeded" if success else "failed"))
 			
@@ -971,7 +968,7 @@ func _on_action_big_drill_input(event: InputEvent) -> void:
 func _on_big_drill_button_hovered() -> void:
 	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
 	# Only show hover effect if button is not disabled
-	if action_big_drill and not action_big_drill.disabled and current_player and current_player is HeavyPlayer and current_player.abilities.has("big_drill"):
+	if action_big_drill and not action_big_drill.disabled and current_player and current_player.abilities.has("big_drill"):
 		print("HUD: Showing big drill hover effect")
 		BigDrillButtonHovered.emit(current_player)
 		current_player.highlight_big_drill_targets()
@@ -1003,41 +1000,40 @@ func _on_action_charge_attack_input(event: InputEvent) -> void:
 			
 		# If we have a current player, check if they have the ability and highlight targets
 		if current_player and current_player.abilities.has("charge_attack"):
-			if current_player is HeavyPlayer:
-				# Tell the GameController we're selecting a target for charge attack
-				var game_controller = get_node("/root").find_child("GameController", true, false)
-				if game_controller:
-					# Toggle the ability if it's already active
-					if game_controller.current_ability == "charge_attack":
-						game_controller.cancel_current_ability()
-						$Action/ActionMargin/ActionHBox/ActionChargeAttack.modulate = Color(1, 1, 1, 1)  # Reset color
-						# Update buttons after canceling
-						update_action_buttons()
-						return
-					
-					# Check if player has enough action points for this ability
-					if current_player.action_points < current_player.get_ability_cost("charge_attack"):
-						print("HUD: Not enough action points for charge_attack")
-						return
-					
-					game_controller.current_ability = "charge_attack"
-					print("HUD: Set charge_attack as current ability")
-					
-					# Add visual feedback
-					$Action/ActionMargin/ActionHBox/ActionChargeAttack.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button
+			# Tell the GameController we're selecting a target for charge attack
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				# Toggle the ability if it's already active
+				if game_controller.current_ability == "charge_attack":
+					game_controller.cancel_current_ability()
+					$Action/ActionMargin/ActionHBox/ActionChargeAttack.modulate = Color(1, 1, 1, 1)  # Reset color
+					# Update buttons after canceling
+					update_action_buttons()
+					return
 				
-				current_player.highlight_charge_attack_targets()
-				# The actual ability use will be handled by the tile selection
+				# Check if player has enough action points for this ability
+				if current_player.action_points < current_player.get_ability_cost("charge_attack"):
+					print("HUD: Not enough action points for charge_attack")
+					return
 				
-				# Update all buttons to reflect the current selection state
-				update_action_buttons()
+				game_controller.current_ability = "charge_attack"
+				print("HUD: Set charge_attack as current ability")
+				
+				# Add visual feedback
+				$Action/ActionMargin/ActionHBox/ActionChargeAttack.modulate = Color(1.3, 0.7, 0.7, 1)  # Highlight button
+			
+			current_player.highlight_charge_attack_targets()
+			# The actual ability use will be handled by the tile selection
+			
+			# Update all buttons to reflect the current selection state
+			update_action_buttons()
 
 # Show charge attack targets when hovering over charge attack button
 func _on_action_charge_attack_mouse_entered() -> void:
 	is_hovering_charge_attack_button = true
 	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
 	# Only show hover effect if button is not disabled
-	if action_charge_attack and not action_charge_attack.disabled and current_player and current_player.abilities.has("charge_attack") and current_player is HeavyPlayer:
+	if action_charge_attack and not action_charge_attack.disabled and current_player and current_player.abilities.has("charge_attack"):
 		print("HUD: Showing charge_attack hover effect")
 		ChargeAttackButtonHovered.emit(current_player)
 		current_player.highlight_charge_attack_targets()
@@ -1062,7 +1058,7 @@ func _on_action_emergency_teleport_input(event: InputEvent) -> void:
 			return
 			
 		# If we have a current player, try to use the emergency teleport ability
-		if current_player and current_player.abilities.has("emergency_teleport") and current_player is ScoutPlayer:
+		if current_player and current_player.abilities.has("emergency_teleport"):
 			var success = current_player.use_ability("emergency_teleport", null)  # Emergency teleport doesn't need a target
 			print("HUD: Emergency teleport ability use " + ("succeeded" if success else "failed"))
 			
@@ -1086,7 +1082,7 @@ func _on_action_emergency_teleport_mouse_entered() -> void:
 	is_hovering_emergency_teleport_button = true
 	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
 	# Only show hover effect if button is not disabled
-	if action_emergency_teleport and not action_emergency_teleport.disabled and current_player and current_player.abilities.has("emergency_teleport") and current_player is ScoutPlayer:
+	if action_emergency_teleport and not action_emergency_teleport.disabled and current_player and current_player.abilities.has("emergency_teleport"):
 		print("HUD: Showing emergency_teleport hover effect")
 		EmergencyTeleportButtonHovered.emit(current_player)
 
