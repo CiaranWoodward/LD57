@@ -182,6 +182,11 @@ func project_beam(direction: Vector2i) -> Array:
 		# If the tile has an entity, add it to hit entities
 		if current_tile.is_occupied and current_tile.occupying_entity:
 			var entity = current_tile.occupying_entity
+			
+			# Skip cloaked players - they shouldn't be targeted by beam attacks
+			if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+				continue
+				
 			hit_entities.append(entity)
 			
 			# If we hit a wall or enemy, the beam stops (doesn't pass through)
@@ -253,6 +258,10 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 	if projectile_spawner:
 		# For each hit entity, spawn a projectile from boss to entity
 		for entity in hit_entities:
+			# Double-check to ensure no cloaked players are targeted
+			if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
+				continue
+				
 			var target_pos = entity.global_position
 			target_pos.y -= 35  # Standard entity height offset
 			
@@ -264,18 +273,12 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 			if projectile:
 				# When projectile hits, apply damage to entity
 				projectile.hit_target.connect(func():
-					var is_cloaked_scout = false
-					# Check if it's a cloaked scout - we'll still damage them, but note that they're cloaked
-					if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
-						is_cloaked_scout = true
-						print("BossEnemy: Beam attack found cloaked scout")
-					
 					# Apply damage
 					entity.take_damage(beam_attack_damage)
 					print("BossEnemy: Beam attack hit " + entity.entity_name + " for " + str(beam_attack_damage) + " damage")
 					
 					# Add hit effect at entity's position
-					create_hit_effect(entity, is_cloaked_scout)
+					create_hit_effect(entity)
 				)
 		
 		# If no entities were hit, still show projectile to furthest point
@@ -291,7 +294,7 @@ func perform_beam_attack(attack_direction: Vector2i, hit_entities: Array):
 	print("BossEnemy: Beam attack hit " + str(hit_entities.size()) + " entities")
 
 # Create hit effect at entity's position (reused from previous implementation)
-func create_hit_effect(entity, is_cloaked_scout: bool = false):
+func create_hit_effect(entity):
 	# Add hit effect at entity's position
 	if is_instance_valid(entity):
 		var hit_particles = CPUParticles2D.new()
@@ -319,11 +322,8 @@ func create_hit_effect(entity, is_cloaked_scout: bool = false):
 		hit_particles.scale_amount_min = 3.0
 		hit_particles.scale_amount_max = 5.0
 		
-		# Use special color for cloaked units being revealed
-		if is_cloaked_scout:
-			hit_particles.color = Color(1.0, 0.8, 0.2, 0.9) # Bright yellow to show cloak breaking
-		else:
-			hit_particles.color = Color(1, 0.1, 0.1, 0.8)
+		# Set hit particle color
+		hit_particles.color = Color(1, 0.1, 0.1, 0.8)  # Red color for damage
 		
 		# Position particles at the hit entity (use world coordinates)
 		var world_pos = entity.global_position
@@ -342,14 +342,13 @@ func create_hit_effect(entity, is_cloaked_scout: bool = false):
 func apply_beam_damage(hit_entities: Array):
 	# Apply damage to hit entities
 	for entity in hit_entities:
-		var is_cloaked_scout = false
-		# Check if it's a cloaked scout - we'll still damage them, but note that they're cloaked
+		# Skip cloaked players
 		if entity is PlayerEntity and entity.has_method("is_visible_to_enemies") and not entity.is_visible_to_enemies():
-			is_cloaked_scout = true
-			print("BossEnemy: Beam attack found cloaked scout")
+			continue
 			
+		# Apply damage
 		entity.take_damage(beam_attack_damage)
 		print("BossEnemy: Beam attack hit " + entity.entity_name + " for " + str(beam_attack_damage) + " damage")
 		
 		# Add hit effect at entity's position
-		create_hit_effect(entity, is_cloaked_scout)
+		create_hit_effect(entity)
