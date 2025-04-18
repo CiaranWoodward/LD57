@@ -29,6 +29,7 @@ func get_ability_cost(ability_name: String) -> int:
 	match ability_name:
 		"line_shot": return 2
 		"cloak": return 2
+		"emergency_teleport": return 2
 		_: return super.get_ability_cost(ability_name)
 
 # Override to provide specific descriptions for Scout abilities
@@ -36,9 +37,17 @@ func get_ability_description(ability_name: String) -> String:
 	var cost = get_ability_cost(ability_name)
 	match ability_name:
 		"line_shot": 
+			# Use enhanced description if available
+			if has_meta("line_shot_description"):
+				return get_meta("line_shot_description")
 			return "Line Shot: Ranged attack, up to " + str(line_shot_range) + " tiles (Cost: " + str(cost) + " AP)"
 		"cloak": 
+			# Use enhanced description if available
+			if has_meta("cloak_description"):
+				return get_meta("cloak_description")
 			return "Cloak: Invisible for 2 turns (Cost: " + str(cost) + " AP)"
+		"emergency_teleport":
+			return "Emergency Teleport: Escape to a random location (Cost: " + str(cost) + " AP)"
 		_: 
 			return super.get_ability_description(ability_name)
 
@@ -46,7 +55,8 @@ func execute_ability(ability_name: String, target) -> bool:
 	# First try the parent implementation (for common abilities like drill)
 	if super.execute_ability(ability_name, target):
 		# If any ability is used, cancel cloak (except movement which is handled separately)
-		if is_cloaked and ability_name != "move":
+		# Don't cancel cloak if we have the enhanced_cloak upgrade
+		if is_cloaked and ability_name != "move" and not has_meta("enhanced_cloak"):
 			cancel_cloak()
 		return true
 		
@@ -81,15 +91,14 @@ func execute_ability(ability_name: String, target) -> bool:
 				if animation_state_machine:
 					animation_state_machine.travel("Shoot")
 				
-				# Calculate the line of tiles in the direction, up to max range or until we hit a wall
+				# Calculate the line of tiles in the direction
 				var current_pos = grid_position
-				var has_hit = false
 				var distance = 0
-				var target_entity = null
-				var target_tile = null
-				var farthest_tile = null
+				var hit_entities = []  # Track entities hit for penetrating shot
+				var path_tiles = []    # Track all tiles in the path
+				var final_target_tile = null  # Furthest tile to aim at
 				
-				# We'll stop if we hit a wall or if we go beyond the maximum range
+				# We'll collect all tiles in the path up to max range or wall
 				while distance < line_shot_range:
 					# Move one step in the direction
 					current_pos += Vector2i(direction)
@@ -103,39 +112,43 @@ func execute_ability(ability_name: String, target) -> bool:
 						print("ScoutPlayer: line_shot hit a wall at " + str(current_pos))
 						break
 					
-					# Keep track of the farthest walkable tile
-					farthest_tile = current_tile
+					# Add this tile to our path
+					path_tiles.append(current_tile)
 					
-					# If there's an entity on this tile, damage it and stop
+					# Update the furthest tile we've seen
+					final_target_tile = current_tile
+					
+					# If there's an entity on this tile, collect it for damage
 					if current_tile.is_occupied and current_tile.occupying_entity is Entity:
-						target_entity = current_tile.occupying_entity
-						target_tile = current_tile
-						print("ScoutPlayer: line_shot hit entity " + target_entity.entity_name + " at " + str(current_pos))
-						has_hit = true
-						break
+						hit_entities.append(current_tile.occupying_entity)
+						print("ScoutPlayer: line_shot hit entity " + current_tile.occupying_entity.entity_name + " at " + str(current_pos))
+						
+						# If we're not using penetrating shot, stop here
+						if not has_meta("penetrating_shot"):
+							break
 				
-				# If no entity was hit, set the target to the farthest tile
-				if not has_hit and farthest_tile:
-					target_tile = farthest_tile
+				# No need to spend action points here, it's handled in use_ability
 				
-				# Spawn a projectile for the attack if we have a target tile
-				if target_tile and projectile_spawner:
+				# Spawn a projectile that will travel to the final target
+				if final_target_tile and projectile_spawner:
 					var current_tile = isometric_map.get_tile(grid_position)
 					if current_tile:
-						# Create projectile and connect to the hit signal
-						var projectile = projectile_spawner.spawn_projectile_between_tiles(current_tile, target_tile)
+						# Create projectile that travels to the furthest relevant tile
+						var projectile = projectile_spawner.spawn_projectile_between_tiles(current_tile, final_target_tile)
 						if projectile:
+							# When the projectile hits, damage all collected entities
 							projectile.hit_target.connect(func():
-								# Apply damage to the target entity if there was one
-								if target_entity:
-									target_entity.take_damage(2)
+								print("ScoutPlayer: Projectile hit - damaging " + str(hit_entities.size()) + " entities")
+								for entity in hit_entities:
+									entity.take_damage(2)
 							)
-				# Otherwise fallback to the original immediate damage logic
-				elif target_entity:
-					target_entity.take_damage(2)
+				# Fallback to immediate damage if no projectile system
+				elif hit_entities.size() > 0:
+					for entity in hit_entities:
+						entity.take_damage(2)
 				
-				# Cancel cloak if we used line shot
-				if is_cloaked:
+				# Cancel cloak if we used line shot and don't have enhanced cloak
+				if is_cloaked and not has_meta("enhanced_cloak"):
 					cancel_cloak()
 					
 				return true  # Return true even if we didn't hit anything, as the ability was still used
@@ -165,6 +178,56 @@ func execute_ability(ability_name: String, target) -> bool:
 			
 			return true
 			
+		"emergency_teleport":
+			# Check if player has enough action points
+			var cost = 2 # Default cost for emergency teleport
+			if action_points < cost:
+				print("ScoutPlayer: " + entity_name + " - Not enough action points for emergency teleport")
+				return false
+				
+			# Find a random walkable and unoccupied tile to teleport to
+			var valid_tiles = []
+			
+			# Get all tiles from the map
+			if isometric_map:
+				for x in range(isometric_map.map_width):
+					for y in range(isometric_map.map_height):
+						var tile_pos = Vector2i(x, y)
+						var tile = isometric_map.get_tile(tile_pos)
+						
+						# Check if the tile is walkable and not occupied
+						if tile and tile.is_walkable and not tile.is_occupied:
+							valid_tiles.append(tile)
+			
+			# If we found valid tiles, choose one randomly and teleport there
+			if valid_tiles.size() > 0:
+				var random_tile = valid_tiles[randi() % valid_tiles.size()]
+				
+				# Play teleport animation
+				if animation_state_machine:
+					animation_state_machine.travel("Poof")
+				
+				# Move to the new position
+				var old_tile = isometric_map.get_tile(grid_position)
+				if old_tile:
+					old_tile.occupying_entity = null
+					old_tile.is_occupied = false
+				
+				grid_position = random_tile.grid_position
+				position = isometric_map.grid_to_world(grid_position)
+				
+				random_tile.occupying_entity = self
+				random_tile.is_occupied = true
+				
+				print("ScoutPlayer: " + entity_name + " emergency teleported to " + str(grid_position))
+				
+				# No need to spend action points here, it's handled in use_ability
+				
+				return true
+			else:
+				print("ScoutPlayer: " + entity_name + " - No valid tiles to teleport to")
+				return false
+				
 		_:
 			return false  # No ability matched
 
@@ -253,12 +316,16 @@ func highlight_line_shot_targets():
 			# Add this tile to the path
 			path_tiles.append(current_tile)
 			
-			# If there's an entity on this tile, mark it as target and stop
+			# If there's an entity on this tile, mark it as target and stop if not penetrating
 			if current_tile.is_occupied:
 				current_tile.set_action_target(true)
 				has_target = true
 				highlighted_count += 1
-				break
+				
+				# Only stop if we don't have the penetrating shot upgrade
+				if not has_meta("penetrating_shot"):
+					break
+			
 		
 		# If we didn't hit anything, mark the furthest tile as target
 		if path_tiles.size() > 0 and not has_target:
@@ -266,7 +333,7 @@ func highlight_line_shot_targets():
 			highlighted_count += 1
 		
 		# Highlight all tiles in the path except the target (which is already highlighted as action_target)
-		for i in range(path_tiles.size() - 1):
+		for i in range(path_tiles.size()):
 			if not path_tiles[i].is_action_target:
 				path_tiles[i].set_action_target(true)
 	
@@ -276,7 +343,67 @@ func highlight_line_shot_targets():
 func take_damage(amount: int):
 	super.take_damage(amount)
 	
-	# If we took damage and are cloaked, cancel the cloak
-	if amount > 0 and is_cloaked:
+	# If we took damage and are cloaked, cancel the cloak ONLY if we don't have enhanced_cloak
+	if amount > 0 and is_cloaked and not has_meta("enhanced_cloak"):
 		print("ScoutPlayer: " + entity_name + " - Cloak broken by damage!")
 		cancel_cloak()
+
+# Override to implement ability unlocking for Scout class
+func unlock_ability(ability_name: String) -> void:
+	print("ScoutPlayer: " + entity_name + " unlocking ability: " + ability_name)
+	
+	match ability_name:
+		"penetrating_quick_shot":
+			# Enhance line_shot to penetrate through enemies
+			print("ScoutPlayer: Unlocked penetrating shot - line_shot will now penetrate through enemies")
+			
+			# Add a property to track the upgrade state
+			set_meta("penetrating_shot", true)
+			
+			# Update description to reflect the enhanced ability
+			var cost = get_ability_cost("line_shot")
+			set_meta("line_shot_description", "Line Shot: Penetrating attack, up to " + str(line_shot_range) + " tiles (Cost: " + str(cost) + " AP)")
+			
+		"stay_cloaked":
+			# Enhance cloak to not be broken when attacking
+			print("ScoutPlayer: Unlocked enhanced cloak - attacks won't break cloak")
+			
+			# Add a property to track the upgrade state
+			set_meta("enhanced_cloak", true)
+			
+			# Update description to reflect the enhanced ability
+			var cost = get_ability_cost("cloak")
+			set_meta("cloak_description", "Cloak: Invisible for 2 turns, not broken by attacks (Cost: " + str(cost) + " AP)")
+			
+		"emergency_teleport":
+			# Add a new emergency teleport ability to the player's abilities list
+			print("ScoutPlayer: Unlocked new emergency_teleport ability")
+			
+			# Add the new ability if not already present
+			if not abilities.has("emergency_teleport"):
+				abilities.append("emergency_teleport")
+			
+			# Signal that abilities have changed
+			emit_signal("ability_used")  # This will update the UI
+
+func use_ability(ability_name: String, target) -> bool:
+	# First check if player has this ability
+	if not abilities.has(ability_name):
+		print("ScoutPlayer: " + entity_name + " does not have ability: " + ability_name)
+		return false
+		
+	# Then check if player has enough action points for the ability
+	var cost = get_ability_cost(ability_name)
+	if action_points < cost:
+		print("ScoutPlayer: " + entity_name + " does not have enough action points for " + ability_name)
+		return false
+		
+	# Execute the ability
+	var success = execute_ability(ability_name, target)
+	
+	# If successful, deduct action points
+	if success:
+		action_points -= cost
+		emit_signal("ability_used")
+		
+	return success

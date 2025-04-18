@@ -19,6 +19,8 @@ signal DefendButtonHovered(player)
 signal DefendButtonUnhovered
 signal ChargeAttackButtonHovered(player)
 signal ChargeAttackButtonUnhovered
+signal EmergencyTeleportButtonHovered(player)
+signal EmergencyTeleportButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -30,6 +32,7 @@ var is_hovering_line_shot_button: bool = false
 var is_hovering_fireball_button: bool = false
 var is_hovering_cloak_button: bool = false
 var is_hovering_charge_attack_button: bool = false
+var is_hovering_emergency_teleport_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -116,6 +119,16 @@ func _ready() -> void:
 		action_charge_attack.mouse_exited.connect(_on_action_charge_attack_mouse_exited)
 		# Set default tooltip
 		action_charge_attack.tooltip_text = "Charge Attack"
+		
+	# Connect emergency teleport button
+	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
+	if action_emergency_teleport:
+		action_emergency_teleport.gui_input.connect(_on_action_emergency_teleport_input)
+		# Connect to mouse enter/exit for hover detection
+		action_emergency_teleport.mouse_entered.connect(_on_action_emergency_teleport_mouse_entered)
+		action_emergency_teleport.mouse_exited.connect(_on_action_emergency_teleport_mouse_exited)
+		# Set default tooltip
+		action_emergency_teleport.tooltip_text = "Emergency Teleport"
 		
 	# Connect XP signal
 	Global.xp_changed.connect(update_xp_counter)
@@ -542,6 +555,7 @@ func _on_player_ability_used(ability_name: String) -> void:
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
+	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
 	
 	# Reset specific button based on which ability was used
 	match ability_name:
@@ -559,6 +573,8 @@ func _on_player_ability_used(ability_name: String) -> void:
 			action_defend.modulate = Color(1, 1, 1, 1)
 		"charge_attack":
 			action_charge_attack.modulate = Color(1, 1, 1, 1)
+		"emergency_teleport":
+			action_emergency_teleport.modulate = Color(1, 1, 1, 1)
 	
 	# Update all buttons
 	update_action_buttons()
@@ -675,6 +691,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
+	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
 	
 	# Get current selected ability if any
 	var game_controller = get_node("/root").find_child("GameController", true, false)
@@ -691,6 +708,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	action_cloak.tooltip_text = "Cloak"
 	action_defend.tooltip_text = "Defend"
 	action_charge_attack.tooltip_text = "Charge Attack"
+	action_emergency_teleport.tooltip_text = "Emergency Teleport"
 	
 	if current_player:
 		print("HUD: Updating action buttons for player " + current_player.entity_name + 
@@ -705,6 +723,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_cloak.visible = true
 		action_defend.visible = true
 		action_charge_attack.visible = true
+		action_emergency_teleport.visible = true
 	
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
@@ -876,6 +895,28 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_charge_attack.visible = false
 			action_charge_attack.disabled = true
 			print("HUD: Hiding charge_attack button - ability not available")
+			
+		# Emergency Teleport ability - only for ScoutPlayer
+		if current_player.abilities.has("emergency_teleport") and current_player is ScoutPlayer and not current_player.is_drilling:
+			action_emergency_teleport.visible = true
+			action_emergency_teleport.tooltip_text = current_player.get_ability_description("emergency_teleport")
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "emergency_teleport":
+				action_emergency_teleport.modulate = Color(1.3, 0.7, 0.7, 1) # Highlighted with reddish tint
+				action_emergency_teleport.disabled = false
+				print("HUD: Highlighting emergency_teleport button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("emergency_teleport"):
+				action_emergency_teleport.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_emergency_teleport.disabled = false
+			else:
+				action_emergency_teleport.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_emergency_teleport.disabled = true # Disable the button
+				print("HUD: Disabling emergency_teleport button - not enough AP")
+		else:
+			action_emergency_teleport.visible = false
+			action_emergency_teleport.disabled = true
+			print("HUD: Hiding emergency_teleport button - ability not available")
 	else:
 		# No active player, hide all buttons
 		action_drill.visible = false
@@ -894,6 +935,8 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_defend.disabled = true
 		action_charge_attack.visible = false
 		action_charge_attack.disabled = true
+		action_emergency_teleport.visible = false
+		action_emergency_teleport.disabled = true
 		print("HUD: Hiding all ability buttons - no active player")
 
 # Event handler for when the big drill button is clicked
@@ -1002,16 +1045,52 @@ func _on_action_charge_attack_mouse_entered() -> void:
 # Hide charge attack targets when no longer hovering over charge attack button
 func _on_action_charge_attack_mouse_exited() -> void:
 	is_hovering_charge_attack_button = false
-	
-	# Only emit the unhover signal if we're not in charge_attack ability selection mode
-	var game_controller = get_node("/root").find_child("GameController", true, false)
-	if game_controller and game_controller.current_ability != "charge_attack":
-		ChargeAttackButtonUnhovered.emit()
-	else:
-		print("HUD: Keeping charge_attack highlights active since ability is selected")
+	ChargeAttackButtonUnhovered.emit()
 
 # End turn button
 func _on_end_button_pressed() -> void:
 	if current_player:
 		current_player.end_turn()
 		print("HUD: End turn button pressed for player " + current_player.entity_name)
+
+# Handler for the emergency teleport button
+func _on_action_emergency_teleport_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
+		# If button is disabled, don't process the click
+		if action_emergency_teleport.disabled:
+			return
+			
+		# If we have a current player, try to use the emergency teleport ability
+		if current_player and current_player.abilities.has("emergency_teleport") and current_player is ScoutPlayer:
+			var success = current_player.use_ability("emergency_teleport", null)  # Emergency teleport doesn't need a target
+			print("HUD: Emergency teleport ability use " + ("succeeded" if success else "failed"))
+			
+			# If successful, make sure the button is reset
+			if success:
+				action_emergency_teleport.modulate = Color(1, 1, 1, 1)  # Reset color
+				
+				# Get the GameController to make sure current_ability is cleared
+				var game_controller = get_node("/root").find_child("GameController", true, false)
+				if game_controller and game_controller.current_ability == "emergency_teleport":
+					game_controller.current_ability = ""
+				
+				# Force update of all buttons to reflect current state
+				update_action_buttons()
+			else:
+				# If not successful, still update buttons to reflect current state
+				update_action_buttons()
+
+# Show emergency teleport info when hovering over emergency teleport button
+func _on_action_emergency_teleport_mouse_entered() -> void:
+	is_hovering_emergency_teleport_button = true
+	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
+	# Only show hover effect if button is not disabled
+	if action_emergency_teleport and not action_emergency_teleport.disabled and current_player and current_player.abilities.has("emergency_teleport") and current_player is ScoutPlayer:
+		print("HUD: Showing emergency_teleport hover effect")
+		EmergencyTeleportButtonHovered.emit(current_player)
+
+# Hide emergency teleport info when no longer hovering over emergency teleport button
+func _on_action_emergency_teleport_mouse_exited() -> void:
+	is_hovering_emergency_teleport_button = false
+	EmergencyTeleportButtonUnhovered.emit()
