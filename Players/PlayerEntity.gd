@@ -48,14 +48,16 @@ func start_turn():
 	# Call parent implementation first
 	super.start_turn()
 	
+	# If frozen, don't restore action/movement points and end turn early
+	if status_effects.has("freeze"):
+		print("PlayerEntity: " + entity_name + " is frozen, cannot act this turn")
+		return
+	
 	# Reset action points and movement points for new turn
 	action_points = max_action_points
 	movement_points = max_movement_points
 	emit_signal("action_points_changed", action_points, max_action_points)
 	emit_signal("movement_points_changed", movement_points, max_movement_points)
-	
-	# Process status effects
-	process_status_effects()
 	
 	# Check if we're drilling and maybe show some animation. The super class will handle ending the turn
 	if is_drilling:
@@ -69,6 +71,11 @@ func start_turn():
 # Use an ability (returns true if successfully used)
 func use_ability(ability_name: String, target) -> bool:
 	print("PlayerEntity: " + entity_name + " attempting to use ability " + ability_name)
+	
+	# Cannot use abilities while frozen
+	if status_effects.has("freeze"):
+		print("PlayerEntity: " + entity_name + " cannot use abilities while frozen")
+		return false
 	
 	# Check if we have enough action points for this ability
 	var ability_cost = get_ability_cost(ability_name)
@@ -168,6 +175,11 @@ func move_along_path(delta: float):
 func consume_movement_points_for_path(path_length: int) -> bool:
 	if path_length <= 0:
 		return true  # No movement points needed for empty path
+	
+	# Cannot move while frozen
+	if status_effects.has("freeze"):
+		print("PlayerEntity: " + entity_name + " cannot move while frozen")
+		return false
 		
 	# Check if we have enough movement points
 	if movement_points < path_length:
@@ -200,6 +212,16 @@ func get_action_points() -> int:
 # Get the current movement points
 func get_movement_points() -> int:
 	return movement_points
+
+# Visual indication when player is selected
+func select():
+	# Set a visual indicator that this player is selected
+	modulate = Color(1.2, 1.2, 1.2)  # Slightly brighter
+
+# Visual indication when player is deselected
+func deselect():
+	# Reset visual appearance
+	modulate = Color(1.0, 1.0, 1.0)
 
 # Called when the entity has completed following its path
 func _on_path_completed():

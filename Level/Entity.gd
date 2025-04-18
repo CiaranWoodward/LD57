@@ -84,10 +84,19 @@ func start_turn():
 	super.start_turn()
 	print("Entity: " + entity_name + " starting turn")
 	
+	# Process status effects first - effects are processed at start of turn now
+	process_status_effects()
+	
 	# If we're drilling, continue the process
 	if is_drilling:
 		continue_drilling()
 		# If we are drilling, then we need to end the turn immediately
+		call_deferred("finish_turn")
+		return
+		
+	# If we're frozen or stunned, end the turn immediately
+	if not can_take_actions():
+		print("Entity: " + entity_name + " cannot take actions due to status effects, skipping turn")
 		call_deferred("finish_turn")
 		return
 
@@ -175,6 +184,18 @@ func process_status_effects():
 	for effect_name in status_effects:
 		var effect = status_effects[effect_name]
 		
+		# Apply per-turn effects FIRST (at the start of the turn)
+		match effect_name:
+			"poison":
+				print("Entity: " + entity_name + " taking poison damage: " + str(effect.strength))
+				take_damage(effect.strength)
+				# Create poison effect
+				create_poison_burst()
+			"regeneration":
+				print("Entity: " + entity_name + " healing: " + str(effect.strength))
+				heal_damage(effect.strength)
+			# Add other per-turn effects as needed
+		
 		# Decrease duration
 		effect.duration -= 1
 		print("Entity: " + entity_name + " - " + effect_name + " effect duration: " + str(effect.duration))
@@ -183,16 +204,6 @@ func process_status_effects():
 		if effect.duration <= 0:
 			effects_to_remove.append(effect_name)
 			print("Entity: " + entity_name + " - " + effect_name + " effect expired")
-		else:
-			# Apply any per-turn effects
-			match effect_name:
-				"poison":
-					print("Entity: " + entity_name + " taking poison damage: " + str(effect.strength))
-					take_damage(effect.strength)
-				"regeneration":
-					print("Entity: " + entity_name + " healing: " + str(effect.strength))
-					heal_damage(effect.strength)
-				# Add other per-turn effects as needed
 	
 	# Remove expired effects
 	for effect_name in effects_to_remove:
@@ -214,6 +225,21 @@ func apply_status_effect(effect_name: String, duration: int, strength: float = 1
 			print("Entity: " + entity_name + " stunned, stopping movement")
 			is_moving = false
 			path = []
+		"freeze":
+			# Freeze effect - stops movement and changes appearance
+			print("Entity: " + entity_name + " frozen, stopping movement")
+			is_moving = false
+			path = []
+			# Visual effect for frozen
+			modulate = Color(0.7, 0.8, 1.0)
+			# Add ice crystal visual to show frozen status
+			add_ice_crystal_visual()
+		"poison":
+			# Apply poison visual effect
+			print("Entity: " + entity_name + " poisoned, applying visual effect")
+			modulate = Color(0.8, 1.0, 0.7)  # Greenish tint
+			# Create poison particles
+			create_poison_particles()
 		"buffed":
 			# Buff could temporarily increase stats
 			print("Entity: " + entity_name + " buffed, increasing move speed to " + str(move_speed * strength))
@@ -246,6 +272,16 @@ func remove_status_effect(effect_name: String):
 			# Revert debuff
 			print("Entity: " + entity_name + " debuff removed, resetting move speed")
 			move_speed *= status_effects[effect_name].strength
+		"freeze":
+			# Revert freeze visual effect
+			print("Entity: " + entity_name + " freeze removed, restoring normal appearance")
+			modulate = Color(1.0, 1.0, 1.0)
+			remove_ice_crystal_visual()
+		"poison":
+			# Revert poison visual effect
+			print("Entity: " + entity_name + " poison removed, restoring normal appearance")
+			modulate = Color(1.0, 1.0, 1.0)
+			remove_poison_particles()
 	
 	# Remove effect
 	status_effects.erase(effect_name)
@@ -742,3 +778,142 @@ func _on_health_changed(current, maximum):
 			fill_style.bg_color = Color(0.9, 0.9, 0.2)  # Yellow for medium health
 		else:
 			fill_style.bg_color = Color(0.9, 0.2, 0.2)  # Red for low health
+
+# Check if entity can take actions (might be frozen or stunned)
+func can_take_actions() -> bool:
+	return not (status_effects.has("freeze") or status_effects.has("stunned"))
+
+# Create poison particle effect for ongoing poison status
+func create_poison_particles():
+	# Check if the entity already has poison particles attached
+	if has_node("PoisonParticles"):
+		return
+		
+	# Create poison particles that will persist during the poison effect
+	var poison_particles = CPUParticles2D.new()
+	poison_particles.name = "PoisonParticles"
+	add_child(poison_particles)
+	
+	# Configure poison particles
+	poison_particles.z_index = 1
+	poison_particles.amount = 15
+	poison_particles.lifetime = 1.5
+	poison_particles.explosiveness = 0.0  # Continuous emission
+	poison_particles.randomness = 0.5
+	poison_particles.local_coords = true
+	poison_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	poison_particles.emission_sphere_radius = 20.0
+	poison_particles.direction = Vector2(0, -1)
+	poison_particles.spread = 30.0
+	poison_particles.gravity = Vector2(0, -10)
+	poison_particles.initial_velocity_min = 5.0
+	poison_particles.initial_velocity_max = 15.0
+	poison_particles.scale_amount_min = 2.0
+	poison_particles.scale_amount_max = 4.0
+	poison_particles.color = Color(0.4, 0.9, 0.3, 0.6)  # Green toxic color
+	
+	# Position particles over the entity
+	poison_particles.position = Vector2(0, -30)  # Adjust based on entity height
+	poison_particles.emitting = true
+
+# Create a burst of poison particles when the poison damage is applied
+func create_poison_burst():
+	# Create a burst of poison particles when damage is applied
+	var burst = CPUParticles2D.new()
+	add_child(burst)
+	
+	# Configure poison burst
+	burst.z_index = 1
+	burst.amount = 15
+	burst.lifetime = 0.7
+	burst.one_shot = true
+	burst.explosiveness = 0.9
+	burst.local_coords = true
+	burst.direction = Vector2(0, -1)
+	burst.spread = 180.0
+	burst.gravity = Vector2(0, -20)
+	burst.initial_velocity_min = 20.0
+	burst.initial_velocity_max = 40.0
+	burst.scale_amount_min = 3.0
+	burst.scale_amount_max = 6.0
+	burst.color = Color(0.5, 0.9, 0.2, 0.8)  # Bright green
+	
+	# Position particles
+	burst.position = Vector2(0, -30)  # Adjust based on entity height
+	burst.emitting = true
+	
+	# Play a poison sound if available
+	var poison_sound = get_node_or_null("PoisonSound")
+	if poison_sound and poison_sound is AudioStreamPlayer:
+		poison_sound.play()
+	
+	# Remove burst after completion
+	var timer = get_tree().create_timer(1.0)
+	timer.timeout.connect(func():
+		if is_instance_valid(burst):
+			burst.queue_free()
+	)
+
+# Remove poison particles when the effect ends
+func remove_poison_particles():
+	var poison_particles = get_node_or_null("PoisonParticles")
+	if poison_particles:
+		# Stop emitting new particles
+		poison_particles.emitting = false
+		
+		# Create a timer to remove the particles after they fade
+		var timer = get_tree().create_timer(2.0)
+		timer.timeout.connect(func():
+			if is_instance_valid(poison_particles):
+				poison_particles.queue_free()
+		)
+
+# Add an ice crystal visual on top of the entity to show frozen status
+func add_ice_crystal_visual():
+	# Check if the entity already has an ice crystal
+	if has_node("IceCrystal"):
+		return
+		
+	# Create a simple sprite for the ice crystal
+	var ice_crystal = CPUParticles2D.new()
+	ice_crystal.name = "IceCrystal"
+	add_child(ice_crystal)
+	
+	# Configure ice crystal particles
+	ice_crystal.z_index = 2  # Display above entity
+	ice_crystal.amount = 1
+	ice_crystal.lifetime = 0.5
+	ice_crystal.emitting = true
+	ice_crystal.local_coords = true
+	ice_crystal.one_shot = false
+	ice_crystal.explosiveness = 0.0
+	ice_crystal.randomness = 0.0
+	ice_crystal.direction = Vector2(0, -1)
+	ice_crystal.gravity = Vector2(0, 0)
+	ice_crystal.initial_velocity_min = 0.0
+	ice_crystal.initial_velocity_max = 0.0
+	ice_crystal.scale_amount_min = 25.0  # Make it large and visible
+	ice_crystal.scale_amount_max = 25.0
+	ice_crystal.color = Color(0.6, 0.9, 1.0, 0.8)  # Light blue, semi-transparent
+	
+	# Position the crystal above the entity
+	ice_crystal.position = Vector2(0, -60)  # Adjust based on entity height
+	
+	# Add a small animation to the crystal
+	var tween = create_tween()
+	tween.set_loops()  # Make it loop indefinitely
+	tween.tween_property(ice_crystal, "position:y", -65, 1.0)  # Move up
+	tween.tween_property(ice_crystal, "position:y", -55, 1.0)  # Move down
+
+# Remove the ice crystal visual when freeze effect ends
+func remove_ice_crystal_visual():
+	var ice_crystal = get_node_or_null("IceCrystal")
+	if ice_crystal:
+		# Maybe add a fade-out effect
+		var tween = create_tween()
+		tween.tween_property(ice_crystal, "modulate", Color(1, 1, 1, 0), 0.5)
+		
+		# Remove the ice crystal after the fade-out
+		await tween.finished
+		if is_instance_valid(ice_crystal):
+			ice_crystal.queue_free()

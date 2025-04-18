@@ -288,6 +288,15 @@ func _select_entity(entity):
 					"charge_attack":
 						if entity.has_method("highlight_charge_attack_targets"):
 							entity.highlight_charge_attack_targets()
+					"healing_aoe":
+						if entity.has_method("highlight_aoe_targets"):
+							entity.highlight_aoe_targets()
+					"freeze_aoe":
+						if entity.has_method("highlight_aoe_targets"):
+							entity.highlight_aoe_targets()
+					"poison_aoe":
+						if entity.has_method("highlight_aoe_targets"):
+							entity.highlight_aoe_targets()
 	
 	elif entity is EnemyEntity:
 		# Enemy selection behavior
@@ -948,6 +957,15 @@ func _on_ability_button_hovered(player: PlayerEntity, ability_name: String):
 		"charge_attack":
 			if player.has_method("highlight_charge_attack_targets"):
 				player.highlight_charge_attack_targets()
+		"healing_aoe":
+			if player.has_method("highlight_aoe_targets"):
+				player.highlight_aoe_targets()
+		"freeze_aoe":
+			if player.has_method("highlight_aoe_targets"):
+				player.highlight_aoe_targets()
+		"poison_aoe":
+			if player.has_method("highlight_aoe_targets"):
+				player.highlight_aoe_targets()
 
 # Generic handler for ability button unhover
 func _on_ability_button_unhovered(ability_name: String):
@@ -1138,6 +1156,15 @@ func _highlight_ability_targets(ability_name: String, entity: PlayerEntity):
 		"charge_attack":
 			if entity.has_method("highlight_charge_attack_targets"):
 				entity.highlight_charge_attack_targets()
+		"healing_aoe":
+			if entity.has_method("highlight_aoe_targets"):
+				entity.highlight_aoe_targets()
+		"freeze_aoe":
+			if entity.has_method("highlight_aoe_targets"):
+				entity.highlight_aoe_targets()
+		"poison_aoe":
+			if entity.has_method("highlight_aoe_targets"):
+				entity.highlight_aoe_targets()
 
 func _add_entity(entity: Entity, tile: IsometricTile) -> bool:
 	# Ensure the entity isn't already on a tile

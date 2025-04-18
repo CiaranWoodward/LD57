@@ -27,6 +27,9 @@ func _ready():
 
 # Override process_turn to make the boss more formidable
 func process_turn(player_entities: Array):
+	# Note: Freeze and status effect checks are handled in EnemyEntity.start_turn
+	# If this method is being executed, the entity is not frozen or stunned
+	
 	# Reset movement
 	is_moving = false
 	path = []

@@ -21,6 +21,12 @@ signal ChargeAttackButtonHovered(player)
 signal ChargeAttackButtonUnhovered
 signal EmergencyTeleportButtonHovered(player)
 signal EmergencyTeleportButtonUnhovered
+signal HealingAOEButtonHovered(player)
+signal HealingAOEButtonUnhovered
+signal FreezeAOEButtonHovered(player)
+signal FreezeAOEButtonUnhovered
+signal PoisonAOEButtonHovered(player)
+signal PoisonAOEButtonUnhovered
 
 # Reference to the current active player
 var current_player: PlayerEntity = null
@@ -33,6 +39,9 @@ var is_hovering_fireball_button: bool = false
 var is_hovering_cloak_button: bool = false
 var is_hovering_charge_attack_button: bool = false
 var is_hovering_emergency_teleport_button: bool = false
+var is_hovering_healing_aoe_button: bool = false
+var is_hovering_freeze_aoe_button: bool = false
+var is_hovering_poison_aoe_button: bool = false
 
 func _ready() -> void:
 	Global.hud = self
@@ -129,6 +138,36 @@ func _ready() -> void:
 		action_emergency_teleport.mouse_exited.connect(_on_action_emergency_teleport_mouse_exited)
 		# Set default tooltip
 		action_emergency_teleport.tooltip_text = "Emergency Teleport"
+		
+	# Connect healing AOE button
+	var action_healing_aoe = $Action/ActionMargin/ActionHBox/ActionHealingAOE
+	if action_healing_aoe:
+		action_healing_aoe.gui_input.connect(_on_action_healing_aoe_input)
+		# Connect to mouse enter/exit for hover detection
+		action_healing_aoe.mouse_entered.connect(_on_action_healing_aoe_mouse_entered)
+		action_healing_aoe.mouse_exited.connect(_on_action_healing_aoe_mouse_exited)
+		# Set default tooltip
+		action_healing_aoe.tooltip_text = "Healing Splash"
+		
+	# Connect freeze AOE button
+	var action_freeze_aoe = $Action/ActionMargin/ActionHBox/ActionFreezeAOE
+	if action_freeze_aoe:
+		action_freeze_aoe.gui_input.connect(_on_action_freeze_aoe_input)
+		# Connect to mouse enter/exit for hover detection
+		action_freeze_aoe.mouse_entered.connect(_on_action_freeze_aoe_mouse_entered)
+		action_freeze_aoe.mouse_exited.connect(_on_action_freeze_aoe_mouse_exited)
+		# Set default tooltip
+		action_freeze_aoe.tooltip_text = "Freeze Zone"
+		
+	# Connect poison AOE button
+	var action_poison_aoe = $Action/ActionMargin/ActionHBox/ActionPoisonAOE
+	if action_poison_aoe:
+		action_poison_aoe.gui_input.connect(_on_action_poison_aoe_input)
+		# Connect to mouse enter/exit for hover detection
+		action_poison_aoe.mouse_entered.connect(_on_action_poison_aoe_mouse_entered)
+		action_poison_aoe.mouse_exited.connect(_on_action_poison_aoe_mouse_exited)
+		# Set default tooltip
+		action_poison_aoe.tooltip_text = "Poison Cloud"
 		
 	# Connect XP signal
 	Global.xp_changed.connect(update_xp_counter)
@@ -689,6 +728,9 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
 	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
+	var action_healing_aoe = $Action/ActionMargin/ActionHBox/ActionHealingAOE
+	var action_freeze_aoe = $Action/ActionMargin/ActionHBox/ActionFreezeAOE
+	var action_poison_aoe = $Action/ActionMargin/ActionHBox/ActionPoisonAOE
 	
 	# Get current selected ability if any
 	var game_controller = get_node("/root").find_child("GameController", true, false)
@@ -706,6 +748,9 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 	action_defend.tooltip_text = "Defend"
 	action_charge_attack.tooltip_text = "Charge Attack"
 	action_emergency_teleport.tooltip_text = "Emergency Teleport"
+	action_healing_aoe.tooltip_text = "Healing Splash"
+	action_freeze_aoe.tooltip_text = "Freeze Zone"
+	action_poison_aoe.tooltip_text = "Poison Cloud"
 	
 	if current_player:
 		print("HUD: Updating action buttons for player " + current_player.entity_name + 
@@ -721,6 +766,9 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 		action_defend.visible = true
 		action_charge_attack.visible = true
 		action_emergency_teleport.visible = true
+		action_healing_aoe.visible = true
+		action_freeze_aoe.visible = true
+		action_poison_aoe.visible = true
 	
 		# Drill ability - available to all players
 		if current_player.abilities.has("drill") and not current_player.is_drilling:
@@ -899,7 +947,7 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_emergency_teleport.tooltip_text = current_player.get_ability_description("emergency_teleport")
 			# If it's the current selected ability, keep it highlighted
 			if current_ability == "emergency_teleport":
-				action_emergency_teleport.modulate = Color(1.3, 0.7, 0.7, 1) # Highlighted with reddish tint
+				action_emergency_teleport.modulate = Color(0.7, 0.7, 1.3, 1) # Highlighted with blue tint
 				action_emergency_teleport.disabled = false
 				print("HUD: Highlighting emergency_teleport button - ability active")
 			# Check if player has enough action points
@@ -914,6 +962,72 @@ func update_action_buttons(_cur=0, _max=0) -> void:
 			action_emergency_teleport.visible = false
 			action_emergency_teleport.disabled = true
 			print("HUD: Hiding emergency_teleport button - ability not available")
+			
+		# Healing AOE ability - only for WizardPlayer
+		if current_player.abilities.has("healing_aoe") and not current_player.is_drilling:
+			action_healing_aoe.visible = true
+			action_healing_aoe.tooltip_text = current_player.get_ability_description("healing_aoe")
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "healing_aoe":
+				action_healing_aoe.modulate = Color(0.7, 1.3, 0.7, 1) # Highlighted with green tint
+				action_healing_aoe.disabled = false
+				print("HUD: Highlighting healing_aoe button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("healing_aoe"):
+				action_healing_aoe.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_healing_aoe.disabled = false
+			else:
+				action_healing_aoe.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_healing_aoe.disabled = true # Disable the button
+				print("HUD: Disabling healing_aoe button - not enough AP")
+		else:
+			action_healing_aoe.visible = false
+			action_healing_aoe.disabled = true
+			print("HUD: Hiding healing_aoe button - ability not available")
+			
+		# Freeze AOE ability - only for WizardPlayer
+		if current_player.abilities.has("freeze_aoe") and not current_player.is_drilling:
+			action_freeze_aoe.visible = true
+			action_freeze_aoe.tooltip_text = current_player.get_ability_description("freeze_aoe")
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "freeze_aoe":
+				action_freeze_aoe.modulate = Color(0.7, 0.7, 1.3, 1) # Highlighted with blue tint
+				action_freeze_aoe.disabled = false
+				print("HUD: Highlighting freeze_aoe button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("freeze_aoe"):
+				action_freeze_aoe.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_freeze_aoe.disabled = false
+			else:
+				action_freeze_aoe.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_freeze_aoe.disabled = true # Disable the button
+				print("HUD: Disabling freeze_aoe button - not enough AP")
+		else:
+			action_freeze_aoe.visible = false
+			action_freeze_aoe.disabled = true
+			print("HUD: Hiding freeze_aoe button - ability not available")
+			
+		# Poison AOE ability - only for WizardPlayer
+		if current_player.abilities.has("poison_aoe") and not current_player.is_drilling:
+			action_poison_aoe.visible = true
+			action_poison_aoe.tooltip_text = current_player.get_ability_description("poison_aoe")
+			# If it's the current selected ability, keep it highlighted
+			if current_ability == "poison_aoe":
+				action_poison_aoe.modulate = Color(0.7, 1.0, 0.4, 1) # Highlighted with greenish tint
+				action_poison_aoe.disabled = false
+				print("HUD: Highlighting poison_aoe button - ability active")
+			# Check if player has enough action points
+			elif current_player.action_points >= current_player.get_ability_cost("poison_aoe"):
+				action_poison_aoe.modulate = Color(1, 1, 1, 1) # Fully visible
+				action_poison_aoe.disabled = false
+			else:
+				action_poison_aoe.modulate = Color(0.5, 0.5, 0.5, 1) # Greyed out
+				action_poison_aoe.disabled = true # Disable the button
+				print("HUD: Disabling poison_aoe button - not enough AP")
+		else:
+			action_poison_aoe.visible = false
+			action_poison_aoe.disabled = true
+			print("HUD: Hiding poison_aoe button - ability not available")
 	else:
 		# No active player, hide all buttons
 		action_drill.visible = false
@@ -1090,3 +1204,99 @@ func _on_action_emergency_teleport_mouse_entered() -> void:
 func _on_action_emergency_teleport_mouse_exited() -> void:
 	is_hovering_emergency_teleport_button = false
 	EmergencyTeleportButtonUnhovered.emit()
+
+# Handling mouse enter/exit for healing AOE button
+func _on_action_healing_aoe_mouse_entered() -> void:
+	is_hovering_healing_aoe_button = true
+	if current_player and current_player is WizardPlayer:
+		emit_signal("HealingAOEButtonHovered", current_player)
+		
+func _on_action_healing_aoe_mouse_exited() -> void:
+	is_hovering_healing_aoe_button = false
+	emit_signal("HealingAOEButtonUnhovered")
+
+# Handling mouse enter/exit for freeze AOE button
+func _on_action_freeze_aoe_mouse_entered() -> void:
+	is_hovering_freeze_aoe_button = true
+	if current_player and current_player is WizardPlayer:
+		emit_signal("FreezeAOEButtonHovered", current_player)
+		
+func _on_action_freeze_aoe_mouse_exited() -> void:
+	is_hovering_freeze_aoe_button = false
+	emit_signal("FreezeAOEButtonUnhovered")
+
+# Handling mouse enter/exit for poison AOE button
+func _on_action_poison_aoe_mouse_entered() -> void:
+	is_hovering_poison_aoe_button = true
+	if current_player and current_player is WizardPlayer:
+		emit_signal("PoisonAOEButtonHovered", current_player)
+		
+func _on_action_poison_aoe_mouse_exited() -> void:
+	is_hovering_poison_aoe_button = false
+	emit_signal("PoisonAOEButtonUnhovered")
+
+# Handle clicking on the healing AOE action button
+func _on_action_healing_aoe_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_healing_aoe = $Action/ActionMargin/ActionHBox/ActionHealingAOE
+		# If button is disabled, don't process the click
+		if action_healing_aoe.disabled:
+			return
+			
+		# If we have a current player, try to use the healing ability
+		if current_player and current_player is WizardPlayer and current_player.abilities.has("healing_aoe"):
+			# Get the GameController to set the current ability
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				print("HUD: Setting current ability to healing_aoe")
+				game_controller.current_ability = "healing_aoe"
+				# Highlight AOE targets for healing - uses same method as fireball now
+				if current_player.has_method("highlight_aoe_targets"):
+					current_player.highlight_aoe_targets()
+				# Update button state
+				action_healing_aoe.modulate = Color(1, 0.5, 0.5, 1)  # Highlight button
+				update_action_buttons()  # Update other buttons
+
+# Handle clicking on the freeze AOE action button
+func _on_action_freeze_aoe_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_freeze_aoe = $Action/ActionMargin/ActionHBox/ActionFreezeAOE
+		# If button is disabled, don't process the click
+		if action_freeze_aoe.disabled:
+			return
+			
+		# If we have a current player, try to use the freeze ability
+		if current_player and current_player is WizardPlayer and current_player.abilities.has("freeze_aoe"):
+			# Get the GameController to set the current ability
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				print("HUD: Setting current ability to freeze_aoe")
+				game_controller.current_ability = "freeze_aoe"
+				# Highlight AOE targets for freezing - uses same method as fireball now
+				if current_player.has_method("highlight_aoe_targets"):
+					current_player.highlight_aoe_targets()
+				# Update button state
+				action_freeze_aoe.modulate = Color(1, 0.5, 0.5, 1)  # Highlight button
+				update_action_buttons()  # Update other buttons
+
+# Handle clicking on the poison AOE action button
+func _on_action_poison_aoe_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var action_poison_aoe = $Action/ActionMargin/ActionHBox/ActionPoisonAOE
+		# If button is disabled, don't process the click
+		if action_poison_aoe.disabled:
+			return
+			
+		# If we have a current player, try to use the poison ability
+		if current_player and current_player is WizardPlayer and current_player.abilities.has("poison_aoe"):
+			# Get the GameController to set the current ability
+			var game_controller = get_node("/root").find_child("GameController", true, false)
+			if game_controller:
+				print("HUD: Setting current ability to poison_aoe")
+				game_controller.current_ability = "poison_aoe"
+				# Highlight AOE targets for poison - uses same method as fireball now
+				if current_player.has_method("highlight_aoe_targets"):
+					current_player.highlight_aoe_targets()
+				# Update button state
+				action_poison_aoe.modulate = Color(1, 0.5, 0.5, 1)  # Highlight button
+				update_action_buttons()  # Update other buttons

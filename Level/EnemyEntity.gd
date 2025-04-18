@@ -26,7 +26,14 @@ func _init():
 
 # Override start_turn from Entity
 func start_turn():
+	# First, call parent start_turn which processes status effects
 	super.start_turn()
+	
+	# If the entity can't take actions due to status effects (frozen or stunned),
+	# then the parent start_turn would have already queued finish_turn, so we should exit
+	if not can_take_actions():
+		print("EnemyEntity: " + entity_name + " is frozen or stunned, skipping turn")
+		return
 	
 	assert(!is_moving)
 	
@@ -61,6 +68,9 @@ func set_patrol_path(path_positions: Array):
 
 # Process AI behavior during enemy turn
 func process_turn(player_entities: Array):
+	# The freeze check has been moved to start_turn to ensure subclasses can't bypass it
+	# No need to check here since it would've already returned in start_turn if frozen
+	
 	# Assert that isometric_map is set
 	assert(isometric_map != null, "EnemyEntity: " + entity_name + " - isometric_map reference not set!")
 	
