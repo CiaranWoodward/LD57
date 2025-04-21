@@ -27,6 +27,10 @@ var current_ability: String = ""  # Currently selected ability waiting for a tar
 # Add a property to track the current active level
 var current_active_level: int = 0
 
+# Level progression tracking
+var turns_spent_on_level = {}  # Dictionary tracking turns spent on each level
+var MIN_TURNS_BEFORE_NEXT_LEVEL = 9  # Minimum turns before next level becomes available
+
 # Drilling visualization
 var drilling_line_node: Line2D = null
 
@@ -46,13 +50,28 @@ func _ready():
 	# Set process input
 	set_process_input(true)
 	
-	# Find the map in the scene
-	isometric_map = get_node_or_null("../Map")
-	if isometric_map:
-		print("GameController: Map found, connecting signals")
-		isometric_map.tile_selected.connect(_on_tile_selected)
+	# Get the reference to the LevelManager first
+	level_manager = get_parent().get_node_or_null("LevelManager")
+	if not level_manager:
+		push_error("GameController: LevelManager not found")
 	else:
-		push_error("GameController: Map not found!")
+		print("GameController: Found LevelManager")
+		
+		# Find the map in the scene - only use the first level as the active map
+		if level_manager.level_nodes.has(0):
+			isometric_map = level_manager.level_nodes[0]
+			current_active_level = 0
+			
+			if isometric_map:
+				print("GameController: Map found, connecting signals")
+				isometric_map.tile_selected.connect(_on_tile_selected)
+		else:
+			isometric_map = get_node_or_null("../Map")
+			if isometric_map:
+				print("GameController: Map found, connecting signals")
+				isometric_map.tile_selected.connect(_on_tile_selected)
+			else:
+				push_error("GameController: Map not found!")
 	
 	# Create a TurnSequencer
 	turn_sequencer = TurnSequencer.new()
@@ -66,16 +85,9 @@ func _ready():
 	
 	print("GameController: TurnSequencer created and connected")
 	
-	# Get the reference to the LevelManager
-	level_manager = get_parent().get_node_or_null("LevelManager")
-	if not level_manager:
-		push_error("GameController: LevelManager not found")
-	else:
-		print("GameController: Found LevelManager")
-		
 	# Connect to HUD signals
 	_connect_hud_signals()
-		
+	
 	# Create the drilling line visualization
 	drilling_line_node = Line2D.new()
 	drilling_line_node.width = 5.0
@@ -83,6 +95,12 @@ func _ready():
 	drilling_line_node.z_index = 100  # Display above other elements
 	drilling_line_node.visible = false
 	add_child(drilling_line_node)
+	
+	# Initialize level visibility AFTER all nodes are set up
+	# We need to call this at the end of _ready to override LevelManager's default visibility
+	if level_manager:
+		# Wait for one frame to ensure all levels are initialized
+		call_deferred("initialize_level_visibility")
 
 # State machine handling
 func change_state(new_state):
@@ -203,6 +221,29 @@ func _handle_action_target_tile(tile: IsometricTile, entity: PlayerEntity):
 # Handle tile selection for abilities
 func _handle_tile_selection_for_abilities(tile: IsometricTile, selected_entity: PlayerEntity):
 	print("GameController: Processing ability " + current_ability + " targeting tile at " + str(tile.grid_position))
+	
+	# Check if drilling abilities should be blocked due to turns requirement
+	if (current_ability == "drill" or current_ability == "big_drill") and (
+		not turns_spent_on_level.has(selected_entity.current_level) or 
+		turns_spent_on_level[selected_entity.current_level] < MIN_TURNS_BEFORE_NEXT_LEVEL
+	):
+		print("GameController: Drilling blocked - haven't spent enough turns on current level")
+		cancel_current_ability()
+		return
+	
+	# For drilling abilities, check if the target level is visible
+	if (current_ability == "drill" or current_ability == "big_drill"):
+		var target_level = selected_entity.current_level + 1
+		if not level_manager.level_nodes.has(target_level):
+			print("GameController: Drilling blocked - target level does not exist")
+			cancel_current_ability()
+			return
+			
+		var target_level_map = level_manager.level_nodes[target_level]
+		if not target_level_map.get_meta("is_visible_to_player", false):
+			print("GameController: Drilling blocked - target level not visible yet")
+			cancel_current_ability()
+			return
 	
 	# Check if the ability exists for the entity
 	if selected_entity.abilities.has(current_ability):
@@ -506,6 +547,9 @@ func _on_group_turns_completed(group_name):
 		print("GameController: Turn " + str(current_turn_count) + " completed")
 		emit_signal("turn_count_updated", current_turn_count)
 		
+		# Update turns spent on levels
+		update_turns_spent_on_levels()
+		
 		# Check if we should remove any obsolete levels
 		check_for_obsolete_levels()
 		
@@ -523,6 +567,9 @@ func start_game():
 	current_turn_count = 0
 	# Start the first player turn
 	turn_sequencer.start_group_turns("player")
+	
+	# Initialize the upgrade button visibility
+	update_upgrade_button_visibility()
 
 # Force the current player to end their turn
 func end_current_player_turn():
@@ -718,6 +765,12 @@ func _on_entity_died(entity):
 			# Victory condition
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
+		
+		# Check if all enemies on this specific level are defeated
+		check_level_enemies_cleared(entity.current_level)
+		
+		# Update upgrade button visibility
+		update_upgrade_button_visibility()
 
 # Clear all tile highlights on all maps
 func clear_all_highlights():
@@ -773,12 +826,22 @@ func highlight_movement_range(entity):
 		
 	print("GameController: Highlighted " + str(movable_tiles.size()) + " movable tiles on level " + str(entity.current_level))
 
-# Set the current active level and change the isometric_map reference
+# Set the current active level and change the isometric_map reference - update to handle visibility
 func set_active_level(level_index: int, level_map: IsometricMap):
 	# Don't change if it's already the active level
 	if current_active_level == level_index and isometric_map == level_map:
 		print("GameController: Level " + str(level_index) + " is already active")
 		return
+	
+	# Make sure the level is visible before making it active
+	if level_manager.level_nodes.has(level_index):
+		var target_level_map = level_manager.level_nodes[level_index]
+		if not target_level_map.get_meta("is_visible_to_player", false):
+			print("GameController: Cannot make level " + str(level_index) + " active - it's not visible yet")
+			
+			# If we really need to make it active (for example, a player moved there),
+			# we should reveal it first
+			reveal_level(level_index)
 	
 	# Disconnect signal from old map if it exists
 	if isometric_map and isometric_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
@@ -807,11 +870,11 @@ func set_active_level(level_index: int, level_map: IsometricMap):
 		tween.tween_property(isometric_map, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.3)
 		print("GameController: Set z_index of active level " + str(level_index) + " to 10")
 	
-	# Apply grey modulation to all non-active levels
+	# Apply grey modulation to all non-active levels that are visible
 	if level_manager:
 		for idx in level_manager.level_nodes:
 			var map = level_manager.level_nodes[idx]
-			if idx != level_index and map:
+			if idx != level_index and map and map.get_meta("is_visible_to_player", false):
 				var tween = create_tween()
 				tween.tween_property(map, "modulate", Color(0.7, 0.7, 0.7, 1.0), 0.3)
 	
@@ -830,6 +893,9 @@ func set_active_level(level_index: int, level_map: IsometricMap):
 	
 	# Notify camera that active level has changed
 	emit_signal("entity_moved", null)
+	
+	# Update the upgrade button visibility based on the new active level
+	update_upgrade_button_visibility()
 	
 	# Check if we can remove any obsolete levels
 	check_for_obsolete_levels()
@@ -897,6 +963,9 @@ func _connect_hud_signals() -> void:
 			
 		if not Global.hud.is_connected("ChargeAttackButtonUnhovered", Callable(self, "_on_charge_attack_button_unhovered")):
 			Global.hud.ChargeAttackButtonUnhovered.connect(_on_charge_attack_button_unhovered)
+			
+		# Initial update of the upgrade button state
+		update_upgrade_button_visibility()
 	else:
 		push_error("GameController: Cannot connect HUD signals - Global.hud is null")
 
@@ -1014,6 +1083,19 @@ func _handle_drill_hover(player: PlayerEntity):
 	if not level_manager:
 		return
 		
+	# Check if the player has spent enough turns on the current level
+	if not turns_spent_on_level.has(player.current_level) or turns_spent_on_level[player.current_level] < MIN_TURNS_BEFORE_NEXT_LEVEL:
+		return
+	
+	# Check if the next level is visible
+	var next_level = player.current_level + 1
+	if not level_manager.level_nodes.has(next_level):
+		return
+		
+	var next_level_map = level_manager.level_nodes[next_level]
+	if not next_level_map.get_meta("is_visible_to_player", false):
+		return
+		
 	# Make sure there's a valid tile below
 	if not level_manager.has_valid_tile_below(player.current_level, player.grid_position):
 		return
@@ -1068,6 +1150,19 @@ func _handle_drill_hover(player: PlayerEntity):
 
 # Handle big drill hover visualization
 func _handle_big_drill_hover(player: PlayerEntity):
+	# Check if the player has spent enough turns on the current level
+	if not turns_spent_on_level.has(player.current_level) or turns_spent_on_level[player.current_level] < MIN_TURNS_BEFORE_NEXT_LEVEL:
+		return
+	
+	# Check if the next level is visible
+	var next_level = player.current_level + 1
+	if not level_manager.level_nodes.has(next_level):
+		return
+		
+	var next_level_map = level_manager.level_nodes[next_level]
+	if not next_level_map.get_meta("is_visible_to_player", false):
+		return
+	
 	# Show drilling visualization from current position to the level below
 	if level_manager:
 		# Get the current level and position
@@ -1260,6 +1355,9 @@ func check_for_obsolete_levels():
 	# Notify camera of level changes if any levels were removed
 	if levels_removed:
 		emit_signal("entity_moved", null)
+	
+	# Update the upgrade button visibility after level changes
+	update_upgrade_button_visibility()
 
 # Remove a level from the game with a smooth fade-out
 func remove_level(level_idx: int):
@@ -1315,8 +1413,10 @@ func remove_level(level_idx: int):
 		if enemy.current_tile:
 			enemy.current_tile.remove_entity()
 		
-		# Queue for deferred deletion to avoid crashes
-		enemy.queue_free()
+		# Check if enemy is still valid before trying to queue_free it
+		if is_instance_valid(enemy):
+			# Queue for deferred deletion to avoid crashes
+			enemy.queue_free()
 	
 	# Start fade-out animation
 	var tween = create_tween()
@@ -1329,7 +1429,8 @@ func remove_level(level_idx: int):
 	level_manager.level_nodes.erase(level_idx)
 	
 	# Free the map node itself
-	level_map.queue_free()
+	if is_instance_valid(level_map):
+		level_map.queue_free()
 	
 	print("GameController: Level " + str(level_idx) + " removed")
 	
@@ -1337,3 +1438,162 @@ func remove_level(level_idx: int):
 	if level_idx == current_active_level and level_manager.level_nodes.size() > 0:
 		var new_active_level = level_manager.level_nodes.keys().min()
 		set_active_level(new_active_level, level_manager.level_nodes[new_active_level])
+
+# Initialize level visibility (only make the first level visible)
+func initialize_level_visibility():
+	if not level_manager:
+		return
+		
+	print("GameController: Initializing level visibility")
+	
+	# Reset turns spent on levels
+	turns_spent_on_level[0] = 0
+	
+	# Make all other levels invisible
+	for level_idx in level_manager.level_nodes:
+		var level_map = level_manager.level_nodes[level_idx]
+		
+		if level_idx == 0:
+			# First level is visible
+			level_map.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			level_map.visible = true
+			level_map.set_meta("is_visible_to_player", true)
+		else:
+			# All other levels are invisible
+			level_map.modulate = Color(1.0, 1.0, 1.0, 0.0)
+			level_map.visible = false
+			level_map.set_meta("is_visible_to_player", false)
+			turns_spent_on_level[level_idx] = 0
+	
+	# Force deeper levels to be hidden - use call_deferred to make sure this happens after current frame
+	for level_idx in level_manager.level_nodes:
+		if level_idx > 0:
+			print("GameController: Hiding level " + str(level_idx))
+			var level_map = level_manager.level_nodes[level_idx]
+			# Force invisible state
+			level_map.visible = false
+			level_map.set_meta("is_visible_to_player", false)
+			# Set z-index to keep it behind the first level
+			level_map.z_index = -level_idx
+			
+			# Stop any ongoing animations
+			level_map.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	
+	# Update the upgrade button visibility
+	update_upgrade_button_visibility()
+
+# Update tracking of turns spent on each level and reveal next levels if needed
+func update_turns_spent_on_levels():
+	if not level_manager:
+		return
+		
+	# Track which levels have players
+	var levels_with_players = {}
+	
+	# Increment turn count for levels that have players
+	for player in player_entities:
+		var level = player.current_level
+		levels_with_players[level] = true
+		
+		if not turns_spent_on_level.has(level):
+			turns_spent_on_level[level] = 0
+			
+		turns_spent_on_level[level] += 1
+		
+		print("GameController: Players have spent " + str(turns_spent_on_level[level]) + " turns on level " + str(level))
+		
+		# Check if we should reveal the next level
+		if turns_spent_on_level[level] >= MIN_TURNS_BEFORE_NEXT_LEVEL:
+			reveal_next_level(level)
+			
+	# Now check if any level has players for the first time
+	for level in levels_with_players:
+		var level_map = level_manager.level_nodes.get(level)
+		if level_map and not level_map.has_meta("is_visible_to_player"):
+			level_map.set_meta("is_visible_to_player", true)
+			reveal_level(level)
+	
+	# Update the upgrade button visibility
+	update_upgrade_button_visibility()
+
+# Reveal the level below the given level
+func reveal_next_level(current_level):
+	if not level_manager:
+		return
+		
+	var next_level = current_level + 1
+	
+	# Check if this level exists and is not already visible
+	if level_manager.level_nodes.has(next_level):
+		var level_map = level_manager.level_nodes[next_level]
+		if not level_map.get_meta("is_visible_to_player", false):
+			reveal_level(next_level)
+
+# Reveal a specific level with animation
+func reveal_level(level_idx):
+	if not level_manager or not level_manager.level_nodes.has(level_idx):
+		return
+		
+	var level_map = level_manager.level_nodes[level_idx]
+	
+	# Skip if already visible
+	if level_map.get_meta("is_visible_to_player", false):
+		return
+		
+	print("GameController: Revealing level " + str(level_idx))
+	
+	# Mark as visible
+	level_map.set_meta("is_visible_to_player", true)
+	if not turns_spent_on_level.has(level_idx):
+		turns_spent_on_level[level_idx] = 0
+	
+	# Make sure it's visible first
+	level_map.visible = true
+	
+	# Fade in animation
+	var tween = create_tween()
+	tween.tween_property(level_map, "modulate", Color(0.7, 0.7, 0.7, 1.0), 1.0)
+	
+	# Connect tile_selected signal if not already connected
+	if not level_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
+		level_map.tile_selected.connect(_on_tile_selected)
+
+# Check if all enemies on a specific level have been defeated
+func check_level_enemies_cleared(level_index: int):
+	# Count how many enemies are still on this level
+	var enemies_on_level = 0
+	for enemy in enemy_entities:
+		if enemy.current_level == level_index:
+			enemies_on_level += 1
+	
+	print("GameController: Level " + str(level_index) + " has " + str(enemies_on_level) + " enemies remaining")
+	
+	# If no enemies left on this level, reveal the next level
+	if enemies_on_level == 0:
+		print("GameController: All enemies on level " + str(level_index) + " defeated, revealing next level")
+		# Reveal the next level immediately, regardless of turn counter
+		reveal_next_level(level_index)
+		
+	# Update the upgrade button visibility based on enemies remaining
+	update_upgrade_button_visibility()
+	
+	return enemies_on_level == 0
+
+# Check if there are enemies on the current active level
+func has_enemies_on_active_level() -> bool:
+	for enemy in enemy_entities:
+		if enemy.current_level == current_active_level:
+			return true
+	return false
+
+# Update the upgrade button visibility in the HUD
+func update_upgrade_button_visibility() -> void:
+	if Global.hud:
+		var has_enemies = has_enemies_on_active_level()
+		# Hide the upgrade button if there are enemies on the current level
+		Global.hud.set_upgrade_button_enabled(!has_enemies)
+		
+		if has_enemies:
+			print("GameController: Hiding upgrade button - enemies still on level")
+		else:
+			print("GameController: Showing upgrade button - level cleared")

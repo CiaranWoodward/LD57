@@ -120,9 +120,16 @@ func initialize_level(level_index: int) -> IsometricMap:
 	add_child(level_instance)
 	level_instance.z_index = -level_index
 	
-	# Set initial modulation (grey for non-active levels)
-	if level_index > 0:  # Assume first level starts as active
-		level_instance.modulate = Color(0.7, 0.7, 0.7, 1.0)
+	# Set initial modulation and visibility based on level index
+	if level_index > 0:  # Only the first level starts visible
+		level_instance.modulate = Color(0.7, 0.7, 0.7, 0.0)  # Fully transparent
+		level_instance.visible = false  # Completely hidden
+		level_instance.set_meta("is_visible_to_player", false)
+	else:
+		# First level is fully visible
+		level_instance.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		level_instance.visible = true
+		level_instance.set_meta("is_visible_to_player", true)
 	
 	# Track this level
 	level_nodes[level_index] = level_instance
@@ -132,7 +139,7 @@ func initialize_level(level_index: int) -> IsometricMap:
 	if level_index > current_deepest_level:
 		current_deepest_level = level_index
 		
-	print("LevelManager: Level " + str(level_index) + " initialized")
+	print("LevelManager: Level " + str(level_index) + " initialized with visibility: " + str(level_instance.visible))
 	return level_instance
 
 # Check if a tile position in a level has a valid tile below it for drilling

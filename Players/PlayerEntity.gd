@@ -131,6 +131,17 @@ func execute_ability(ability_name: String, target) -> bool:
 			if not game_controller.level_manager.has_valid_tile_below(current_level, grid_position):
 				print("PlayerEntity: " + entity_name + " - Cannot drill, no valid tile below")
 				return false
+			
+			# Check if the target level is visible to the player
+			var target_level = current_level + 1
+			if not game_controller.level_manager.level_nodes.has(target_level):
+				print("PlayerEntity: " + entity_name + " - Cannot drill, target level does not exist")
+				return false
+				
+			var target_level_map = game_controller.level_manager.level_nodes[target_level]
+			if not target_level_map.get_meta("is_visible_to_player", false):
+				print("PlayerEntity: " + entity_name + " - Cannot drill, target level not visible yet")
+				return false
 				
 			# Start the drilling process
 			start_drilling(3)  # Takes 3 turns to complete

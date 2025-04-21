@@ -91,6 +91,12 @@ func _ready():
 
 func initialise_additional_levels(level_index, enemies):
 	var new_level = level_manager.initialize_level(level_index)
+	
+	# Ensure the newly created level is initially invisible
+	# Now using metadata for tracking visibility
+	new_level.visible = false
+	new_level.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	new_level.set_meta("is_visible_to_player", false)
 		
 	# Temporarily switch game controller to second level for initialization
 	var previous_level = game_controller.current_active_level
@@ -127,6 +133,10 @@ func initialise_additional_levels(level_index, enemies):
 	
 	# Restore game controller to first level for now
 	game_controller.set_active_level(previous_level, previous_map)
+	
+	# Double check that the level remains invisible after all initialization
+	new_level.visible = false
+	new_level.set_meta("is_visible_to_player", false)
 
 # Set up UI elements
 func setup_ui():

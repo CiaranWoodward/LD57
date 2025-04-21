@@ -49,6 +49,10 @@ func _ready() -> void:
 	# Initialize with current XP value
 	update_xp_counter(Global.xp)
 	
+	# Initialize the upgrade button with a default disabled state
+	# Will be properly updated once connected to the GameController
+	set_upgrade_button_enabled(false)
+	
 	# Connect action buttons
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	if action_drill:
@@ -215,6 +219,19 @@ func _on_button_menu_pressed() -> void:
 	
 func _on_button_upgrade_pressed() -> void:
 	UpgradeMenu.emit()
+
+# Enable or disable the upgrade button based on whether there are enemies on the current level
+func set_upgrade_button_enabled(enabled: bool) -> void:
+	var upgrade_button = $MenuMargin/HBoxContainer/ButtonUpgrade
+	if upgrade_button:
+		upgrade_button.disabled = !enabled
+		# Make the button semi-transparent when disabled
+		if enabled:
+			upgrade_button.modulate = Color(1, 1, 1, 1)  # Fully visible
+			upgrade_button.tooltip_text = "Upgrade"
+		else:
+			upgrade_button.modulate = Color(1, 1, 1, 0.5)  # Semi-transparent
+			upgrade_button.tooltip_text = "Clear all enemies on this level to upgrade"
 
 # Handle clicking on the drill action button
 func _on_action_drill_input(event: InputEvent) -> void:
