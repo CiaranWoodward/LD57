@@ -19,6 +19,8 @@ func _ready():
 	aggression_level = 1.0  # Always highly aggressive
 	max_health = 4  # Less health than regular bombs
 	current_health = 4
+	
+	xp_value = 40
 
 # Override process_turn to implement chaser-specific behavior
 func process_turn(player_entities: Array):

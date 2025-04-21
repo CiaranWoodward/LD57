@@ -24,7 +24,7 @@ func _ready():
 	max_health = 5
 	current_health = 5
 	
-	xp_value = 1
+	xp_value = 50
 
 # Override process_turn to check for AOE attack opportunities
 func process_turn(player_entities: Array):

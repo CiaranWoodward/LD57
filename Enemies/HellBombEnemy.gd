@@ -14,10 +14,10 @@ func _ready():
 	move_speed = 0.0  # Cannot move
 	detection_range = 1  # Only detects players in adjacent tiles
 	aggression_level = 1.0  # Always on high alert
-	max_health = 6
-	current_health = 6
+	max_health = 2
+	current_health = 2
 	
-	xp_value = 3
+	xp_value = 30
 
 # Override process_turn to implement bomb-specific behavior
 func process_turn(player_entities: Array):

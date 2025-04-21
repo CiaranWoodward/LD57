@@ -23,7 +23,7 @@ func _ready():
 	max_health = 20
 	current_health = 20
 	
-	xp_value = 15
+	xp_value = 150
 
 # Override process_turn to make the boss more formidable
 func process_turn(player_entities: Array):

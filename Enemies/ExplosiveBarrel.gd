@@ -22,7 +22,7 @@ func _ready():
 	explosion_radius = 2  # Larger explosion radius than bomb
 	explosion_damage = 8  # More damage than regular bombs
 	
-	xp_value = 2
+	xp_value = 10
 
 # Override process_turn to do nothing (barrels don't take actions)
 func process_turn(player_entities: Array):

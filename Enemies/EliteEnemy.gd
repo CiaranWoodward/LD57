@@ -23,7 +23,7 @@ func _ready():
 	max_health = 12
 	current_health = 12
 	
-	xp_value = 5
+	xp_value = 50
 
 # Override process_turn to check for ranged attack opportunities
 func process_turn(player_entities: Array):

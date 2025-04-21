@@ -10,7 +10,7 @@ var detection_range: int = 8  # How many tiles away this enemy can detect player
 var patrol_path: Array = []  # Array of grid positions for patrol route
 var current_patrol_index: int = 0  # Current position in patrol route
 var alert_status: String = "idle"  # "idle", "suspicious", "alert"
-var xp_value: int = 1  # Base XP value when killing this enemy
+var xp_value: int = 10  # Base XP value when killing this enemy
 
 # Behavior tracking
 var target_entity: Entity = null

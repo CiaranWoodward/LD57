@@ -20,7 +20,7 @@ func _ready():
 	max_health = 10
 	current_health = 10
 	
-	xp_value = 1
+	xp_value = 10
 	
 	# Connect to the particle systems' finished signals if any
 	var destruction_particles = $DestructionParticles
