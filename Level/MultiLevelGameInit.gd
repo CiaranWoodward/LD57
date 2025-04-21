@@ -105,33 +105,37 @@ func initialise_additional_levels(level_index, enemies):
 		
 	# Spawn enemies on the second level
 	print("MultiLevelGameInit: Spawning enemies on level " + str(level_index))
-	# Instead of clearing, we keep all existing enemies and add new ones
 	
+	# Store original enemy entities to restore them later
+	var original_enemies = []
 	for enemy in game_controller.enemy_entities:
-		if enemy.current_level == 0:  # This may cause problems, previous version assumed only one previous level existed
-			enemy.current_level = -1
+		original_enemies.append(enemy)
 	
+	# Clear enemy entities temporarily to avoid mixing levels
+	game_controller.enemy_entities = []
+	
+	# Spawn new enemies for this level
 	for enemy in enemies:
-		game_controller.spawn_enemy(enemy[0], enemy[1])
+		game_controller.spawn_enemy(enemy[0], enemy[1], level_index)
 	
-	# Store reference to level 1 enemies
+	# Store reference to this level's enemies
 	enemy_level_distribution[level_index] = []
 	for enemy in game_controller.enemy_entities:
-		if enemy.current_level == 0:
-			enemy.current_level = level_index
-			enemy_level_distribution[level_index].append(enemy)
+		enemy_level_distribution[level_index].append(enemy)
 	
-	for enemy in game_controller.enemy_entities:
-		if enemy.current_level == -1:  # This may cause problems, previous version assumed only one previous level existed
-			enemy.current_level = 0
+	print("MultiLevelGameInit: Spawned " + str(enemy_level_distribution[level_index].size()) + " enemies on level " + str(level_index))
 	
-	print("MultiLevelGameInit: Spawned " + str(enemy_level_distribution[1].size()) + " enemies on level" + str(level_index))
-	
-	# Set up patrol paths for second level enemies
+	# Set up patrol paths for this level's enemies
 	for i in range(enemies.size()):
-		enemy_level_distribution[level_index][i].set_patrol_path(enemies[i][2]) 
+		if i < enemy_level_distribution[level_index].size():
+			enemy_level_distribution[level_index][i].set_patrol_path(enemies[i][2]) 
 	
-	# Restore game controller to first level for now
+	# Restore original enemies and add the new ones
+	var new_enemies = game_controller.enemy_entities.duplicate()
+	game_controller.enemy_entities = original_enemies
+	game_controller.enemy_entities.append_array(new_enemies)
+	
+	# Restore game controller to previous level
 	game_controller.set_active_level(previous_level, previous_map)
 	
 	# Double check that the level remains invisible after all initialization
