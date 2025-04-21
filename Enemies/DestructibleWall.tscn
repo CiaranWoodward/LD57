@@ -1,0 +1,43 @@
+[gd_scene load_steps=4 format=3 uid="uid://bkyltv5r6sslc"]
+
+[ext_resource type="Script" uid="uid://ct1vgvxgtmk4g" path="res://Enemies/DestructibleWall.gd" id="1_4xd5e"]
+[ext_resource type="Texture2D" uid="uid://do8ytyb3gaey7" path="res://Graphics/super_Wall.png" id="2_qjhf4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ue5uf"]
+size = Vector2(70, 70)
+
+[node name="DestructibleWall" type="Node2D"]
+script = ExtResource("1_4xd5e")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -36)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("2_qjhf4")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(0, -35)
+shape = SubResource("RectangleShape2D_ue5uf")
+
+[node name="DestructionParticles" type="CPUParticles2D" parent="."]
+position = Vector2(0, -36)
+emitting = false
+amount = 100
+lifetime = 1.2
+one_shot = true
+explosiveness = 0.8
+randomness = 0.3
+emission_shape = 1
+emission_sphere_radius = 5.0
+direction = Vector2(0, 0)
+spread = 180.0
+gravity = Vector2(0, 100)
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+scale_amount_min = 3.0
+scale_amount_max = 8.0
+color = Color(0.6, 0.6, 0.6, 0.7)
+
+[node name="HealthBarPos" type="Marker2D" parent="."]
+position = Vector2(4, -89)

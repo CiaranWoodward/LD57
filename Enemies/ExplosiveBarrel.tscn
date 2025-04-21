@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://db3dhrxcjfyku"]
+
+[ext_resource type="PackedScene" path="res://Enemies/BaseBombEnemy.tscn" id="1_40gr2"]
+[ext_resource type="Script" uid="uid://1ewom7ee0otp" path="res://Enemies/ExplosiveBarrel.gd" id="2_xmr6a"]
+
+[node name="ExplosiveBarrel" instance=ExtResource("1_40gr2")]
+script = ExtResource("2_xmr6a")
+
+[node name="Sprite2D" parent="." index="0"]
+self_modulate = Color(0.8, 0.3, 0.1, 1)
+scale = Vector2(0.3, 0.35)
+
+[node name="ExplosionParticles" parent="." index="2"]
+color = Color(0.9, 0.4, 0.1, 1)
+
+[node name="SmokeParticles" parent="." index="3"]
+color = Color(0.25, 0.15, 0.1, 0.7)
