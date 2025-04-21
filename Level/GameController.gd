@@ -689,6 +689,9 @@ func _on_entity_died(entity):
 		if selected_entity == entity:
 			selected_entity = null
 		
+		# Player removed - this changes active levels, so notify camera
+		emit_signal("entity_moved", null)
+		
 		# Check if game is over (all players dead)
 		if player_entities.size() == 0:
 			change_state(GameState.GAME_OVER)
@@ -772,8 +775,6 @@ func highlight_movement_range(entity):
 
 # Set the current active level and change the isometric_map reference
 func set_active_level(level_index: int, level_map: IsometricMap):
-	print("GameController: Setting active level to " + str(level_index))
-	
 	# Don't change if it's already the active level
 	if current_active_level == level_index and isometric_map == level_map:
 		print("GameController: Level " + str(level_index) + " is already active")
@@ -826,6 +827,9 @@ func set_active_level(level_index: int, level_map: IsometricMap):
 			if map and not map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
 				map.tile_selected.connect(_on_tile_selected)
 				print("GameController: Connected tile_selected signal to map at level " + str(idx))
+	
+	# Notify camera that active level has changed
+	emit_signal("entity_moved", null)
 	
 	# Check if we can remove any obsolete levels
 	check_for_obsolete_levels()
@@ -1058,6 +1062,9 @@ func _handle_drill_hover(player: PlayerEntity):
 	
 	# Highlight the target tile using the built-in tile highlighting system
 	target_tile.set_action_target(true)
+	
+	# Player is about to change levels, notify camera
+	emit_signal("entity_moved", player)
 
 # Handle big drill hover visualization
 func _handle_big_drill_hover(player: PlayerEntity):
@@ -1245,8 +1252,14 @@ func check_for_obsolete_levels():
 			obsolete_levels.append(level_idx)
 	
 	# Remove the obsolete levels
+	var levels_removed = false
 	for level_idx in obsolete_levels:
 		remove_level(level_idx)
+		levels_removed = true
+		
+	# Notify camera of level changes if any levels were removed
+	if levels_removed:
+		emit_signal("entity_moved", null)
 
 # Remove a level from the game with a smooth fade-out
 func remove_level(level_idx: int):
