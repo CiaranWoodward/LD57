@@ -480,6 +480,9 @@ func _on_turn_ended(character):
 		# Clear the active player in the HUD
 		if Global.hud and Global.hud.current_player == character:
 			Global.hud.set_active_player(null)
+	
+	# Check if we should remove any obsolete levels
+	check_for_obsolete_levels()
 
 # Event handler for when a group starts its turns
 func _on_group_turns_started(group_name):
@@ -502,6 +505,9 @@ func _on_group_turns_completed(group_name):
 		current_turn_count += 1
 		print("GameController: Turn " + str(current_turn_count) + " completed")
 		emit_signal("turn_count_updated", current_turn_count)
+		
+		# Check if we should remove any obsolete levels
+		check_for_obsolete_levels()
 		
 		# Start player turns again
 		turn_sequencer.start_group_turns("player")
@@ -686,6 +692,9 @@ func _on_entity_died(entity):
 		# Check if game is over (all players dead)
 		if player_entities.size() == 0:
 			change_state(GameState.GAME_OVER)
+		else:
+			# Check if we can remove any obsolete levels
+			check_for_obsolete_levels()
 	
 	elif entity in enemy_entities:
 		enemy_entities.erase(entity)
@@ -817,6 +826,9 @@ func set_active_level(level_index: int, level_map: IsometricMap):
 			if map and not map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
 				map.tile_selected.connect(_on_tile_selected)
 				print("GameController: Connected tile_selected signal to map at level " + str(idx))
+	
+	# Check if we can remove any obsolete levels
+	check_for_obsolete_levels()
 
 # Get all active entities for a specific level
 func get_entities_at_level(level_index: int, entity_type: String = "all") -> Array:
@@ -1209,3 +1221,106 @@ func _add_entity(entity: Entity, tile: IsometricTile) -> bool:
 	
 	print("GameController: Failed to add entity " + entity.entity_name + " - tile is not walkable or is occupied")
 	return false
+
+# Check for and remove obsolete levels (levels with no players on or above them)
+func check_for_obsolete_levels():
+	if not level_manager or level_manager.level_nodes.size() <= 1:
+		return
+	
+	var player_levels = []
+	
+	# Collect all levels that have players
+	for player in player_entities:
+		if not player_levels.has(player.current_level):
+			player_levels.append(player.current_level)
+	
+	# Sort the levels to find the highest level that has a player
+	player_levels.sort()
+	var lowest_player_level = player_levels[0] if player_levels.size() > 0 else 0
+	
+	# Check all levels below the lowest player level
+	var obsolete_levels = []
+	for level_idx in level_manager.level_nodes.keys():
+		if level_idx < lowest_player_level:
+			obsolete_levels.append(level_idx)
+	
+	# Remove the obsolete levels
+	for level_idx in obsolete_levels:
+		remove_level(level_idx)
+
+# Remove a level from the game with a smooth fade-out
+func remove_level(level_idx: int):
+	if not level_manager or not level_manager.level_nodes.has(level_idx):
+		return
+	
+	var level_map = level_manager.level_nodes[level_idx]
+	if not level_map:
+		return
+	
+	print("GameController: Removing obsolete level " + str(level_idx))
+	
+	# Disconnect signals from the map
+	if level_map.is_connected("tile_selected", Callable(self, "_on_tile_selected")):
+		level_map.tile_selected.disconnect(_on_tile_selected)
+	
+	# Handle enemies on this level - first verify that all enemies have correct level assignment
+	var enemies_to_remove = []
+	
+	# First pass: check for enemies that should be on this level
+	for enemy in enemy_entities:
+		# If an enemy is physically on this level but has incorrect level index,
+		# update its current_level to match
+		if enemy.get_parent() == level_map and enemy.current_level != level_idx:
+			print("GameController: Found enemy " + enemy.entity_name + " on level " + str(level_idx) + 
+				  " but its current_level is " + str(enemy.current_level) + ", correcting")
+			enemy.current_level = level_idx
+		
+		# Add all enemies that are actually on this level to the removal list
+		if enemy.current_level == level_idx:
+			enemies_to_remove.append(enemy)
+	
+	# Second pass: clean up and remove the enemies
+	for enemy in enemies_to_remove:
+		print("GameController: Cleaning up enemy " + enemy.entity_name + " on obsolete level " + str(level_idx))
+		
+		# Verify the enemy's isometric_map reference matches its level
+		if enemy.isometric_map != level_map:
+			print("GameController: Enemy " + enemy.entity_name + " has incorrect isometric_map reference, fixing")
+			enemy.isometric_map = level_map
+		
+		# Remove from turn sequencer first
+		turn_sequencer.remove_character(enemy)
+		
+		# Remove from our array
+		enemy_entities.erase(enemy)
+		
+		# Disconnect and free the enemy entity
+		if enemy.is_connected("died", Callable(self, "_on_entity_died")):
+			enemy.died.disconnect(_on_entity_died)
+		
+		# Remove from its current tile
+		if enemy.current_tile:
+			enemy.current_tile.remove_entity()
+		
+		# Queue for deferred deletion to avoid crashes
+		enemy.queue_free()
+	
+	# Start fade-out animation
+	var tween = create_tween()
+	tween.tween_property(level_map, "modulate", Color(0.7, 0.7, 0.7, 0.0), 1.0)
+	
+	# Remove the level after the animation completes
+	await tween.finished
+	
+	# Remove from level manager
+	level_manager.level_nodes.erase(level_idx)
+	
+	# Free the map node itself
+	level_map.queue_free()
+	
+	print("GameController: Level " + str(level_idx) + " removed")
+	
+	# If this was the active level, change to a valid level
+	if level_idx == current_active_level and level_manager.level_nodes.size() > 0:
+		var new_active_level = level_manager.level_nodes.keys().min()
+		set_active_level(new_active_level, level_manager.level_nodes[new_active_level])
