@@ -9,7 +9,7 @@ signal player_descended(player, from_level, to_level)
 
 # Level management
 var active_levels: Array[IsometricMap] = []
-var level_scenes: Array[PackedScene] = []
+var level_scene: PackedScene
 var level_nodes: Dictionary = {}  # Level index -> IsometricMap node
 var current_deepest_level: int = 0
 
@@ -18,6 +18,7 @@ var current_deepest_level: int = 0
 # o = open/floor, s = stone/wall
 # Second character (optional): Entity to spawn
 # H = Hellbomb, C = Hellbomb Chaser, M = Minion, E = Elite, G = Grunt, B = Boss, P = Player (Heavy), S = Scout, W = Wizard
+# X = Exploding Barrel, D = Destructible Wall
 var tile_entity_encoding = {
 	# Tile types (first character)
 	"o": "open_floor",
@@ -32,75 +33,93 @@ var tile_entity_encoding = {
 	"B": "boss",
 	"P": "player_heavy",
 	"S": "player_scout",
-	"W": "player_wizard"
+	"W": "player_wizard",
+	"X": "exploding_barrel",
+	"D": "destructible_wall"
 }
 
 var level_maps : Array = [
 	[
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "oP", "s", "oS", "oW", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "s", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "oH", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "oH","o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+		["s", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "oP", "s", "oS", "oW", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "s", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "oH","o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "oH", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
 	],
 	[
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "oE", "o", "s", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
-		["o", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+		["s", "o", "o", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "s", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["s", "o", "s", "o", "oC", "oD", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["s", "o", "s", "o", "o", "oD", "oG", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["s", "o", "s", "o", "o", "oD", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["s", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "s", "o", "o", "oD", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["s", "o", "s", "o", "o", "oD", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["s", "o", "s", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "s", "oG", "o"],
+		["s", "o", "s", "oC", "o", "oD", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
+		["s", "o", "o", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
 	],
 	[
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "s", "o", "oE", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
+		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+		["s", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "oD", "o", "o"],
+		["s", "oM", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "oD", "o", "o"],
+		["s", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "oD", "o", "o"],
+		["s", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "oD", "oD", "o"],
+		["s", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "s", "oD", "oE", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "oE", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "oG", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
 	],
 	[
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "s", "o", "o", "s", "s", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o"],
-		["o", "o", "s", "s", "s", "o", "o", "o", "o", "s", "s", "s", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
-		["o", "o", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "oB", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "s", "s", "o", "o", "s", "s", "s", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
-	]
+		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+		["s", "o", "o", "o", "s", "s", "o", "o", "s", "s", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "s", "o", "o", "o", "o", "oD", "oM", "o", "o", "o", "o"],
+		["s", "o", "s", "s", "s", "oE", "o", "o", "o", "oD", "oD", "s", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
+		["s", "oC", "s", "s", "s", "o", "o", "oH", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "s", "o", "o", "oE", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "oX", "o", "s", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
+		["s", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
+		["s", "o", "o", "o", "s", "oD", "s", "oX", "o", "s", "s", "s", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "oE", "o", "o"]
+	],
+	[
+		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s"],
+		["s", "o", "oD", "o", "o", "o", "o", "o", "o", "o", "o", "o", "oD", "o", "s"],
+		["s", "o", "o", "o", "o", "oE", "o", "o", "o", "oE", "o", "o", "o", "o", "s"],
+		["s", "o", "o", "oX", "o", "o", "o", "o", "o", "o", "o", "oX", "o", "o", "s"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s"],
+		["s", "o", "oE", "o", "o", "o", "oB", "o", "o", "o", "o", "o", "oE", "o", "s"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s"],
+		["s", "o", "o", "oX", "o", "o", "o", "o", "o", "o", "o", "oX", "o", "o", "s"],
+		["s", "o", "o", "o", "o", "oE", "o", "o", "o", "oE", "o", "o", "o", "o", "s"],
+		["s", "o", "oD", "o", "o", "o", "o", "o", "o", "o", "o", "o", "oD", "o", "s"],
+		["s", "o", "o", "o", "o", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "s"],
+		["s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s"],
+		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"]
+	],
 ]
 
 # Function to extract tile type and entity information from a map cell string
@@ -119,6 +138,8 @@ func parse_map_cell(cell_string: String) -> Dictionary:
 			result.tile_type = tile_entity_encoding[tile_char]
 		
 		# Second character (if present) is the entity type
+		# This includes all entity types: characters, enemies, and now also
+		# environmental objects like exploding barrels (X) and destructible walls (D)
 		if cell_string.length() > 1:
 			var entity_char = cell_string[1]
 			if tile_entity_encoding.has(entity_char):
@@ -169,23 +190,14 @@ func generate_random_patrol_path(map: IsometricMap, center_pos: Vector2i, patrol
 	return patrol_path
 
 func _ready():
-	# Register initial level scenes
-	level_scenes = [
-		load("res://Level/map.tscn"),  # Level 1
-		load("res://Level/map.tscn"),   # Level 2 (for now using the same scene)
-		load("res://Level/map.tscn"),   # Level 3 (for now using the same scene)
-		load("res://Level/map.tscn")   # Level 4 (for now using the same scene)
-	]
+	# Register initial level scene
+	level_scene = load("res://Level/map.tscn")
 	
 	# Initialize the first level
 	initialize_level(0)
 
 # Initialize a level at the specified index
 func initialize_level(level_index: int) -> IsometricMap:
-	if level_index >= level_scenes.size():
-		push_error("Level index out of bounds: " + str(level_index) + " There are no available scenes")
-		return null
-	
 	if level_index >= level_maps.size():
 		push_error("Level index out of bounds: " + str(level_index) + " There are no available maps")
 		return null
@@ -211,7 +223,7 @@ func initialize_level(level_index: int) -> IsometricMap:
 	print("LevelManager: Map data contains " + str(entity_count) + " entities to spawn")
 	
 	# Instance the level
-	var level_instance = level_scenes[level_index].instantiate() as IsometricMap
+	var level_instance = level_scene.instantiate() as IsometricMap
 	level_instance.set_map_array(level_maps[level_index])
 	
 	# Position the level based on its depth
@@ -246,7 +258,7 @@ func initialize_level(level_index: int) -> IsometricMap:
 
 # Check if a tile position in a level has a valid tile below it for drilling
 func has_valid_tile_below(level_index: int, grid_pos: Vector2i) -> bool:
-	if level_index >= level_scenes.size() - 1:
+	if level_index >= level_nodes.size() - 1:
 		return false  # No level below
 		
 	var level_below_index = level_index + 1
