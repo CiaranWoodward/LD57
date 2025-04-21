@@ -13,16 +13,38 @@ var level_scenes: Array[PackedScene] = []
 var level_nodes: Dictionary = {}  # Level index -> IsometricMap node
 var current_deepest_level: int = 0
 
+# Tile and entity encoding dictionary
+# First character: Tile type
+# o = open/floor, s = stone/wall
+# Second character (optional): Entity to spawn
+# H = Hellbomb, C = Hellbomb Chaser, M = Minion, E = Elite, G = Grunt, B = Boss, P = Player (Heavy), S = Scout, W = Wizard
+var tile_entity_encoding = {
+	# Tile types (first character)
+	"o": "open_floor",
+	"s": "stone_wall",
+	
+	# Entity types (second character)
+	"H": "hellbomb",
+	"C": "hellbomb_chaser",
+	"M": "minion",
+	"E": "elite",
+	"G": "grunt",
+	"B": "boss",
+	"P": "player_heavy",
+	"S": "player_scout",
+	"W": "player_wizard"
+}
+
 var level_maps : Array = [
 	[
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "oP", "s", "oS", "oW", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "s", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "oH", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "o", "oH","o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
@@ -36,7 +58,7 @@ var level_maps : Array = [
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
 		["o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o"],
-		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
+		["o", "o", "s", "o", "o", "o", "o", "oE", "o", "s", "o", "o", "s", "o", "o"],
 		["o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "s", "o", "o"],
 		["o", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "s", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
@@ -54,7 +76,7 @@ var level_maps : Array = [
 		["o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "o", "o", "s", "o", "oE", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o"],
@@ -71,7 +93,7 @@ var level_maps : Array = [
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
 		["o", "o", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
-		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["o", "o", "o", "o", "s", "o", "o", "oB", "o", "o", "o", "o", "o", "o", "o"],
 		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "s", "s", "o"],
 		["o", "o", "o", "o", "s", "o", "o", "o", "o", "o", "o", "s", "o", "o", "o"],
 		["o", "o", "o", "o", "s", "s", "s", "o", "o", "s", "s", "s", "o", "o", "o"],
@@ -80,6 +102,71 @@ var level_maps : Array = [
 		["o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"]
 	]
 ]
+
+# Function to extract tile type and entity information from a map cell string
+func parse_map_cell(cell_string: String) -> Dictionary:
+	var result = {
+		"tile_type": "open_floor",
+		"entity_type": null
+	}
+	
+	print("LevelManager: Parsing cell value: '" + cell_string + "'")
+	
+	if cell_string.length() > 0:
+		# First character is the tile type
+		var tile_char = cell_string[0]
+		if tile_entity_encoding.has(tile_char):
+			result.tile_type = tile_entity_encoding[tile_char]
+		
+		# Second character (if present) is the entity type
+		if cell_string.length() > 1:
+			var entity_char = cell_string[1]
+			if tile_entity_encoding.has(entity_char):
+				result.entity_type = tile_entity_encoding[entity_char]
+				print("LevelManager: Found entity code '" + entity_char + "' -> " + result.entity_type)
+	
+	return result
+
+# Helper function to generate a random patrol path for an enemy
+func generate_random_patrol_path(map: IsometricMap, center_pos: Vector2i, patrol_length: int = 4) -> Array:
+	var patrol_path = [center_pos]
+	var current_pos = center_pos
+	var attempt_count = 0
+	var max_attempts = 30
+	
+	while patrol_path.size() < patrol_length and attempt_count < max_attempts:
+		attempt_count += 1
+		
+		# Get valid neighbors
+		var neighbors = map.get_neighbors(current_pos)
+		var valid_neighbors = []
+		
+		for neighbor in neighbors:
+			if neighbor.is_walkable and not neighbor.grid_position in patrol_path:
+				valid_neighbors.append(neighbor)
+		
+		if valid_neighbors.is_empty():
+			# If we hit a dead end, try a different branch from an earlier point
+			if patrol_path.size() > 1:
+				current_pos = patrol_path[patrol_path.size() - 2]
+				patrol_path.remove_at(patrol_path.size() - 1)
+			continue
+		
+		# Choose a random valid neighbor
+		var next_tile = valid_neighbors[randi() % valid_neighbors.size()]
+		current_pos = next_tile.grid_position
+		patrol_path.append(current_pos)
+	
+	# If we couldn't build a complete path, add some random variation to the existing positions
+	if patrol_path.size() < patrol_length:
+		var existing_positions = patrol_path.duplicate()
+		for i in range(patrol_length - patrol_path.size()):
+			if existing_positions.is_empty():
+				break
+			var random_pos = existing_positions[randi() % existing_positions.size()]
+			patrol_path.append(random_pos)
+	
+	return patrol_path
 
 func _ready():
 	# Register initial level scenes
@@ -106,7 +193,22 @@ func initialize_level(level_index: int) -> IsometricMap:
 	if level_nodes.has(level_index):
 		return level_nodes[level_index]  # Level already initialized
 		
-	print("LevelManager: Initializing level " + str(level_index))
+	print("LevelManager: Initializing level " + str(level_index) + " with map size " + 
+		str(level_maps[level_index].size()) + "x" + str(level_maps[level_index][0].size()))
+	
+	# Check for entities in the map before instantiating
+	var entity_count = 0
+	for y in range(level_maps[level_index].size()):
+		for x in range(level_maps[level_index][y].size()):
+			var cell = level_maps[level_index][y][x]
+			if cell.length() > 1:
+				var entity_char = cell[1]
+				if tile_entity_encoding.has(entity_char):
+					entity_count += 1
+					print("LevelManager: Found entity " + tile_entity_encoding[entity_char] + 
+						" at position " + str(Vector2i(x, y)) + " in map data")
+	
+	print("LevelManager: Map data contains " + str(entity_count) + " entities to spawn")
 	
 	# Instance the level
 	var level_instance = level_scenes[level_index].instantiate() as IsometricMap

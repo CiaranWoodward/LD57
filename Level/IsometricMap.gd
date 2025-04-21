@@ -13,6 +13,10 @@ var map : Array = [[]]
 
 var level_index = 0
 
+# Entity spawn information
+var entity_spawn_info = []  # Array of dictionaries with position and entity type
+var entities_initialized = false  # Flag to track if entities have been initialized
+
 # Color settings for different levels
 @export var base_grey_color: Color = Color(0.85, 0.85, 0.85, 1.0)  # Light grey for upper levels
 @export var base_hell_color: Color = Color(0.85, 0.25, 0.25, 1.0)  # Reddish for lower levels
@@ -29,6 +33,7 @@ var selected_tile: IsometricTile = null
 
 # Signals
 signal tile_selected(tile)
+signal entities_to_spawn(entity_list)  # New signal to notify about entities that need to be spawned
 
 func _ready():
 	print("IsometricMap: Initializing")
@@ -45,6 +50,23 @@ func _ready():
 
 func set_map_array(new_map):
 	map = new_map
+	
+	# Clear any existing entity spawn info when setting a new map
+	entity_spawn_info.clear()
+	entities_initialized = false
+
+# Method to explicitly initialize entities after connections are established
+func initialize_entities():
+	if entities_initialized:
+		print("IsometricMap: Entities already initialized, skipping")
+		return
+		
+	print("IsometricMap: Manually initializing entities, count: " + str(entity_spawn_info.size()))
+	if not entity_spawn_info.is_empty():
+		emit_signal("entities_to_spawn", entity_spawn_info)
+		entities_initialized = true
+	else:
+		print("IsometricMap: No entities to spawn")
 
 # Generates the isometric map
 func generate_map():
@@ -60,6 +82,8 @@ func generate_map():
 			child.queue_free()
 	
 	tiles.clear()
+	entity_spawn_info.clear()
+	entities_initialized = false
 	print("IsometricMap: Cleared existing tiles")
 	
 	# Create new tiles
@@ -71,25 +95,44 @@ func generate_map():
 		for y in range(map_height):
 			var grid_pos = Vector2i(x, y)
 			
-			# Determine tile type - this is a simple example pattern
-			var tile_type = "stone_floor"
+			# Get the cell value from the map
+			var cell_value = ""
+			if y < map.size() and x < map[y].size():
+				cell_value = map[y][x]
 			
-			# Create walls around the perimeter
-			if x == 0 or x == map_width - 1 or y == 0 or y == map_height - 1:
-				tile_type = "stone_wall"
+			# Parse the cell value using LevelManager.parse_map_cell
+			var cell_info = {}
+			if get_parent() is LevelManager:
+				cell_info = get_parent().parse_map_cell(cell_value)
+				print("IsometricMap: Parsed cell at " + str(grid_pos) + " with value '" + cell_value + "' -> " + str(cell_info))
+			else:
+				# Fallback if LevelManager is not the parent
+				if cell_value == "s":
+					cell_info = {"tile_type": "stone_wall", "entity_type": null}
+				else:
+					cell_info = {"tile_type": "open_floor", "entity_type": null}
 			
-			# Create some additional wall structures for demonstration
-			if (map[y][x] == "s"):
-				tile_type = "stone_wall"
-				
-			var tile = create_tile(grid_pos, tile_type)
+			# Create tile based on parsed tile type
+			var tile = create_tile(grid_pos, cell_info.tile_type)
 			tiles[grid_pos] = tile
 			created_tiles += 1
+			
+			# If this cell has an entity, store its spawn info
+			if cell_info.entity_type != null:
+				print("IsometricMap: Found entity '" + cell_info.entity_type + "' to spawn at " + str(grid_pos))
+				entity_spawn_info.append({
+					"position": grid_pos,
+					"entity_type": cell_info.entity_type
+				})
 			
 			if created_tiles % 25 == 0 or created_tiles == total_tiles:
 				print("IsometricMap: Created " + str(created_tiles) + "/" + str(total_tiles) + " tiles")
 	
-	print("IsometricMap: Map generation complete")
+	print("IsometricMap: Map generation complete with " + str(entity_spawn_info.size()) + " entities to spawn")
+	
+	# Note: We will not automatically emit the signal here. 
+	# Instead, the LevelManager or MultiLevelGameInit should call initialize_entities
+	# after signals are properly connected.
 
 # Generates a noise value for a grid position that can be used for consistent variations
 func get_noise_value(grid_pos: Vector2i) -> float:
