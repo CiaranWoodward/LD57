@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b2wx6aiqomd3q"
+path="res://.godot/imported/LD57 Walk_1.mp3-f64304d886c8bbeebdd63ea29112374e.mp3str"
+
+[deps]
+
+source_file="res://sfx/LD57 Walk_1.mp3"
+dest_files=["res://.godot/imported/LD57 Walk_1.mp3-f64304d886c8bbeebdd63ea29112374e.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

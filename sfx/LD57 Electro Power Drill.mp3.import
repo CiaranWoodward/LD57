@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bmouhux560mhw"
+path="res://.godot/imported/LD57 Electro Power Drill.mp3-bf3a71f78d463e410948573834fc0ef4.mp3str"
+
+[deps]
+
+source_file="res://sfx/LD57 Electro Power Drill.mp3"
+dest_files=["res://.godot/imported/LD57 Electro Power Drill.mp3-bf3a71f78d463e410948573834fc0ef4.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

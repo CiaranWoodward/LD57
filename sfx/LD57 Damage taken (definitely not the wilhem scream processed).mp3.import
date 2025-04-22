@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://e5jy7c11vvw0"
+path="res://.godot/imported/LD57 Damage taken (definitely not the wilhem scream processed).mp3-edcdf83e69e7d941ce032064293ee12b.mp3str"
+
+[deps]
+
+source_file="res://sfx/LD57 Damage taken (definitely not the wilhem scream processed).mp3"
+dest_files=["res://.godot/imported/LD57 Damage taken (definitely not the wilhem scream processed).mp3-edcdf83e69e7d941ce032064293ee12b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

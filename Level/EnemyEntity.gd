@@ -278,6 +278,12 @@ func set_alert_status(status: String):
 	if alert_status != status:
 		alert_status = status
 		emit_signal("alert_status_changed", status)
+		
+		# Play alert sound when enemy becomes alert
+		if status == "alert":
+			Audio.play_sound("point", -2.0)
+		elif status == "suspicious":
+			Audio.play_sound("point", -5.0)  # Quieter for suspicious state
 
 # Called when the entity has completed following its path
 func _on_path_completed():

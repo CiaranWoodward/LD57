@@ -88,6 +88,19 @@ func use_ability(ability_name: String, target) -> bool:
 	var success = execute_ability(ability_name, target)
 	
 	if success:
+		# Play ability sound based on the ability type
+		match ability_name:
+			"drill":
+				Audio.play_sound("drill")
+			"fireball", "fire_blast", "flame_wave":
+				Audio.play_sound("fireball")
+			"arrow_shot", "line_shot", "piercing_shot":
+				Audio.play_sound("arrow")
+			"heal", "group_heal", "regenerate":
+				Audio.play_sound("powerup")
+			_:  # Default ability sound
+				Audio.play_sound("point")
+		
 		# Deduct action points only if ability was successfully executed
 		action_points -= ability_cost
 		print("PlayerEntity: " + entity_name + " used " + str(ability_cost) + " action points for " + ability_name + 
@@ -168,6 +181,9 @@ func add_experience(amount: int):
 # Called when the player levels up
 # Override in subclasses with specific level-up behavior
 func on_level_up():
+	# Play level-up sound
+	Audio.play_sound("powerup", 2.0)
+	
 	# Default behavior - increase action points and movement points
 	max_action_points += 1
 	max_movement_points += 1
@@ -208,6 +224,9 @@ func consume_movement_points_for_path(path_length: int) -> bool:
 func end_turn():
 	print("PlayerEntity: " + entity_name + " turn manually ended by player")
 	
+	# Play turn end sound
+	Audio.play_sound("point", -5.0)
+	
 	# If we're moving, stop movement
 	if is_moving:
 		path.clear()
@@ -245,6 +264,9 @@ func _on_path_completed():
 # Used by the upgrade menu to unlock new abilities
 func unlock_ability(ability_name: String) -> void:
 	print("PlayerEntity: " + entity_name + " unlocked ability: " + ability_name)
+	
+	# Play unlock sound
+	Audio.play_sound("powerup", 3.0)
 	
 	# Override this to do the actual unlocking
 	pass

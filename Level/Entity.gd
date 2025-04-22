@@ -218,6 +218,17 @@ func apply_status_effect(effect_name: String, duration: int, strength: float = 1
 		"strength": strength
 	}
 	
+	# Play appropriate sound effect based on the status effect
+	match effect_name:
+		"freeze":
+			Audio.play_sound("metal_hit", -3.0)
+		"poison":
+			Audio.play_sound("point", -3.0)
+		"stunned":
+			Audio.play_sound("metal_hit", -5.0)
+		"buffed", "protected":
+			Audio.play_sound("powerup", -3.0)
+	
 	# Apply immediate effects if needed
 	match effect_name:
 		"stunned":
@@ -295,6 +306,9 @@ func start_drilling(turns_required: int = 2):
 	drilling_target_level = current_level + 1
 	drilling_target_position = grid_position
 	
+	# Play drilling sound
+	Audio.play_sound("drill")
+	
 	# Apply visual effect or animation if needed
 	modulate = Color(0.7, 0.7, 0.7)  # Dim the entity to show drilling
 	
@@ -309,6 +323,9 @@ func continue_drilling() -> bool:
 		
 	drilling_turns_left -= 1
 	print("Entity: " + entity_name + " drilling progress: " + str(drilling_turns_left) + " turns left")
+	
+	# Play drilling sound
+	Audio.play_sound("drill")
 	
 	# Apply drilling effect to the current tile
 	if current_tile:
@@ -326,6 +343,9 @@ func complete_drilling() -> bool:
 	print("Entity: " + entity_name + " completed drilling")
 	is_drilling = false
 	modulate = Color(1, 1, 1)  # Restore normal appearance
+	
+	# Play drilling completion sound
+	Audio.play_sound("drill", 3.0)
 		
 	# Check with game_controller to see if we can move to the target level
 	if game_controller and game_controller.level_manager:
@@ -367,6 +387,10 @@ func heal_damage(amount: int):
 		return
 		
 	print("Entity: " + entity_name + " healing " + str(amount) + " health")
+	
+	# Play healing sound
+	Audio.play_sound("powerup", -3.0)
+	
 	current_health = min(max_health, current_health + amount)
 	print("Entity: " + entity_name + " health now " + str(current_health) + "/" + str(max_health))
 	emit_signal("health_changed", current_health, max_health)
@@ -376,6 +400,9 @@ func die():
 	print("Entity: " + entity_name + " died")
 	is_dead = true
 	is_moving = false
+	
+	# Play death sound (louder metal hit)
+	Audio.play_sound("die")
 	
 	# Clean up the tile this entity was occupying
 	if current_tile and current_tile.is_occupied and current_tile.occupying_entity == self:
@@ -500,6 +527,18 @@ func move_along_path(delta: float):
 	if distance_to_move >= distance_to_target:
 		position = target_world_pos
 		
+		# Play walking sound (much quieter) only if there's at least one player on the same level
+		var should_play_sound = false
+		if game_controller and game_controller.has_method("get_player_entities"):
+			var player_entities = game_controller.get_player_entities()
+			for player in player_entities:
+				if player.current_level == current_level:
+					should_play_sound = true
+					break
+					
+		if should_play_sound:
+			Audio.play_sound("walk", -15.0)
+		
 		# Update entity state
 		if current_tile:
 			# Verify that we are the occupying entity before removing
@@ -568,6 +607,9 @@ func set_level(level_index: int):
 # This will be used when implementing the drilling mechanic
 func descend_to_level(next_level_index: int, target_tile: IsometricTile):
 	print("Entity: " + entity_name + " (ID: " + entity_id + ") descending from level " + str(current_level) + " to level " + str(next_level_index))
+	
+	# Play level transition sound
+	Audio.play_sound("drill", 2.0)
 	
 	# Get the current tile before changing levels
 	var previous_tile = current_tile
@@ -818,6 +860,9 @@ func create_poison_particles():
 
 # Create a burst of poison particles when the poison damage is applied
 func create_poison_burst():
+	# Play poison damage sound
+	Audio.play_sound("fireball", -3.0)
+	
 	# Create a burst of poison particles when damage is applied
 	var burst = CPUParticles2D.new()
 	add_child(burst)
