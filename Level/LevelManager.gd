@@ -129,8 +129,6 @@ func parse_map_cell(cell_string: String) -> Dictionary:
 		"entity_type": null
 	}
 	
-	print("LevelManager: Parsing cell value: '" + cell_string + "'")
-	
 	if cell_string.length() > 0:
 		# First character is the tile type
 		var tile_char = cell_string[0]
@@ -144,7 +142,6 @@ func parse_map_cell(cell_string: String) -> Dictionary:
 			var entity_char = cell_string[1]
 			if tile_entity_encoding.has(entity_char):
 				result.entity_type = tile_entity_encoding[entity_char]
-				print("LevelManager: Found entity code '" + entity_char + "' -> " + result.entity_type)
 	
 	return result
 

@@ -53,6 +53,9 @@ func _ready() -> void:
 	# Will be properly updated once connected to the GameController
 	set_upgrade_button_enabled(false)
 	
+	# Set up input processing for right-click and escape
+	set_process_input(true)
+	
 	# Connect action buttons
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	if action_drill:
@@ -271,8 +274,19 @@ func _on_action_drill_input(event: InputEvent) -> void:
 				# If not successful, still update buttons to reflect current state
 				update_action_buttons()
 
+# Function to check if any ability is currently selected
+func is_ability_selected() -> bool:
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if game_controller and game_controller.current_ability != "":
+		return true
+	return false
+
 # Show drill path when hovering over drill button
 func _on_action_drill_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_drill_button = true
 	var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
 	# Only show hover effect if button is not disabled
@@ -283,7 +297,11 @@ func _on_action_drill_mouse_entered() -> void:
 # Hide drill path when no longer hovering over drill button
 func _on_action_drill_mouse_exited() -> void:
 	is_hovering_drill_button = false
-	DrillButtonUnhovered.emit()
+	
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		DrillButtonUnhovered.emit()
 
 # Handle clicking on the drill smash action button
 func _on_action_drill_smash_input(event: InputEvent) -> void:
@@ -325,6 +343,10 @@ func _on_action_drill_smash_input(event: InputEvent) -> void:
 
 # Show drill smash targets when hovering over drill smash button
 func _on_action_drill_smash_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_drill_smash_button = true
 	var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
 	# Only show hover effect if button is not disabled
@@ -338,11 +360,15 @@ func _on_action_drill_smash_mouse_exited() -> void:
 	is_hovering_drill_smash_button = false
 	
 	# Only emit the unhover signal if we're not in drill_smash ability selection mode
+	# and if no other ability is selected
 	var game_controller = get_node("/root").find_child("GameController", true, false)
-	if game_controller and game_controller.current_ability != "drill_smash":
-		DrillSmashButtonUnhovered.emit()
+	if game_controller:
+		if game_controller.current_ability == "":
+			DrillSmashButtonUnhovered.emit()
+		elif game_controller.current_ability == "drill_smash":
+			print("HUD: Keeping drill_smash highlights active since ability is selected")
 	else:
-		print("HUD: Keeping drill_smash highlights active since ability is selected")
+		DrillSmashButtonUnhovered.emit()
 
 # Handle clicking on the line shot action button
 func _on_action_line_shot_input(event: InputEvent) -> void:
@@ -384,6 +410,10 @@ func _on_action_line_shot_input(event: InputEvent) -> void:
 
 # Show line shot targets when hovering over line shot button
 func _on_action_line_shot_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_line_shot_button = true
 	var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
 	# Only show hover effect if button is not disabled
@@ -397,11 +427,15 @@ func _on_action_line_shot_mouse_exited() -> void:
 	is_hovering_line_shot_button = false
 	
 	# Only emit the unhover signal if we're not in line_shot ability selection mode
+	# and if no other ability is selected
 	var game_controller = get_node("/root").find_child("GameController", true, false)
-	if game_controller and game_controller.current_ability != "line_shot":
-		LineShotButtonUnhovered.emit()
+	if game_controller:
+		if game_controller.current_ability == "":
+			LineShotButtonUnhovered.emit()
+		elif game_controller.current_ability == "line_shot":
+			print("HUD: Keeping line_shot highlights active since ability is selected")
 	else:
-		print("HUD: Keeping line_shot highlights active since ability is selected")
+		LineShotButtonUnhovered.emit()
 
 # Handle clicking on the fireball action button
 func _on_action_fireball_input(event: InputEvent) -> void:
@@ -443,6 +477,10 @@ func _on_action_fireball_input(event: InputEvent) -> void:
 
 # Show fireball targets when hovering over fireball button
 func _on_action_fireball_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
 	# Only show hover effect if button is not disabled
 	if action_fireball and not action_fireball.disabled and current_player and current_player.abilities.has("fireball"):
@@ -453,11 +491,15 @@ func _on_action_fireball_mouse_entered() -> void:
 # Hide fireball targets when no longer hovering over fireball button
 func _on_action_fireball_mouse_exited() -> void:
 	# Only emit the unhover signal if we're not in fireball ability selection mode
+	# and if no other ability is selected
 	var game_controller = get_node("/root").find_child("GameController", true, false)
-	if game_controller and game_controller.current_ability != "fireball":
-		FireballButtonUnhovered.emit()
+	if game_controller:
+		if game_controller.current_ability == "":
+			FireballButtonUnhovered.emit()
+		elif game_controller.current_ability == "fireball":
+			print("HUD: Keeping fireball highlights active since ability is selected")
 	else:
-		print("HUD: Keeping fireball highlights active since ability is selected")
+		FireballButtonUnhovered.emit()
 
 # Handle clicking on the cloak action button
 func _on_action_cloak_input(event: InputEvent) -> void:
@@ -489,6 +531,10 @@ func _on_action_cloak_input(event: InputEvent) -> void:
 
 # Show visual feedback when hovering over cloak button
 func _on_action_cloak_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_cloak_button = true
 	var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
 	# Only show hover effect if button is not disabled
@@ -499,7 +545,11 @@ func _on_action_cloak_mouse_entered() -> void:
 # Hide visual feedback when no longer hovering over cloak button
 func _on_action_cloak_mouse_exited() -> void:
 	is_hovering_cloak_button = false
-	CloakButtonUnhovered.emit()
+	
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		CloakButtonUnhovered.emit()
 
 # Handle clicking on the defend action button
 func _on_action_defend_input(event: InputEvent) -> void:
@@ -531,6 +581,10 @@ func _on_action_defend_input(event: InputEvent) -> void:
 
 # Show visual feedback when hovering over defend button
 func _on_defend_button_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
 	# Only show hover effect if button is not disabled
 	if action_defend and not action_defend.disabled and current_player and current_player.abilities.has("defend"):
@@ -539,7 +593,10 @@ func _on_defend_button_mouse_entered() -> void:
 
 # Hide visual feedback when no longer hovering over defend button
 func _on_defend_button_mouse_exited() -> void:
-	DefendButtonUnhovered.emit()
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		DefendButtonUnhovered.emit()
 
 func get_end_turn_button():
 	return $End/EndMargin/EndButton
@@ -1107,6 +1164,10 @@ func _on_action_big_drill_input(event: InputEvent) -> void:
 
 # Show big drill targets when hovering over big drill button
 func _on_big_drill_button_hovered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
 	# Only show hover effect if button is not disabled
 	if action_big_drill and not action_big_drill.disabled and current_player and current_player.abilities.has("big_drill"):
@@ -1116,9 +1177,13 @@ func _on_big_drill_button_hovered() -> void:
 
 # Clear highlights when unhovered
 func _on_big_drill_button_unhovered() -> void:
-	# Emit signal for unhover
-	emit_signal("BigDrillButtonUnhovered")
-	print("HUD: Big drill button unhovered")
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		emit_signal("BigDrillButtonUnhovered")
+		print("HUD: Big drill button unhovered")
+	elif game_controller.current_ability == "big_drill":
+		print("HUD: Keeping big drill highlights active since ability is selected")
 
 # Update the XP counter with the current value
 func update_xp_counter(xp_value: int):
@@ -1171,6 +1236,10 @@ func _on_action_charge_attack_input(event: InputEvent) -> void:
 
 # Show charge attack targets when hovering over charge attack button
 func _on_action_charge_attack_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_charge_attack_button = true
 	var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
 	# Only show hover effect if button is not disabled
@@ -1182,7 +1251,13 @@ func _on_action_charge_attack_mouse_entered() -> void:
 # Hide charge attack targets when no longer hovering over charge attack button
 func _on_action_charge_attack_mouse_exited() -> void:
 	is_hovering_charge_attack_button = false
-	ChargeAttackButtonUnhovered.emit()
+	
+	# Only clear highlights if no ability is selected or if this ability is not the current one
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		ChargeAttackButtonUnhovered.emit()
+	elif game_controller.current_ability == "charge_attack":
+		print("HUD: Keeping charge_attack highlights active since ability is selected")
 
 # End turn button
 func _on_end_button_pressed() -> void:
@@ -1220,6 +1295,10 @@ func _on_action_emergency_teleport_input(event: InputEvent) -> void:
 
 # Show emergency teleport info when hovering over emergency teleport button
 func _on_action_emergency_teleport_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_emergency_teleport_button = true
 	var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
 	# Only show hover effect if button is not disabled
@@ -1230,37 +1309,73 @@ func _on_action_emergency_teleport_mouse_entered() -> void:
 # Hide emergency teleport info when no longer hovering over emergency teleport button
 func _on_action_emergency_teleport_mouse_exited() -> void:
 	is_hovering_emergency_teleport_button = false
-	EmergencyTeleportButtonUnhovered.emit()
+	
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		EmergencyTeleportButtonUnhovered.emit()
+	elif game_controller.current_ability == "emergency_teleport":
+		print("HUD: Keeping emergency_teleport highlights active since ability is selected")
 
 # Handling mouse enter/exit for healing AOE button
 func _on_action_healing_aoe_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_healing_aoe_button = true
 	if current_player and current_player is WizardPlayer:
 		emit_signal("HealingAOEButtonHovered", current_player)
 		
 func _on_action_healing_aoe_mouse_exited() -> void:
 	is_hovering_healing_aoe_button = false
-	emit_signal("HealingAOEButtonUnhovered")
+	
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		emit_signal("HealingAOEButtonUnhovered")
+	elif game_controller.current_ability == "healing_aoe":
+		print("HUD: Keeping healing_aoe highlights active since ability is selected")
 
 # Handling mouse enter/exit for freeze AOE button
 func _on_action_freeze_aoe_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_freeze_aoe_button = true
 	if current_player and current_player is WizardPlayer:
 		emit_signal("FreezeAOEButtonHovered", current_player)
 		
 func _on_action_freeze_aoe_mouse_exited() -> void:
 	is_hovering_freeze_aoe_button = false
-	emit_signal("FreezeAOEButtonUnhovered")
+	
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		emit_signal("FreezeAOEButtonUnhovered")
+	elif game_controller.current_ability == "freeze_aoe":
+		print("HUD: Keeping freeze_aoe highlights active since ability is selected")
 
 # Handling mouse enter/exit for poison AOE button
 func _on_action_poison_aoe_mouse_entered() -> void:
+	# Don't show hover effects if an ability is currently selected
+	if is_ability_selected():
+		return
+		
 	is_hovering_poison_aoe_button = true
 	if current_player and current_player is WizardPlayer:
 		emit_signal("PoisonAOEButtonHovered", current_player)
 		
 func _on_action_poison_aoe_mouse_exited() -> void:
 	is_hovering_poison_aoe_button = false
-	emit_signal("PoisonAOEButtonUnhovered")
+	
+	# Only clear highlights if no ability is selected
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if not game_controller or game_controller.current_ability == "":
+		emit_signal("PoisonAOEButtonUnhovered")
+	elif game_controller.current_ability == "poison_aoe":
+		print("HUD: Keeping poison_aoe highlights active since ability is selected")
 
 # Handle clicking on the healing AOE action button
 func _on_action_healing_aoe_input(event: InputEvent) -> void:
@@ -1327,3 +1442,48 @@ func _on_action_poison_aoe_input(event: InputEvent) -> void:
 				# Update button state
 				action_poison_aoe.modulate = Color(1, 0.5, 0.5, 1)  # Highlight button
 				update_action_buttons()  # Update other buttons
+
+# Handle input events for right-click and escape key
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		_cancel_current_ability()
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_cancel_current_ability()
+
+# Helper function to cancel the current ability
+func _cancel_current_ability() -> void:
+	var game_controller = get_node("/root").find_child("GameController", true, false)
+	if game_controller and game_controller.current_ability != "":
+		print("HUD: Canceling current ability via right-click or escape key")
+		game_controller.cancel_current_ability()
+		
+		# Reset all ability button appearances
+		var action_drill = $Action/ActionMargin/ActionHBox/ActionDrill
+		var action_drill_smash = $Action/ActionMargin/ActionHBox/ActionDrillSmash
+		var action_line_shot = $Action/ActionMargin/ActionHBox/ActionLineShot
+		var action_fireball = $Action/ActionMargin/ActionHBox/ActionFireball
+		var action_cloak = $Action/ActionMargin/ActionHBox/ActionCloak
+		var action_defend = $Action/ActionMargin/ActionHBox/ActionDefend
+		var action_big_drill = $Action/ActionMargin/ActionHBox/ActionBigDrill
+		var action_charge_attack = $Action/ActionMargin/ActionHBox/ActionChargeAttack
+		var action_emergency_teleport = $Action/ActionMargin/ActionHBox/ActionEmergencyTeleport
+		var action_healing_aoe = $Action/ActionMargin/ActionHBox/ActionHealingAOE
+		var action_freeze_aoe = $Action/ActionMargin/ActionHBox/ActionFreezeAOE
+		var action_poison_aoe = $Action/ActionMargin/ActionHBox/ActionPoisonAOE
+		
+		# Reset all buttons to normal state
+		action_drill.modulate = Color(1, 1, 1, 1)
+		action_drill_smash.modulate = Color(1, 1, 1, 1)
+		action_line_shot.modulate = Color(1, 1, 1, 1)
+		action_fireball.modulate = Color(1, 1, 1, 1)
+		action_cloak.modulate = Color(1, 1, 1, 1)
+		action_defend.modulate = Color(1, 1, 1, 1)
+		action_big_drill.modulate = Color(1, 1, 1, 1)
+		action_charge_attack.modulate = Color(1, 1, 1, 1)
+		action_emergency_teleport.modulate = Color(1, 1, 1, 1)
+		action_healing_aoe.modulate = Color(1, 1, 1, 1)
+		action_freeze_aoe.modulate = Color(1, 1, 1, 1)
+		action_poison_aoe.modulate = Color(1, 1, 1, 1)
+		
+		# Update all buttons to reflect the current state
+		update_action_buttons()
