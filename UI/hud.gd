@@ -229,9 +229,19 @@ func set_upgrade_button_enabled(enabled: bool) -> void:
 		if enabled:
 			upgrade_button.modulate = Color(1, 1, 1, 1)  # Fully visible
 			upgrade_button.tooltip_text = "Upgrade"
+			
+			# Enable the glow effect
+			var glow_effect = upgrade_button.get_node("GlowEffect")
+			if glow_effect:
+				glow_effect.emitting = true
 		else:
 			upgrade_button.modulate = Color(1, 1, 1, 0.5)  # Semi-transparent
 			upgrade_button.tooltip_text = "Clear all enemies on this level to upgrade"
+			
+			# Disable the glow effect
+			var glow_effect = upgrade_button.get_node("GlowEffect")
+			if glow_effect:
+				glow_effect.emitting = false
 
 # Handle clicking on the drill action button
 func _on_action_drill_input(event: InputEvent) -> void:

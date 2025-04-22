@@ -1,12 +1,30 @@
-[gd_scene load_steps=12 format=3 uid="uid://ctaeg60vimnlh"]
+[gd_scene load_steps=24 format=3 uid="uid://ctaeg60vimnlh"]
 
 [ext_resource type="Script" uid="uid://bi03uqtchp46e" path="res://UI/hud.gd" id="1_7i7fj"]
 [ext_resource type="Texture2D" uid="uid://bt1u3xtfej64n" path="res://images/image_act.png" id="1_ktti3"]
 [ext_resource type="Texture2D" uid="uid://bvtqpr1hb2ewx" path="res://images/image_run.png" id="2_cgfq5"]
-[ext_resource type="Texture2D" uid="uid://biewt667t613j" path="res://images/icon_shoot.png" id="2_gdt2y"]
 [ext_resource type="Texture2D" uid="uid://4leq60s6j6fn" path="res://images/image_face.png" id="3_7dvkv"]
-[ext_resource type="Texture2D" uid="uid://blhl16ar0sq21" path="res://images/icon_guard.png" id="3_wm3ai"]
+[ext_resource type="Texture2D" uid="uid://cspqdahswwlw1" path="res://Graphics/icons/icons_Drill.png" id="5_8ip7y"]
+[ext_resource type="Texture2D" uid="uid://dil2qipyuukv5" path="res://Graphics/icons/icons_BigDrill.png" id="6_likdy"]
+[ext_resource type="Texture2D" uid="uid://dsbxfs0kqd5t3" path="res://Graphics/icons/icons_DrillSmash.png" id="7_pgems"]
 [ext_resource type="Texture2D" uid="uid://bmtdje21c1ggw" path="res://images/button_endturn.png" id="7_vdcm2"]
+[ext_resource type="Texture2D" uid="uid://deipnk3fe2cb6" path="res://Graphics/icons/icons_ChargeAttack.png" id="8_rsrlt"]
+[ext_resource type="Texture2D" uid="uid://b4iyjo4f2mbc6" path="res://Graphics/icons/icons_Defend.png" id="9_lbtxw"]
+[ext_resource type="Texture2D" uid="uid://cmav0p5fvpob8" path="res://Graphics/icons/icons_LineShot.png" id="10_gp2h7"]
+[ext_resource type="Texture2D" uid="uid://05h780u35qn" path="res://Graphics/icons/icons_Cloak.png" id="11_4hs1h"]
+[ext_resource type="Texture2D" uid="uid://swai2io5n363" path="res://Graphics/icons/icons_Fireball.png" id="12_dcyds"]
+[ext_resource type="Texture2D" uid="uid://di1peovfwbdb" path="res://Graphics/icons/icons_Healing.png" id="13_rc7pm"]
+[ext_resource type="Texture2D" uid="uid://bs1nuen0bekx5" path="res://Graphics/icons/icons_Freeze.png" id="14_h8urj"]
+[ext_resource type="Texture2D" uid="uid://5vduiqm2hox1" path="res://Graphics/icons/icons_Poison.png" id="15_ghl3h"]
+[ext_resource type="Texture2D" uid="uid://b72xk74n6nnap" path="res://Graphics/icons/icons_Teleport.png" id="16_qbvrm"]
+
+[sub_resource type="Curve" id="Curve_scale"]
+_data = [Vector2(0, 0.4), 0.0, 1.8, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.4), -1.8, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_qy6c4"]
+offsets = PackedFloat32Array(0, 0.3, 0.7, 1)
+colors = PackedColorArray(0.921569, 0.878431, 0.34902, 0, 0.921569, 0.878431, 0.34902, 0.6, 1, 0.945098, 0.490196, 0.8, 0.921569, 0.878431, 0.34902, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_md4fy"]
 
@@ -41,6 +59,29 @@ custom_minimum_size = Vector2(135, 45)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Upgrades"
+
+[node name="GlowEffect" type="CPUParticles2D" parent="MenuMargin/HBoxContainer/ButtonUpgrade"]
+show_behind_parent = true
+position = Vector2(67.5, 22.5)
+amount = 32
+lifetime = 1.5
+preprocess = 1.0
+speed_scale = 0.7
+randomness = 0.3
+lifetime_randomness = 0.2
+local_coords = true
+emission_shape = 3
+emission_rect_extents = Vector2(70, 28)
+spread = 5.0
+gravity = Vector2(0, 0)
+angular_velocity_min = -15.0
+angular_velocity_max = 15.0
+orbit_velocity_min = -0.05
+orbit_velocity_max = 0.05
+scale_amount_min = 15.0
+scale_amount_max = 25.0
+scale_amount_curve = SubResource("Curve_scale")
+color_ramp = SubResource("Gradient_qy6c4")
 
 [node name="ButtonMenu" type="Button" parent="MenuMargin/HBoxContainer"]
 custom_minimum_size = Vector2(135, 45)
@@ -209,7 +250,7 @@ theme_override_constants/separation = 10
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("1_ktti3")
+texture_normal = ExtResource("5_8ip7y")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -217,7 +258,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("1_ktti3")
+texture_normal = ExtResource("6_likdy")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -225,7 +266,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("7_pgems")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -233,7 +274,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("8_rsrlt")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -241,7 +282,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("9_lbtxw")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -249,7 +290,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("2_gdt2y")
+texture_normal = ExtResource("10_gp2h7")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -257,7 +298,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("11_4hs1h")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -265,7 +306,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("2_gdt2y")
+texture_normal = ExtResource("12_dcyds")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -273,7 +314,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("13_rc7pm")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -281,7 +322,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("14_h8urj")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -289,7 +330,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("15_ghl3h")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -297,7 +338,7 @@ stretch_mode = 0
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("3_wm3ai")
+texture_normal = ExtResource("16_qbvrm")
 ignore_texture_size = true
 stretch_mode = 0
 
