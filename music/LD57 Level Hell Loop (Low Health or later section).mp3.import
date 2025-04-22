@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b3sgbto1h2aro"
+path="res://.godot/imported/LD57 Level Hell Loop (Low Health or later section).mp3-854651e3bc2cb00e4127ac84f9870387.mp3str"
+
+[deps]
+
+source_file="res://music/LD57 Level Hell Loop (Low Health or later section).mp3"
+dest_files=["res://.godot/imported/LD57 Level Hell Loop (Low Health or later section).mp3-854651e3bc2cb00e4127ac84f9870387.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

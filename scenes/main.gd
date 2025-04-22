@@ -14,7 +14,9 @@ var levels : Array[PackedScene] = [
 var tracks : Array[AudioStreamMP3] = [
 		load("res://music/LD76 OST Main Title Loop mp3.mp3"),
 		load("res://music/LD57 Level 1 Loop.mp3"),
-		load("res://music/LD76 Level 1 Loop (Low Health).mp3")
+		load("res://music/LD76 Level 1 Loop (Low Health).mp3"),
+		load("res://music/LD57 Level Hell Loop.mp3"),
+		load("res://music/LD57 Level Hell Loop (Low Health or later section).mp3"),
 	]
 
 var music_player : Array[AudioStreamPlayer]
@@ -41,6 +43,10 @@ func _ready() -> void:
 	music_track(0)
 	music_player[0].finished.connect(music_loop)
 	music_player[1].finished.connect(music_loop)
+	
+	# Connect to track deepest layer changes
+	if not Global.is_connected("deepest_layer_changed", _on_deepest_layer_changed):
+		Global.connect("deepest_layer_changed", _on_deepest_layer_changed)
 
 
 func music_track(track) -> void:
@@ -61,17 +67,14 @@ func music_fade_out(music_player) :
 	var tween = create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(music_player, "volume_linear", 0, 2)
 
-
 #Toggle music urgency:
-func music_toggle_urgency() -> void:
+func music_increase_urgency() -> void:
 	
 	var start_point = music_player[current_stream_player].get_playback_position()
-	if (music_urgency) :
-		current_track = current_track - bloody_offset
-	else :
-		current_track = current_track + bloody_offset
-		
-	music_urgency = !music_urgency
+	if current_track > len(tracks)-1:
+		return
+	else:
+		current_track += 1
 	
 	music_fade_out(music_player[current_stream_player])
 	if current_stream_player == 0 :
@@ -261,8 +264,12 @@ func _on_menu_debug_dbg_gameover() -> void:
 
 
 func _on_menu_debug_dbg_music_mode() -> void:
-	music_toggle_urgency()
-
+	music_increase_urgency()
 
 func _on_menu_game_over_gameover_menu() -> void:
 	restart_game()
+
+# Called when a new deepest layer is reached
+func _on_deepest_layer_changed(new_layer: int) -> void:
+	# Increase music urgency when player reaches a new deepest level
+	music_increase_urgency()

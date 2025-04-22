@@ -1,6 +1,7 @@
 extends Node
 
 signal xp_changed(new_xp: int)
+signal deepest_layer_changed(new_layer: int)
 
 # Global game state and utility functions
 var debug_mode: bool = true
@@ -49,6 +50,9 @@ func update_deepest_layer(layer: int):
 		deepest_layer_reached = layer
 		print("Global: New deepest layer reached: " + str(deepest_layer_reached))
 		
+		# Emit signal with new deepest layer
+		deepest_layer_changed.emit(deepest_layer_reached)
+
 # Reset all tracking statistics when starting a new game
 func reset_stats():
 	xp = 0

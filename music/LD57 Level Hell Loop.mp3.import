@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cw7i1jvkm7vh5"
+path="res://.godot/imported/LD57 Level Hell Loop.mp3-f71ceffef98a7a2360d17b4ad267dcff.mp3str"
+
+[deps]
+
+source_file="res://music/LD57 Level Hell Loop.mp3"
+dest_files=["res://.godot/imported/LD57 Level Hell Loop.mp3-f71ceffef98a7a2360d17b4ad267dcff.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
