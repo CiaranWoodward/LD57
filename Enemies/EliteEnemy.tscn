@@ -1,16 +1,19 @@
-[gd_scene load_steps=4 format=3 uid="uid://bl3petyk1hi0y"]
+[gd_scene load_steps=5 format=3 uid="uid://bl3petyk1hi0y"]
 
 [ext_resource type="Script" uid="uid://uo235dtxwwq0" path="res://Enemies/EliteEnemy.gd" id="1_hsdep"]
-[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_68xh1"]
-[ext_resource type="Script" path="res://scenes/ProjectileSpawner.gd" id="3_v13sd"]
+[ext_resource type="Texture2D" uid="uid://3pxadnr3cqqr" path="res://Graphics/Enemies/super_Elite.png" id="2_icqbd"]
+[ext_resource type="Script" uid="uid://b2phw6axqtl2" path="res://scenes/ProjectileSpawner.gd" id="3_v13sd"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_icqbd"]
+size = Vector2(87, 107)
 
 [node name="EliteEnemy" type="Node2D"]
 script = ExtResource("1_hsdep")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-self_modulate = Color(0.408598, 0.407394, 1.92523e-07, 1)
-position = Vector2(0, -65)
-texture = ExtResource("2_68xh1")
+position = Vector2(2, -81)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("2_icqbd")
 
 [node name="HealthBarPos" type="Marker2D" parent="."]
 position = Vector2(4, -105)
@@ -19,3 +22,9 @@ position = Vector2(4, -105)
 script = ExtResource("3_v13sd")
 projectile_speed = 500.0
 projectile_color = Color(0.408, 0.407, 0, 0.8)
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(1, -62)
+shape = SubResource("RectangleShape2D_icqbd")

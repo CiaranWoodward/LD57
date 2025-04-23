@@ -17,8 +17,8 @@ func _ready():
 	move_speed = 0.0  # Cannot move
 	detection_range = 0  # Doesn't detect players
 	aggression_level = 0.0  # No aggression
-	max_health = 10
-	current_health = 10
+	max_health = 5
+	current_health = 5
 	
 	xp_value = 10
 	

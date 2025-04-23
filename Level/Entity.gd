@@ -482,6 +482,13 @@ func has_status_effect(effect_name: String) -> bool:
 func _input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("Entity clicked: ", entity_name)
+		
+		# Check if this is a player entity and don't emit selection signal
+		if self is PlayerEntity:
+			print("PlayerEntity clicked: ", entity_name, " - ignoring selection")
+			return
+			
+		# Only emit the selection signal for non-player entities
 		emit_signal("entity_selected", self) 
 
 # Move along the current path

@@ -1,12 +1,21 @@
-[gd_scene load_steps=3 format=3 uid="uid://pny8rin8hw87"]
+[gd_scene load_steps=4 format=3 uid="uid://pny8rin8hw87"]
 
 [ext_resource type="Script" uid="uid://c1ysclhtkgbjq" path="res://Enemies/GruntEnemy.gd" id="1_rdtcw"]
-[ext_resource type="Texture2D" uid="uid://b70w55lxjudji" path="res://icon.svg" id="2_wgdkr"]
+[ext_resource type="Texture2D" uid="uid://c1iryn45x5c75" path="res://Graphics/Enemies/super_Grunt.png" id="2_wgdkr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wgdkr"]
+size = Vector2(87, 107)
 
 [node name="GruntEnemy" type="Node2D"]
 script = ExtResource("1_rdtcw")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-self_modulate = Color(0.915337, 0.000705597, 0.919708, 1)
-position = Vector2(0, -65)
+position = Vector2(2, -54)
+scale = Vector2(0.6, 0.6)
 texture = ExtResource("2_wgdkr")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(3, -59)
+shape = SubResource("RectangleShape2D_wgdkr")

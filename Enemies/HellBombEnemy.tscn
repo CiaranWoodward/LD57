@@ -1,13 +1,32 @@
-[gd_scene load_steps=3 format=3 uid="uid://cosnhvfl10sit"]
+[gd_scene load_steps=4 format=3 uid="uid://cosnhvfl10sit"]
 
-[ext_resource type="PackedScene" path="res://Enemies/BaseBombEnemy.tscn" id="1_anbid"]
+[ext_resource type="PackedScene" uid="uid://bfvgq3eh5c28g" path="res://Enemies/BaseBombEnemy.tscn" id="1_anbid"]
 [ext_resource type="Script" uid="uid://cbqak8navhc7c" path="res://Enemies/HellBombEnemy.gd" id="2_e4ypt"]
+[ext_resource type="Texture2D" uid="uid://ched3vgacyeqw" path="res://Graphics/Enemies/super_Bomb.png" id="3_26f2j"]
 
 [node name="HellBombEnemy" instance=ExtResource("1_anbid")]
 script = ExtResource("2_e4ypt")
 
-[node name="Sprite2D" parent="." index="0"]
-self_modulate = Color(1, 0.4, 0, 1)
+[node name="Sprite2D" type="Sprite2D" parent="." index="0"]
+position = Vector2(1, -42)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("3_26f2j")
 
 [node name="ExplosionParticles" parent="." index="2"]
 color = Color(1, 0.4, 0, 1)
+
+[node name="ChaseParticles" type="CPUParticles2D" parent="." index="5"]
+position = Vector2(12, -116)
+amount = 20
+lifetime = 0.6
+local_coords = true
+emission_shape = 1
+emission_sphere_radius = 5.0
+direction = Vector2(0, -1)
+spread = 90.0
+gravity = Vector2(0, 30)
+initial_velocity_min = 10.0
+initial_velocity_max = 69.5
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(1, 0, 0.4, 0.4)

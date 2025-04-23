@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://dc40kqfykbc2o"]
 
 [ext_resource type="Script" uid="uid://bxoj1njd660h3" path="res://Enemies/MinionEnemy.gd" id="1_h27ej"]
-[ext_resource type="Texture2D" uid="uid://bau3w7vbo0o1i" path="res://Graphics/super_Bomb_egg.png" id="2_67mml"]
+[ext_resource type="Texture2D" uid="uid://3ssxa31op1k8" path="res://Graphics/Enemies/super_Minion.png" id="2_rt86d"]
 [ext_resource type="Script" uid="uid://b2phw6axqtl2" path="res://scenes/ProjectileSpawner.gd" id="3_e2mtr"]
 
 [node name="MinionEnemy" type="Node2D"]
@@ -9,9 +9,9 @@ script = ExtResource("1_h27ej")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 self_modulate = Color(0.6, 0.8, 1, 1)
-position = Vector2(1, -36)
+position = Vector2(-4, -53)
 scale = Vector2(0.4, 0.4)
-texture = ExtResource("2_67mml")
+texture = ExtResource("2_rt86d")
 
 [node name="Area2D" type="Area2D" parent="."]
 

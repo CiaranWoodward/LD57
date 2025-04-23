@@ -19,7 +19,9 @@ var entity_type_map = {
 	"minion": EnemyEntity.EnemyType.MINION,
 	"elite": EnemyEntity.EnemyType.ELITE,
 	"grunt": EnemyEntity.EnemyType.GRUNT,
-	"boss": EnemyEntity.EnemyType.BOSS
+	"boss": EnemyEntity.EnemyType.BOSS,
+	"exploding_barrel": EnemyEntity.EnemyType.EXPLOSIVE_BARREL,
+	"destructible_wall": EnemyEntity.EnemyType.DESTRUCTIBLE_WALL
 }
 
 func _ready():

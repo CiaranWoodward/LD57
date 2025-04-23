@@ -15,13 +15,13 @@ var current_deepest_level: int = 0
 
 # Tile and entity encoding dictionary
 # First character: Tile type
-# o = open/floor, s = stone/wall
+# o = stone/floor, s = stone/wall
 # Second character (optional): Entity to spawn
 # H = Hellbomb, C = Hellbomb Chaser, M = Minion, E = Elite, G = Grunt, B = Boss, P = Player (Heavy), S = Scout, W = Wizard
 # X = Exploding Barrel, D = Destructible Wall
 var tile_entity_encoding = {
 	# Tile types (first character)
-	"o": "open_floor",
+	"o": "stone_floor",
 	"s": "stone_wall",
 	
 	# Entity types (second character)
@@ -41,7 +41,7 @@ var tile_entity_encoding = {
 var level_maps : Array = [
 	[
 		["s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s", "s"],
-		["s", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
+		["s", "o", "o", "oD", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["s", "o", "oP", "s", "oS", "oW", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["s", "o", "o", "s", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o"],
 		["s", "o", "o", "s", "s", "s", "s", "o", "o", "o", "o", "o", "o", "o", "o"],
@@ -255,14 +255,11 @@ func initialize_level(level_index: int) -> IsometricMap:
 
 # Check if a tile position in a level has a valid tile below it for drilling
 func has_valid_tile_below(level_index: int, grid_pos: Vector2i) -> bool:
-	if level_index >= level_nodes.size() - 1:
-		return false  # No level below
-		
 	var level_below_index = level_index + 1
 	
-	# Initialize the level below if it's not already active
+	# Return false if the level below does not exist
 	if not level_nodes.has(level_below_index):
-		initialize_level(level_below_index)
+		return false
 		
 	var level_below = level_nodes[level_below_index]
 	var tile_below = level_below.get_tile(grid_pos)
