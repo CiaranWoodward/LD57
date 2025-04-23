@@ -58,7 +58,8 @@ theme_override_constants/margin_bottom = 10
 [node name="MainTitle" type="Label" parent="MainMargin/MainVBox/MainTitleMargin/MainTextMargin"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "GAME TITLE"
+text = "Devil Elimination Party of Tactical Hunters
+(D.E.P.T.H.)"
 horizontal_alignment = 1
 
 [node name="MainPanelMargin" type="MarginContainer" parent="MainMargin/MainVBox"]
