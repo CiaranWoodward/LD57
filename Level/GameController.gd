@@ -533,7 +533,12 @@ func _on_group_turns_started(group_name):
 		change_state(GameState.PLAYER_TURN_ACTIVE)
 	elif group_name == "enemy":
 		# Check if all enemies are defeated before starting enemy turns
-		if enemy_entities.size() == 0:
+		var real_enemies_remaining = 0
+		for enemy in enemy_entities:
+			if enemy.enemy_type != EnemyEntity.EnemyType.EXPLOSIVE_BARREL and enemy.enemy_type != EnemyEntity.EnemyType.DESTRUCTIBLE_WALL:
+				real_enemies_remaining += 1
+				
+		if real_enemies_remaining == 0:
 			# Victory condition
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
@@ -777,7 +782,12 @@ func _on_entity_died(entity):
 		turn_sequencer.remove_character(entity)
 		
 		# Check if all enemies are defeated
-		if enemy_entities.size() == 0:
+		var real_enemies_remaining = 0
+		for enemy in enemy_entities:
+			if enemy.enemy_type != EnemyEntity.EnemyType.EXPLOSIVE_BARREL and enemy.enemy_type != EnemyEntity.EnemyType.DESTRUCTIBLE_WALL:
+				real_enemies_remaining += 1
+				
+		if real_enemies_remaining == 0:
 			# Victory condition
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
@@ -1056,7 +1066,21 @@ func _on_ability_button_hovered(player: PlayerEntity, ability_name: String):
 		"big_drill":
 			if player.has_method("highlight_big_drill_targets"):
 				player.highlight_big_drill_targets()
-				_handle_big_drill_hover(player)
+				
+				# Show drill visualization for big drill
+				if level_manager:
+					var current_level = player.current_level
+					var current_pos = player.grid_position
+					
+					if level_manager.has_valid_tile_below(current_level, current_pos):
+						show_drill_visualization(current_level, current_pos, current_level + 1, current_pos)
+						
+						var adjacent_allies = player.get_adjacent_players()
+						for ally in adjacent_allies:
+							show_drill_visualization(ally.current_level, ally.grid_position, ally.current_level + 1, ally.grid_position)
+		"drill":
+			# Handle drill specifically since it needs level-based visualization
+			_handle_drill_hover(player)
 		"charge_attack":
 			if player.has_method("highlight_charge_attack_targets"):
 				player.highlight_charge_attack_targets()
@@ -1581,7 +1605,8 @@ func check_level_enemies_cleared(level_index: int):
 	# Count how many enemies are still on this level
 	var enemies_on_level = 0
 	for enemy in enemy_entities:
-		if enemy.current_level == level_index:
+		# Skip exploding barrels and destructible walls for level clearing check
+		if enemy.current_level == level_index and enemy.enemy_type != EnemyEntity.EnemyType.EXPLOSIVE_BARREL and enemy.enemy_type != EnemyEntity.EnemyType.DESTRUCTIBLE_WALL:
 			enemies_on_level += 1
 	
 	print("GameController: Level " + str(level_index) + " has " + str(enemies_on_level) + " enemies remaining")
@@ -1600,7 +1625,7 @@ func check_level_enemies_cleared(level_index: int):
 # Check if there are enemies on the current active level
 func has_enemies_on_active_level() -> bool:
 	for enemy in enemy_entities:
-		if enemy.current_level == current_active_level:
+		if enemy.current_level == current_active_level and enemy.enemy_type != EnemyEntity.EnemyType.EXPLOSIVE_BARREL and enemy.enemy_type != EnemyEntity.EnemyType.DESTRUCTIBLE_WALL:
 			return true
 	return false
 
