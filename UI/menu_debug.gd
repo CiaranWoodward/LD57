@@ -10,6 +10,8 @@ signal dbg_add_xp(value)
 
 signal dbg_kill_all_enemies
 
+signal dbg_kill_all_enemies_all_levels
+
 func _on_game_over_pressed() -> void:
 	dbg_gameover.emit()
 
@@ -27,3 +29,6 @@ func _on_win_pressed() -> void:
 
 func _on_kill_all_enemies_pressed() -> void:
 	dbg_kill_all_enemies.emit()
+
+func _on_kill_all_enemies_all_levels_pressed() -> void:
+	dbg_kill_all_enemies_all_levels.emit()

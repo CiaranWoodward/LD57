@@ -46,6 +46,7 @@ func _ready() -> void:
 	
 	# Connect signals from MenuDebug
 	$MenuDebug.dbg_kill_all_enemies.connect(_on_menu_debug_dbg_kill_all_enemies)
+	$MenuDebug.dbg_kill_all_enemies_all_levels.connect(_on_menu_debug_dbg_kill_all_enemies_all_levels)
 	
 	# Connect to track deepest layer changes
 	if not Global.is_connected("deepest_layer_changed", _on_deepest_layer_changed):
@@ -312,6 +313,40 @@ func _on_menu_debug_dbg_kill_all_enemies() -> void:
 			if killed_count > 0:
 				Global.add_xp(killed_count * 10)
 				print("Debug: Killed all enemies on level " + str(current_active_level) + " (" + str(killed_count) + " enemies)")
+
+# Kill all enemies on all levels
+func _on_menu_debug_dbg_kill_all_enemies_all_levels() -> void:
+	if current_level and current_level.has_node("GameController"):
+		var game_controller = current_level.get_node("GameController")
+		
+		# Check if the game controller has enemy entities array
+		if game_controller.has_method("get_enemy_entities") or "enemy_entities" in game_controller:
+			var enemies = game_controller.enemy_entities if "enemy_entities" in game_controller else game_controller.get_enemy_entities()
+			
+			# Count how many enemies we're killing
+			var killed_count = 0
+			
+			# Kill all enemies regardless of level
+			for enemy in enemies.duplicate(): # Duplicate the array since we'll be removing elements
+				if is_instance_valid(enemy):
+					if enemy.has_method("kill"):
+						enemy.kill()
+						killed_count += 1
+					elif enemy.has_method("take_damage"):
+						# If there's no direct kill method, apply large damage
+						enemy.take_damage(1000)
+						killed_count += 1
+			
+			# Grant XP for killing enemies
+			if killed_count > 0:
+				Global.add_xp(killed_count * 10)
+				print("Debug: Killed all enemies on all levels (" + str(killed_count) + " enemies)")
+				
+				# This might trigger the victory condition automatically through the 
+				# GameController's entity_died handler, but just in case:
+				if killed_count > 0 and enemies.size() == 0:
+					# Call victory directly
+					gameover(1)
 
 # Called when a new deepest layer is reached
 func _on_deepest_layer_changed(new_layer: int) -> void:

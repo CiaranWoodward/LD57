@@ -532,7 +532,18 @@ func _on_group_turns_started(group_name):
 	if group_name == "player":
 		change_state(GameState.PLAYER_TURN_ACTIVE)
 	elif group_name == "enemy":
+		# Check if all enemies are defeated before starting enemy turns
+		if enemy_entities.size() == 0:
+			# Victory condition
+			print("GameController: Victory - all enemies defeated")
+			change_state(GameState.GAME_OVER)
+			# Call gameover with victory state
+			get_tree().get_root().get_node("Main").gameover(1)
+			return
+			
 		change_state(GameState.ENEMY_TURN_ACTIVE)
+		emit_signal("turn_changed", "enemy")
+		emit_signal("game_state_changed", "enemy_turn")
 
 # Event handler for when a group completes all its turns
 func _on_group_turns_completed(group_name):
@@ -770,6 +781,8 @@ func _on_entity_died(entity):
 			# Victory condition
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
+			# Call gameover with victory state
+			get_tree().get_root().get_node("Main").gameover(1)
 		
 		# Check if all enemies on this specific level are defeated
 		check_level_enemies_cleared(entity.current_level)
