@@ -19,6 +19,12 @@ var moving = false
 var dragging = false
 var rezoom = false
 
+# Touch and pinch variables
+var touch_points = {}
+var pinch_start_distance = 0
+var pinch_start_zoom = Vector2.ZERO
+var is_pinching = false
+
 ## Camera boundary in global coordinates
 @export var MaxPos : Vector2 = Vector2(1000, 1000)
 @export var MinPos : Vector2 = Vector2(-1000, -1000)
@@ -92,6 +98,40 @@ func _setup_references():
 		push_error("PlayerCam: Could not find GameController")
 
 func _unhandled_input(event):
+	# Handle touch events for pinch zooming
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			# Store touch points
+			touch_points[event.index] = event.position
+		else:
+			# Remove touch points
+			touch_points.erase(event.index)
+			
+			# End pinching if less than 2 touch points remain
+			if touch_points.size() < 2:
+				is_pinching = false
+				
+	# Handle touch movement for pinch zooming
+	if event is InputEventScreenDrag:
+		# Update touch point position
+		touch_points[event.index] = event.position
+		
+		# If we have exactly 2 touch points, handle pinch zoom
+		if touch_points.size() == 2:
+			var touch_positions = touch_points.values()
+			var current_distance = touch_positions[0].distance_to(touch_positions[1])
+			
+			# Start pinch if not already pinching
+			if not is_pinching:
+				is_pinching = true
+				pinch_start_distance = current_distance
+				pinch_start_zoom = zoom
+			else:
+				# Calculate zoom factor based on distance change
+				var zoom_factor = pinch_start_distance / current_distance
+				target_zoom = pinch_start_zoom * zoom_factor
+				rezoom = true
+			
 	# Only allow unhandled input for start drag
 	if event is InputEventMouseButton and (event.button_index == MOUSE_BUTTON_RIGHT || event.button_index == MOUSE_BUTTON_MIDDLE):
 		if event.is_pressed():
@@ -148,7 +188,7 @@ func _physics_process(delta):
 			zoom_tween.tween_property(self, "zoom", target_zoom, ZOOM_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		rezoom = false
 	
-	if dragging:
+	if dragging or is_pinching:
 		return
 	
 	var dir_delta = Vector2.ZERO
