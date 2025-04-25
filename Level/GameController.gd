@@ -543,7 +543,7 @@ func _on_group_turns_started(group_name):
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
 			# Call gameover with victory state
-			get_tree().get_root().get_node("Main").gameover(1)
+			Global.gameover(1)
 			return
 			
 		change_state(GameState.ENEMY_TURN_ACTIVE)
@@ -792,7 +792,7 @@ func _on_entity_died(entity):
 			print("GameController: Victory - all enemies defeated")
 			change_state(GameState.GAME_OVER)
 			# Call gameover with victory state
-			get_tree().get_root().get_node("Main").gameover(1)
+			Global.gameover(1)
 		
 		# Check if all enemies on this specific level are defeated
 		check_level_enemies_cleared(entity.current_level)

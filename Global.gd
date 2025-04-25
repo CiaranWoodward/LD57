@@ -9,6 +9,7 @@ var current_level: int = 1
 var hud : HUD = null
 var upgrade_menu : UpgradeMenu = null
 var xp: int = 0  # Global XP counter shared between all players
+var main_node = null  # Reference to the Main node
 
 # Additional tracking variables
 var total_xp_acquired: int = 0  # Tracks all positive XP, regardless of spending
@@ -17,6 +18,18 @@ var deepest_layer_reached: int = 1  # Tracks the deepest layer of the map reache
 
 func _ready():
 	print("Global singleton initialized")
+
+# Register the Main node with the singleton
+func register_main(main_instance):
+	main_node = main_instance
+	print("Global: Main node registered")
+
+# Call gameover function on the Main node
+func gameover(state):
+	if main_node:
+		main_node.gameover(state)
+	else:
+		push_error("Global: Cannot call gameover - Main node not registered")
 
 # Utility function to get a file path
 func get_resource_path(resource_name: String) -> String:

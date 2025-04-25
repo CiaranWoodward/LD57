@@ -34,6 +34,9 @@ var current_level : Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	# Register this Main node with the Global singleton
+	Global.register_main(self)
+	
 	sfx_player = $SFX
 	sfx_player.volume_linear = sfx_volume
 	music_player.append($Music0)
